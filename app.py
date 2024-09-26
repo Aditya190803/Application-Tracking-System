@@ -10,13 +10,13 @@ genai.configure(api_key=st.secrets.GOOGLE_API_KEY)
 # Define cached functions
 @st.cache_data()
 def get_gemini_response(input, pdf_content, prompt):
-    model = genai.GenerativeModel('gemini-pro-vision')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content([input, pdf_content[0], prompt])
     return response.text
 
 @st.cache_data()
 def get_gemini_response_keywords(input, pdf_content, prompt):
-    model = genai.GenerativeModel('gemini-pro-vision')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content([input, pdf_content[0], prompt])
     return json.loads(response.text[8:-4])
 
