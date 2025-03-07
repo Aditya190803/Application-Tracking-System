@@ -15,7 +15,7 @@ This is a Streamlit web application for an Applicant Tracking System (ATS) Resum
 1. Clone the repository:
 
 ```
-git clone https://github.com/your_username/ats-resume-scanner.git
+git clone https://github.com/Aditya190803/Application-Tracking-System.git
 ```
 
 Install the required dependencies:
