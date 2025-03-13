@@ -12,7 +12,6 @@ model = genai.GenerativeModel('gemini-2.0-flash')
 @st.cache_data()
 def get_gemini_response(input, pdf_content, prompt):
     _model = model
-    print(_model.model_name)
     response = _model.generate_content([input, pdf_content[0], prompt])
     return response.text
 
