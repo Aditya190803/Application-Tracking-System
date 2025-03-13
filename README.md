@@ -22,6 +22,16 @@ Install the required dependencies:
 ```
 pip install -r requirements.txt
 ```
+Install poppler (if you currently don't have it in your system)
+_mac instructions shown, for other systems see: https://pdf2image.readthedocs.io/en/latest/installation.html_
+
+```
+brew install poppler
+```
+Get an API key for Gemini from https://aistudio.google.com/ and store it under `./streamlit/secrets.toml` as shown below
+```
+GOOGLE_API_KEY = "<PASTE_API_KEY_HERE>"
+```
 Run the Streamlit app:
 ```
 streamlit run app.py
