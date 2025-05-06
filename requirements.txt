@@ -4,3 +4,5 @@ python-dotenv
 PyPDF2
 pdf2image
 Pillow
+numpy
+pandas
