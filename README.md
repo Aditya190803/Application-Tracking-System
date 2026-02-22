@@ -6,6 +6,7 @@ AI-powered resume analysis and cover-letter generation built with Next.js, Stack
 
 - Resume analysis with match scoring, strengths, weaknesses, skills match, and recommendations
 - Cover-letter generation with configurable tone and length
+- Tailored LaTeX resume generation using selectable templates
 - PDF resume upload and parsing
 - Searchable history for analyses and cover letters
 - Auth-protected dashboard flows
@@ -68,6 +69,7 @@ MODEL_NAME="gemini-2.5-flash"
 AI_TIMEOUT_MS="30000"
 PDF_PARSE_TIMEOUT_MS="12000"
 COVER_LETTER_ROUTE_TIMEOUT_MS="35000"
+RESUME_ROUTE_TIMEOUT_MS="45000"
 UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 # Only set true for local emergency fallback; keep false/empty in production
@@ -103,6 +105,7 @@ Primary user flows are under dashboard routes:
 - `/dashboard/analysis/[slug]`
 - `/dashboard/cover-letter`
 - `/dashboard/cover-letter/[slug]`
+- `/dashboard/resume-builder`
 - `/dashboard/history`
 - `/dashboard/upload`
 
@@ -169,6 +172,31 @@ Error response shape:
 
 - `{ code, message, details?, requestId }` with status `400 | 401 | 429 | 500 | 503 | 504`
 
+### `POST /api/generate-resume-latex`
+
+Generates a job-tailored LaTeX resume using a selected template.
+
+Body fields:
+
+- `resumeText: string` (required)
+- `jobDescription: string` (required)
+- `templateId: "awesome-classic" | "deedy-modern" | "sb2nov-ats"` (optional, default `awesome-classic`)
+- `resumeName?: string`
+- `forceRegenerate?: boolean`
+
+Success response:
+
+- `latexSource: string`
+- `structuredData: object`
+- `templateId: string`
+- `cached: boolean`
+- `source?: "database"`
+- `documentId?: string`
+
+Error response shape:
+
+- `{ code, message, details?, requestId }` with status `400 | 401 | 429 | 500 | 503 | 504`
+
 ### Other API routes
 
 - `POST /api/parse-pdf`
@@ -206,6 +234,7 @@ src/app/
     analysis/
     cover-letter/
     history/
+    resume-builder/
     upload/
   handler/[...stack]/
   page.tsx

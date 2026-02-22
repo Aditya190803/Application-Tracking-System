@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const toneSchema = z.enum(['professional', 'friendly', 'enthusiastic']);
 export const lengthSchema = z.enum(['concise', 'standard', 'detailed']);
 export const analysisTypeSchema = z.enum(['overview', 'keywords', 'match', 'coverLetter']);
+export const resumeTemplateIdSchema = z.enum(['awesome-classic', 'deedy-modern', 'sb2nov-ats']);
 
 const freeTextSchema = z
   .string()
@@ -51,6 +52,15 @@ export const coverLetterRequestSchema = analyzeRequestSchema
     tone: toneSchema.default('professional'),
     length: lengthSchema.default('standard'),
   });
+
+export const tailoredResumeRequestSchema = z.object({
+  resumeText: z.string().trim().min(1, 'Resume text is required').max(50000, 'Resume text is too long (max 50,000 characters)'),
+  jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
+  templateId: resumeTemplateIdSchema.default('awesome-classic'),
+  resumeName: optionalFreeTextSchema,
+  forceRegenerate: z.boolean().optional(),
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
+});
 
 export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -101,6 +111,16 @@ export const coverLetterResponseSchema = z.object({
   requestId: z.string(),
 });
 
+export const tailoredResumeResponseSchema = z.object({
+  latexSource: z.string(),
+  structuredData: z.record(z.string(), z.unknown()),
+  templateId: resumeTemplateIdSchema,
+  cached: z.boolean(),
+  source: z.enum(['database']).optional(),
+  documentId: z.string().optional(),
+  requestId: z.string(),
+});
+
 export const resumesResponseSchema = z.object({
   resumes: z.array(
     z.object({
@@ -137,5 +157,6 @@ export const draftResponseSchema = z.object({
 
 export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
 export type CoverLetterRequest = z.infer<typeof coverLetterRequestSchema>;
+export type TailoredResumeRequest = z.infer<typeof tailoredResumeRequestSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;

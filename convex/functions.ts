@@ -245,6 +245,83 @@ export const getUserCoverLetters = query({
     },
 });
 
+// ─── Tailored Resume Functions ───────────────────────────────────────
+
+export const saveTailoredResume = mutation({
+    args: {
+        userId: v.string(),
+        resumeHash: v.string(),
+        jobDescriptionHash: v.string(),
+        templateId: v.string(),
+        jobTitle: v.optional(v.string()),
+        companyName: v.optional(v.string()),
+        resumeName: v.optional(v.string()),
+        jobDescription: v.optional(v.string()),
+        structuredData: v.string(),
+        latexSource: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const id = await ctx.db.insert("tailoredResumes", args);
+        const doc = await ctx.db.get(id);
+        return doc;
+    },
+});
+
+export const getTailoredResume = query({
+    args: {
+        userId: v.string(),
+        resumeHash: v.string(),
+        jobDescriptionHash: v.string(),
+        templateId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const doc = await ctx.db
+            .query("tailoredResumes")
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("userId"), args.userId),
+                    q.eq(q.field("resumeHash"), args.resumeHash),
+                    q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+                    q.eq(q.field("templateId"), args.templateId),
+                )
+            )
+            .order("desc")
+            .first();
+        return doc;
+    },
+});
+
+export const getTailoredResumeById = query({
+    args: { tailoredResumeId: v.id("tailoredResumes") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.tailoredResumeId);
+    },
+});
+
+export const deleteTailoredResume = mutation({
+    args: { tailoredResumeId: v.id("tailoredResumes") },
+    handler: async (ctx, args) => {
+        await ctx.db.delete(args.tailoredResumeId);
+        return { success: true };
+    },
+});
+
+export const getUserTailoredResumes = query({
+    args: {
+        userId: v.string(),
+        limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const limit = args.limit ?? 20;
+        const docs = await ctx.db
+            .query("tailoredResumes")
+            .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+            .order("desc")
+            .take(limit);
+        return docs;
+    },
+});
+
 // ─── Stats ───────────────────────────────────────────────────────────
 
 export const getUserStats = query({

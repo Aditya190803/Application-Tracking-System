@@ -140,6 +140,54 @@ interface AnalysisOptions {
   achievements?: string;
 }
 
+export interface TailoredResumeSectionItem {
+  title: string;
+  subtitle?: string;
+  date?: string;
+  location?: string;
+  bullets: string[];
+}
+
+export interface TailoredResumeData {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+  summary: string;
+  skills: string[];
+  experience: TailoredResumeSectionItem[];
+  projects: TailoredResumeSectionItem[];
+  education: TailoredResumeSectionItem[];
+  certifications: string[];
+  additional: string[];
+  targetTitle?: string;
+  keywordsUsed: string[];
+}
+
+function createGeminiModel(analysisType: AnalysisType | 'tailoredResume') {
+  const modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
+  return genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: {
+      temperature: analysisType === 'coverLetter' ? 0.8 : 0.4,
+      maxOutputTokens: 16384,
+    },
+  });
+}
+
+function stripMarkdownJsonFence(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed.startsWith('```')) {
+    return trimmed;
+  }
+
+  const withoutStart = trimmed.replace(/^```(?:json)?\s*/i, '');
+  return withoutStart.replace(/\s*```$/, '').trim();
+}
+
 export async function analyzeResume(
   resumeText: string,
   jobDescription: string,
@@ -150,16 +198,7 @@ export async function analyzeResume(
     throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
   }
 
-  // Using gemini-2.5-flash (thinking model) - requires higher token limits
-  // as thinking tokens count against maxOutputTokens
-  const modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: analysisType === 'coverLetter' ? 0.8 : 0.4,
-      maxOutputTokens: 16384, // Higher limit to accommodate thinking + response
-    },
-  });
+  const model = createGeminiModel(analysisType);
 
   let prompt: string;
 
@@ -214,5 +253,89 @@ ${jobDescription}`;
   } catch (error) {
     console.error('Gemini API error:', error);
     throw error;
+  }
+}
+
+export async function generateTailoredResumeData(
+  resumeText: string,
+  jobDescription: string
+): Promise<TailoredResumeData> {
+  if (!apiKey) {
+    throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
+  }
+
+  const model = createGeminiModel('tailoredResume');
+  const prompt = `You are an expert ATS resume writer.
+Generate tailored resume content from the SOURCE RESUME and JOB DESCRIPTION.
+
+CRITICAL RULES:
+1) Use only information from SOURCE RESUME. Do not invent employers, dates, degrees, certifications, metrics, or technologies.
+2) Focus on relevance to the JOB DESCRIPTION keywords and responsibilities.
+3) Keep bullets concise and impact-focused.
+4) Return ONLY valid JSON, no markdown, no commentary.
+
+Return exactly this shape:
+{
+  "fullName": "string or empty",
+  "email": "string or empty",
+  "phone": "string or empty",
+  "location": "string or empty",
+  "linkedin": "string or empty",
+  "github": "string or empty",
+  "website": "string or empty",
+  "summary": "2-4 line professional summary",
+  "skills": ["max 18 skills ordered by relevance"],
+  "experience": [
+    {
+      "title": "Role title",
+      "subtitle": "Company",
+      "date": "Date range",
+      "location": "Location",
+      "bullets": ["3-5 bullets"]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Project name",
+      "subtitle": "Tech stack or context",
+      "date": "Date range or empty",
+      "location": "Location or empty",
+      "bullets": ["2-4 bullets"]
+    }
+  ],
+  "education": [
+    {
+      "title": "Degree",
+      "subtitle": "Institution",
+      "date": "Date range",
+      "location": "Location",
+      "bullets": ["optional bullets, may be empty"]
+    }
+  ],
+  "certifications": ["optional"],
+  "additional": ["optional extras like awards/publications"],
+  "targetTitle": "best-fit role title from job description",
+  "keywordsUsed": ["important JD keywords reflected in the resume content"]
+}
+
+SOURCE RESUME:
+${resumeText}
+
+JOB DESCRIPTION:
+${jobDescription}`;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+
+  if (!text || text.trim() === '') {
+    throw new Error('AI returned an empty response. Please try again.');
+  }
+
+  const normalized = stripMarkdownJsonFence(text);
+  try {
+    return JSON.parse(normalized) as TailoredResumeData;
+  } catch (error) {
+    console.error('Failed to parse tailored resume JSON', { error, text: normalized });
+    throw new Error('AI returned invalid structured resume data. Please try again.');
   }
 }

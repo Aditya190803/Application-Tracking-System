@@ -1,6 +1,6 @@
 import { beforeEach,describe, expect, it, vi } from 'vitest';
 
-import { analyzeResume } from '@/lib/gemini';
+import { analyzeResume, generateTailoredResumeData } from '@/lib/gemini';
 
 const { mockGenerateContent, mockGetGenerativeModel } = vi.hoisted(() => ({
     mockGenerateContent: vi.fn(),
@@ -86,5 +86,26 @@ describe('gemini', () => {
         expect(prompt).toContain('professional tone');
         expect(prompt).toContain('300 words');
         expect(prompt).toContain('4 paragraphs');
+    });
+
+    it('should parse structured JSON for tailored resume generation', async () => {
+        mockGenerateContent.mockResolvedValue({
+            response: {
+                text: () => JSON.stringify({
+                    summary: 'summary',
+                    skills: ['TypeScript'],
+                    experience: [],
+                    projects: [],
+                    education: [],
+                    certifications: [],
+                    additional: [],
+                    keywordsUsed: ['typescript'],
+                }),
+            },
+        });
+
+        const result = await generateTailoredResumeData('resume', 'job');
+        expect(result.summary).toBe('summary');
+        expect(result.skills).toEqual(['TypeScript']);
     });
 });
