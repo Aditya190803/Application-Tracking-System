@@ -57,7 +57,7 @@ describe('/api/generate-resume-latex', () => {
   it('returns cached tailored resume when available', async () => {
     vi.mocked(getTailoredResume).mockResolvedValue({
       _id: 'tr-cache',
-      templateId: 'awesome-classic',
+      templateId: 'jake-classic',
       latexSource: '\\documentclass{article}',
       structuredData: JSON.stringify({ summary: 'cached' }),
     } as never);
@@ -67,7 +67,7 @@ describe('/api/generate-resume-latex', () => {
       body: JSON.stringify({
         resumeText: 'resume',
         jobDescription: 'job',
-        templateId: 'awesome-classic',
+        templateId: 'jake-classic',
       }),
     });
 

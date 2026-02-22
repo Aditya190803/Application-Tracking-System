@@ -15,7 +15,7 @@ describe('resume-latex', () => {
   });
 
   it('builds latex document for template', () => {
-    const output = buildLatexResume('awesome-classic', {
+    const output = buildLatexResume('jake-classic', {
       fullName: 'Ada Lovelace',
       email: 'ada@example.com',
       summary: 'Engineer building reliable systems.',

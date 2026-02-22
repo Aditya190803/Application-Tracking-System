@@ -1,6 +1,7 @@
 import type { TailoredResumeData, TailoredResumeSectionItem } from '@/lib/gemini';
 
-export const BUILT_IN_RESUME_TEMPLATE_IDS = ['awesome-classic', 'deedy-modern', 'sb2nov-ats'] as const;
+export const BUILT_IN_RESUME_TEMPLATE_IDS = ['jake-classic', 'deedy-modern', 'sb2nov-ats'] as const;
+export const JAKE_CLASSIC_TEMPLATE_PUBLIC_PATH = "/jake's_resume.tex";
 
 export type BuiltInResumeTemplateId = (typeof BUILT_IN_RESUME_TEMPLATE_IDS)[number];
 export type ResumeTemplateId = BuiltInResumeTemplateId | 'custom';
@@ -14,9 +15,9 @@ export interface ResumeTemplateOption {
 
 export const RESUME_TEMPLATE_OPTIONS: ResumeTemplateOption[] = [
   {
-    id: 'awesome-classic',
+    id: 'jake-classic',
     name: "Jake's Resume",
-    description: "Jake Gutierrez's classic one-page LaTeX resume template from Overleaf.",
+    description: "Jake Gutierrez's classic one-page LaTeX resume template (public/jake's_resume.tex).",
     atsFriendly: true,
   },
   {
@@ -215,7 +216,7 @@ function renderBody(templateId: BuiltInResumeTemplateId, data: TailoredResumeDat
   const certifications = cleanList(data.certifications, 8);
   const additional = cleanList(data.additional, 8);
 
-  if (templateId === 'awesome-classic') {
+  if (templateId === 'jake-classic') {
     const skillsInline = skills.map((item) => escapeLatex(item)).join(', ');
     const sections = [
       renderJakeEntrySection('Education', education),
@@ -342,7 +343,7 @@ export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: T
 
   const preamble = buildTemplatePreamble(templateId);
 
-  if (templateId === 'awesome-classic') {
+  if (templateId === 'jake-classic') {
     const contactParts = renderJakeContact(data);
     return `${preamble}
 \\begin{center}
@@ -374,7 +375,7 @@ function toJsonString(value: unknown): string {
 }
 
 export function buildLatexResumeFromCustomTemplate(templateSource: string, rawData: TailoredResumeData): string {
-  const builtInFallback = buildLatexResume('awesome-classic', rawData);
+  const builtInFallback = buildLatexResume('jake-classic', rawData);
   const experience = cleanSectionItems(rawData.experience, 6);
   const projects = cleanSectionItems(rawData.projects, 6);
   const education = cleanSectionItems(rawData.education, 4);

@@ -53,7 +53,7 @@ type ResumeBuilderSourceDraft =
 interface ResumeBuilderDraft {
   source: ResumeBuilderSourceDraft
   template?: {
-    templateId: 'awesome-classic' | 'deedy-modern' | 'sb2nov-ats' | 'custom'
+    templateId: 'jake-classic' | 'deedy-modern' | 'sb2nov-ats' | 'custom'
     customTemplateName?: string
     customTemplateLatex?: string
   }

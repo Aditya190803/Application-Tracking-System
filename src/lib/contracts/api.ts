@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const toneSchema = z.enum(['professional', 'friendly', 'enthusiastic']);
 export const lengthSchema = z.enum(['concise', 'standard', 'detailed']);
 export const analysisTypeSchema = z.enum(['overview', 'keywords', 'match', 'coverLetter']);
-export const resumeTemplateIdSchema = z.enum(['awesome-classic', 'deedy-modern', 'sb2nov-ats', 'custom']);
+export const resumeTemplateIdSchema = z.enum(['jake-classic', 'deedy-modern', 'sb2nov-ats', 'custom']);
 
 const freeTextSchema = z
   .string()
@@ -56,7 +56,7 @@ export const coverLetterRequestSchema = analyzeRequestSchema
 export const tailoredResumeRequestSchema = z.object({
   resumeText: z.string().trim().min(1, 'Resume text is required').max(50000, 'Resume text is too long (max 50,000 characters)'),
   jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
-  templateId: resumeTemplateIdSchema.default('awesome-classic'),
+  templateId: resumeTemplateIdSchema.default('jake-classic'),
   resumeName: optionalFreeTextSchema,
   builderSlug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid builder slug format').min(4).max(120).optional(),
   sourceAnalysisId: z.string().trim().min(1).max(128).optional(),

@@ -80,7 +80,7 @@ export default function ResumeBuilderStep2Page() {
   const [isBooting, setIsBooting] = useState(true)
   const [draft, setDraft] = useState<ResumeBuilderDraft | null>(null)
 
-  const [templateId, setTemplateId] = useState<ResumeTemplateId>('awesome-classic')
+  const [templateId, setTemplateId] = useState<ResumeTemplateId>('jake-classic')
   const [customTemplateName, setCustomTemplateName] = useState<string | null>(null)
   const [customTemplateLatex, setCustomTemplateLatex] = useState<string | null>(null)
 
