@@ -12,6 +12,7 @@ export function HistoryFilterTabs({ filter, onChange }: HistoryFilterTabsProps) 
         { key: 'all' as const, label: 'All' },
         { key: 'analysis' as const, label: 'Analyses' },
         { key: 'cover-letter' as const, label: 'Cover Letters' },
+        { key: 'resume' as const, label: 'Resumes' },
       ].map((tab) => (
         <button
           key={tab.key}
