@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -81,7 +80,7 @@ describe('/dashboard/cover-letter/[slug] flow', () => {
     expect(await screen.findByText('Cover letter generation failed')).toBeInTheDocument();
   });
 
-  it('retries generation after failure when user clicks retry', async () => {
+  it('retries generation automatically after a transient failure', async () => {
     sessionStorage.setItem('pendingCoverLetterGeneration', JSON.stringify({
       resumeText: 'Resume text',
       jobDescription: 'Job description',
@@ -91,16 +90,12 @@ describe('/dashboard/cover-letter/[slug] flow', () => {
 
     mockFetch
       .mockResolvedValueOnce(createResponse(false, 500, { error: 'Cover letter generation failed' }))
-      .mockResolvedValueOnce(createResponse(false, 500, { error: 'Cover letter generation failed' }))
       .mockResolvedValueOnce(createResponse(true, 200, {
         documentId: 'cover-retry-1',
         result: 'Retry success',
       }));
 
     render(<CoverLetterSlugPage />);
-
-    const retryButton = await screen.findByRole('button', { name: /Retry Generation/i });
-    await userEvent.click(retryButton);
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/dashboard/cover-letter/cover-retry-1');

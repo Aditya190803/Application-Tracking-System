@@ -70,6 +70,7 @@ AI_TIMEOUT_MS="30000"
 PDF_PARSE_TIMEOUT_MS="12000"
 COVER_LETTER_ROUTE_TIMEOUT_MS="35000"
 RESUME_ROUTE_TIMEOUT_MS="45000"
+LATEX_RENDER_API_BASE="https://latexonline.cc"
 UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 # Only set true for local emergency fallback; keep false/empty in production

@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -81,7 +80,7 @@ describe('/dashboard/analysis/[slug] flow', () => {
     expect(await screen.findByText('Generation failed')).toBeInTheDocument();
   });
 
-  it('retries generation after failure when user clicks retry', async () => {
+  it('retries generation automatically after a transient failure', async () => {
     sessionStorage.setItem('pendingAnalysisGeneration', JSON.stringify({
       resumeText: 'Resume text',
       jobDescription: 'Job description',
@@ -90,7 +89,6 @@ describe('/dashboard/analysis/[slug] flow', () => {
 
     mockFetch
       .mockResolvedValueOnce(createResponse(false, 500, { error: 'Generation failed' }))
-      .mockResolvedValueOnce(createResponse(false, 500, { error: 'Generation failed' }))
       .mockResolvedValueOnce(createResponse(true, 200, {
         documentId: 'analysis-retry-1',
         result: { matchScore: 88 },
@@ -98,9 +96,6 @@ describe('/dashboard/analysis/[slug] flow', () => {
       }));
 
     render(<AnalysisSlugPage />);
-
-    const retryButton = await screen.findByRole('button', { name: /Retry Generation/i });
-    await userEvent.click(retryButton);
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/dashboard/analysis/analysis-retry-1');
