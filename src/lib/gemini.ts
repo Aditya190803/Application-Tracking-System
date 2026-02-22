@@ -167,12 +167,12 @@ export interface TailoredResumeData {
   keywordsUsed: string[];
 }
 
-function createGeminiModel(analysisType: AnalysisType | 'tailoredResume') {
+function createGeminiModel(analysisType: AnalysisType | 'tailoredResume' | 'latexFix') {
   const modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
   return genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      temperature: analysisType === 'coverLetter' ? 0.8 : 0.4,
+      temperature: analysisType === 'coverLetter' ? 0.8 : analysisType === 'latexFix' ? 0.2 : 0.4,
       maxOutputTokens: 16384,
     },
   });
@@ -185,6 +185,16 @@ function stripMarkdownJsonFence(input: string): string {
   }
 
   const withoutStart = trimmed.replace(/^```(?:json)?\s*/i, '');
+  return withoutStart.replace(/\s*```$/, '').trim();
+}
+
+function stripMarkdownCodeFence(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed.startsWith('```')) {
+    return trimmed;
+  }
+
+  const withoutStart = trimmed.replace(/^```(?:latex|tex|text)?\s*/i, '');
   return withoutStart.replace(/\s*```$/, '').trim();
 }
 
@@ -338,4 +348,42 @@ ${jobDescription}`;
     console.error('Failed to parse tailored resume JSON', { error, text: normalized });
     throw new Error('AI returned invalid structured resume data. Please try again.');
   }
+}
+
+export async function fixLatexCompilationError(
+  latexSource: string,
+  compileLog?: string,
+): Promise<string> {
+  if (!apiKey) {
+    throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
+  }
+
+  const model = createGeminiModel('latexFix');
+  const boundedLog = (compileLog || '').slice(0, 12000);
+
+  const prompt = `You are a strict LaTeX repair assistant.
+Fix the provided .tex source so it compiles with pdflatex.
+
+Rules:
+1) Return ONLY the full corrected LaTeX source.
+2) Do not wrap output in markdown fences.
+3) Preserve document content and structure as much as possible.
+4) Apply minimal safe fixes for compilation errors (escape special chars like &, %, _, # when needed).
+5) Keep class/packages unless they directly break compile.
+
+Compiler log:
+${boundedLog || '(no compiler log provided)'}
+
+Original LaTeX:
+${latexSource}`;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+  const normalized = stripMarkdownCodeFence(text);
+
+  if (!normalized || normalized.trim().length === 0) {
+    throw new Error('AI returned an empty LaTeX fix response.');
+  }
+
+  return normalized;
 }

@@ -1,11 +1,12 @@
 import type { TailoredResumeData, TailoredResumeSectionItem } from '@/lib/gemini';
 
-export const RESUME_TEMPLATE_IDS = ['awesome-classic', 'deedy-modern', 'sb2nov-ats'] as const;
+export const BUILT_IN_RESUME_TEMPLATE_IDS = ['awesome-classic', 'deedy-modern', 'sb2nov-ats'] as const;
 
-export type ResumeTemplateId = (typeof RESUME_TEMPLATE_IDS)[number];
+export type BuiltInResumeTemplateId = (typeof BUILT_IN_RESUME_TEMPLATE_IDS)[number];
+export type ResumeTemplateId = BuiltInResumeTemplateId | 'custom';
 
 export interface ResumeTemplateOption {
-  id: ResumeTemplateId;
+  id: BuiltInResumeTemplateId;
   name: string;
   description: string;
   atsFriendly: boolean;
@@ -52,8 +53,20 @@ function cleanSectionItems(items: TailoredResumeSectionItem[] | undefined, maxIt
     .slice(0, maxItems);
 }
 
-export function escapeLatex(input: string): string {
+function normalizeLatexText(input: string): string {
   return input
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[‘’]/g, '\'')
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
+    .replace(/•/g, '-')
+    .replace(/…/g, '...')
+    .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '');
+}
+
+export function escapeLatex(input: string): string {
+  return normalizeLatexText(input)
     .replace(/\\/g, '\\textbackslash{}')
     .replace(/&/g, '\\&')
     .replace(/%/g, '\\%')
@@ -135,7 +148,7 @@ function renderBody(data: TailoredResumeData): string {
   return sections.join('\n\n');
 }
 
-function buildTemplatePreamble(templateId: ResumeTemplateId): string {
+function buildTemplatePreamble(templateId: BuiltInResumeTemplateId): string {
   if (templateId === 'deedy-modern') {
     return `\\documentclass[11pt]{article}
 \\usepackage[margin=0.65in]{geometry}
@@ -175,7 +188,7 @@ function buildTemplatePreamble(templateId: ResumeTemplateId): string {
 \\begin{document}`;
 }
 
-export function buildLatexResume(templateId: ResumeTemplateId, rawData: TailoredResumeData): string {
+export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: TailoredResumeData): string {
   const data: TailoredResumeData = {
     fullName: rawData.fullName?.trim(),
     email: rawData.email?.trim(),
@@ -214,3 +227,95 @@ ${body}
 \\end{document}
 `;
 }
+
+function toJsonString(value: unknown): string {
+  return JSON.stringify(value, null, 2);
+}
+
+export function buildLatexResumeFromCustomTemplate(templateSource: string, rawData: TailoredResumeData): string {
+  const builtInFallback = buildLatexResume('awesome-classic', rawData);
+  const experience = cleanSectionItems(rawData.experience, 6);
+  const projects = cleanSectionItems(rawData.projects, 6);
+  const education = cleanSectionItems(rawData.education, 4);
+  const skills = cleanList(rawData.skills, 30);
+  const certifications = cleanList(rawData.certifications, 15);
+  const additional = cleanList(rawData.additional, 15);
+
+  const replacements: Record<string, string> = {
+    '{{fullName}}': escapeLatex(rawData.fullName?.trim() || ''),
+    '{{email}}': escapeLatex(rawData.email?.trim() || ''),
+    '{{phone}}': escapeLatex(rawData.phone?.trim() || ''),
+    '{{location}}': escapeLatex(rawData.location?.trim() || ''),
+    '{{linkedin}}': escapeLatex(rawData.linkedin?.trim() || ''),
+    '{{github}}': escapeLatex(rawData.github?.trim() || ''),
+    '{{website}}': escapeLatex(rawData.website?.trim() || ''),
+    '{{summary}}': escapeLatex(rawData.summary?.trim() || ''),
+    '{{targetTitle}}': escapeLatex(rawData.targetTitle?.trim() || ''),
+    '{{skills}}': escapeLatex(skills.join(', ')),
+    '{{skills_latex}}': renderSkills(skills),
+    '{{experience_entries}}': experience.map(renderEntry).join('\n\n'),
+    '{{projects_entries}}': projects.map(renderEntry).join('\n\n'),
+    '{{education_entries}}': education.map(renderEntry).join('\n\n'),
+    '{{certifications}}': certifications.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n'),
+    '{{additional}}': additional.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n'),
+    '{{keywordsUsed}}': escapeLatex((rawData.keywordsUsed ?? []).join(', ')),
+    '{{structuredDataJson}}': escapeLatex(toJsonString(rawData)),
+    '{{generated_resume}}': builtInFallback,
+  };
+
+  let output = templateSource;
+  for (const [placeholder, value] of Object.entries(replacements)) {
+    output = output.split(placeholder).join(value);
+  }
+  return output;
+}
+
+export const TEMPLATE_PREVIEW_DATA: TailoredResumeData = {
+  fullName: 'Jordan Rivera',
+  email: 'jordan.rivera@example.com',
+  phone: '+1 (555) 010-2193',
+  location: 'San Francisco, CA',
+  linkedin: 'linkedin.com/in/jordanrivera',
+  github: 'github.com/jordanrivera',
+  website: 'jordanrivera.dev',
+  summary: 'Product-minded software engineer with 6+ years building scalable web platforms, AI-assisted workflows, and data-heavy applications.',
+  skills: ['TypeScript', 'Next.js', 'Node.js', 'PostgreSQL', 'Redis', 'Docker', 'GraphQL', 'CI/CD'],
+  experience: [
+    {
+      title: 'Senior Software Engineer',
+      subtitle: 'BlueWave Systems',
+      date: '2022-Present',
+      location: 'Remote',
+      bullets: [
+        'Led migration to Next.js App Router and reduced page load times by 34%.',
+        'Built AI-assisted resume and cover letter workflows used by 50k+ users.',
+        'Introduced observability dashboards that cut incident resolution time in half.',
+      ],
+    },
+  ],
+  projects: [
+    {
+      title: 'Hiring Intelligence Platform',
+      subtitle: 'Next.js, Convex, Gemini API',
+      date: '2024',
+      location: 'Remote',
+      bullets: [
+        'Designed role-matching pipeline to score resumes against job descriptions.',
+        'Implemented robust caching and idempotency for high-volume generation APIs.',
+      ],
+    },
+  ],
+  education: [
+    {
+      title: 'B.S. Computer Science',
+      subtitle: 'University of California, Davis',
+      date: '2017-2021',
+      location: 'Davis, CA',
+      bullets: [],
+    },
+  ],
+  certifications: ['AWS Certified Developer - Associate'],
+  additional: ['Speaker: Bay Area JS Meetup (2025)'],
+  targetTitle: 'Senior Full Stack Engineer',
+  keywordsUsed: ['scalable systems', 'AI workflows', 'cloud deployment'],
+};

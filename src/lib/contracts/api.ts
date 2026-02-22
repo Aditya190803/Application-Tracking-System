@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const toneSchema = z.enum(['professional', 'friendly', 'enthusiastic']);
 export const lengthSchema = z.enum(['concise', 'standard', 'detailed']);
 export const analysisTypeSchema = z.enum(['overview', 'keywords', 'match', 'coverLetter']);
-export const resumeTemplateIdSchema = z.enum(['awesome-classic', 'deedy-modern', 'sb2nov-ats']);
+export const resumeTemplateIdSchema = z.enum(['awesome-classic', 'deedy-modern', 'sb2nov-ats', 'custom']);
 
 const freeTextSchema = z
   .string()
@@ -58,6 +58,10 @@ export const tailoredResumeRequestSchema = z.object({
   jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
   templateId: resumeTemplateIdSchema.default('awesome-classic'),
   resumeName: optionalFreeTextSchema,
+  builderSlug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid builder slug format').min(4).max(120).optional(),
+  sourceAnalysisId: z.string().trim().min(1).max(128).optional(),
+  customTemplateName: optionalFreeTextSchema,
+  customTemplateLatex: z.string().trim().min(1).max(180000).optional(),
   forceRegenerate: z.boolean().optional(),
   idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });
@@ -76,12 +80,15 @@ export const apiErrorSchema = z.object({
 
 export const historyItemSchema = z.object({
   id: z.string(),
-  type: z.enum(['analysis', 'cover-letter']),
+  type: z.enum(['analysis', 'cover-letter', 'resume']),
   analysisType: z.string().optional(),
   companyName: z.string().optional(),
   resumeName: z.string().optional(),
   jobTitle: z.string().optional(),
   jobDescription: z.string().optional(),
+  templateId: z.string().optional(),
+  builderSlug: z.string().optional(),
+  version: z.number().optional(),
   createdAt: z.string(),
   result: z.string(),
 });
@@ -118,6 +125,8 @@ export const tailoredResumeResponseSchema = z.object({
   cached: z.boolean(),
   source: z.enum(['database']).optional(),
   documentId: z.string().optional(),
+  builderSlug: z.string().optional(),
+  version: z.number().optional(),
   requestId: z.string(),
 });
 

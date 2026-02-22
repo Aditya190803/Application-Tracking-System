@@ -14,6 +14,7 @@ const convexFunctions = {
     getUserCoverLetters: "functions:getUserCoverLetters",
     getUserResumes: "functions:getUserResumes",
     getUserTailoredResumes: "functions:getUserTailoredResumes",
+    getTailoredResumeVersionsBySlug: "functions:getTailoredResumeVersionsBySlug",
     getUserStats: "functions:getUserStats",
     saveAnalysis: "functions:saveAnalysis",
     saveCoverLetter: "functions:saveCoverLetter",
@@ -86,12 +87,15 @@ export interface Resume {
 
 export interface SearchHistoryItem {
     id: string;
-    type: "analysis" | "cover-letter";
+    type: "analysis" | "cover-letter" | "resume";
     analysisType?: string;
     companyName?: string;
     resumeName?: string;
     jobTitle?: string;
     jobDescription?: string;
+    templateId?: string;
+    builderSlug?: string;
+    version?: number;
     createdAt: string;
     result: string;
 }
@@ -109,6 +113,11 @@ export interface TailoredResume {
     jobDescription?: string;
     structuredData: string;
     latexSource: string;
+    builderSlug?: string;
+    version?: number;
+    sourceAnalysisId?: string;
+    customTemplateName?: string;
+    customTemplateSource?: string;
 }
 
 // Helper: Generate hash for caching
@@ -380,6 +389,25 @@ export async function getUserTailoredResumes(
         return docs as unknown as TailoredResume[];
     } catch (error) {
         console.error("Error fetching user tailored resumes:", error);
+        return [];
+    }
+}
+
+export async function getTailoredResumeVersionsBySlug(
+    userId: string,
+    builderSlug: string,
+    limit = 30,
+): Promise<TailoredResume[]> {
+    try {
+        const client = getClient();
+        const docs = await client.query(convexFunctions.getTailoredResumeVersionsBySlug, {
+            userId,
+            builderSlug,
+            limit,
+        });
+        return docs as unknown as TailoredResume[];
+    } catch (error) {
+        console.error("Error fetching tailored resume versions by slug:", error);
         return [];
     }
 }

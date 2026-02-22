@@ -5,10 +5,15 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { withTimeout } from '@/lib/async-timeout';
 import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
 import { tailoredResumeRequestSchema } from '@/lib/contracts/api';
-import { generateHash, getTailoredResume, saveTailoredResume } from '@/lib/convex-server';
+import {
+  generateHash,
+  getTailoredResume,
+  getTailoredResumeVersionsBySlug,
+  saveTailoredResume,
+} from '@/lib/convex-server';
 import { generateTailoredResumeData } from '@/lib/gemini';
 import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
-import { buildLatexResume } from '@/lib/resume-latex';
+import { buildLatexResume, buildLatexResumeFromCustomTemplate } from '@/lib/resume-latex';
 
 const RESUME_ROUTE_TIMEOUT_MS = Number(process.env.RESUME_ROUTE_TIMEOUT_MS || 45000);
 
@@ -42,9 +47,21 @@ export async function POST(request: NextRequest) {
       jobDescription,
       templateId,
       resumeName,
+      builderSlug,
+      sourceAnalysisId,
+      customTemplateName,
+      customTemplateLatex,
       forceRegenerate,
       idempotencyKey,
     } = payload;
+    const isCustomTemplate = templateId === 'custom';
+    if (isCustomTemplate && !customTemplateLatex) {
+      return apiError(requestId, 400, 'VALIDATION_ERROR', 'customTemplateLatex is required for custom template mode');
+    }
+
+    const templateLookupId = isCustomTemplate
+      ? `custom:${generateHash(customTemplateLatex ?? '')}`
+      : templateId;
 
     const idemHeader = request.headers.get('idempotency-key')?.trim();
     const effectiveIdempotencyKey = idempotencyKey ?? idemHeader;
@@ -60,7 +77,7 @@ export async function POST(request: NextRequest) {
     const jobDescriptionHash = generateHash(jobDescription);
 
     if (!forceRegenerate) {
-      const cached = await getTailoredResume(userId, resumeHash, jobDescriptionHash, templateId);
+      const cached = await getTailoredResume(userId, resumeHash, jobDescriptionHash, templateLookupId);
       if (cached) {
         let structuredData: Record<string, unknown> = {};
         try {
@@ -69,13 +86,42 @@ export async function POST(request: NextRequest) {
           structuredData = {};
         }
 
+        let documentId = cached._id;
+        if (builderSlug) {
+          try {
+            const versions = await getTailoredResumeVersionsBySlug(userId, builderSlug, 100);
+            const latestVersion = versions.reduce((max, item) => Math.max(max, item.version ?? 0), 0);
+            const saved = await saveTailoredResume({
+              userId,
+              resumeHash,
+              jobDescriptionHash,
+              templateId: templateLookupId,
+              jobTitle: cached.jobTitle,
+              companyName: cached.companyName,
+              resumeName,
+              jobDescription,
+              structuredData: cached.structuredData,
+              latexSource: cached.latexSource,
+              builderSlug,
+              version: latestVersion + 1,
+              sourceAnalysisId,
+              customTemplateName: customTemplateName || cached.customTemplateName,
+              customTemplateSource: customTemplateLatex || cached.customTemplateSource,
+            });
+            documentId = saved._id;
+          } catch (saveError) {
+            console.error('Error saving cached tailored resume version', { requestId, error: saveError });
+          }
+        }
+
         const response = {
           latexSource: cached.latexSource,
           structuredData,
-          templateId: cached.templateId,
+          templateId,
           cached: true,
           source: 'database' as const,
-          documentId: cached._id,
+          documentId,
+          builderSlug,
           requestId,
         };
 
@@ -93,20 +139,33 @@ export async function POST(request: NextRequest) {
       'Resume generation timed out. Please try again.',
     );
 
-    const latexSource = buildLatexResume(templateId, structuredData);
+    const latexSource = isCustomTemplate
+      ? buildLatexResumeFromCustomTemplate(customTemplateLatex ?? '', structuredData)
+      : buildLatexResume(templateId, structuredData);
 
     let documentId: string | undefined;
+    let resolvedVersion = 1;
     try {
+      if (builderSlug) {
+        const versions = await getTailoredResumeVersionsBySlug(userId, builderSlug, 100);
+        const latestVersion = versions.reduce((max, item) => Math.max(max, item.version ?? 0), 0);
+        resolvedVersion = latestVersion + 1;
+      }
       const saved = await saveTailoredResume({
         userId,
         resumeHash,
         jobDescriptionHash,
-        templateId,
+        templateId: templateLookupId,
         jobTitle: structuredData.targetTitle,
         resumeName,
         jobDescription,
         structuredData: JSON.stringify(structuredData),
         latexSource,
+        builderSlug,
+        version: builderSlug ? resolvedVersion : undefined,
+        sourceAnalysisId,
+        customTemplateName,
+        customTemplateSource: customTemplateLatex,
       });
       documentId = saved._id;
     } catch (saveError) {
@@ -119,6 +178,8 @@ export async function POST(request: NextRequest) {
       templateId,
       cached: false,
       documentId,
+      builderSlug,
+      version: builderSlug ? resolvedVersion : undefined,
       requestId,
     };
 

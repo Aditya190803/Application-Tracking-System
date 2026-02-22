@@ -259,6 +259,11 @@ export const saveTailoredResume = mutation({
         jobDescription: v.optional(v.string()),
         structuredData: v.string(),
         latexSource: v.string(),
+        builderSlug: v.optional(v.string()),
+        version: v.optional(v.number()),
+        sourceAnalysisId: v.optional(v.string()),
+        customTemplateName: v.optional(v.string()),
+        customTemplateSource: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const id = await ctx.db.insert("tailoredResumes", args);
@@ -316,6 +321,26 @@ export const getUserTailoredResumes = query({
         const docs = await ctx.db
             .query("tailoredResumes")
             .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+            .order("desc")
+            .take(limit);
+        return docs;
+    },
+});
+
+export const getTailoredResumeVersionsBySlug = query({
+    args: {
+        userId: v.string(),
+        builderSlug: v.string(),
+        limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const limit = args.limit ?? 30;
+        const docs = await ctx.db
+            .query("tailoredResumes")
+            .withIndex("by_userId_builderSlug", (q) =>
+                q.eq("userId", args.userId)
+            )
+            .filter((q) => q.eq(q.field("builderSlug"), args.builderSlug))
             .order("desc")
             .take(limit);
         return docs;
@@ -397,6 +422,12 @@ export const getSearchHistory = query({
             .order("desc")
             .take(limit * 2);
 
+        const tailoredResumesRaw = await ctx.db
+            .query("tailoredResumes")
+            .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+            .order("desc")
+            .take(limit * 2);
+
         const analyses = cursorTime
             ? analysesRaw.filter((doc) => doc._creationTime < cursorTime)
             : analysesRaw;
@@ -404,6 +435,10 @@ export const getSearchHistory = query({
         const coverLetters = cursorTime
             ? coverLettersRaw.filter((doc) => doc._creationTime < cursorTime)
             : coverLettersRaw;
+
+        const tailoredResumes = cursorTime
+            ? tailoredResumesRaw.filter((doc) => doc._creationTime < cursorTime)
+            : tailoredResumesRaw;
 
         const history = [
             ...analyses.map((doc) => ({
@@ -425,6 +460,19 @@ export const getSearchHistory = query({
                 jobDescription: doc.jobDescription,
                 createdAt: new Date(doc._creationTime).toISOString(),
                 result: doc.result,
+            })),
+            ...tailoredResumes.map((doc) => ({
+                id: doc._id,
+                type: "resume" as const,
+                companyName: doc.companyName,
+                resumeName: doc.resumeName,
+                jobTitle: doc.jobTitle,
+                jobDescription: doc.jobDescription,
+                templateId: doc.templateId,
+                builderSlug: doc.builderSlug,
+                version: doc.version,
+                createdAt: new Date(doc._creationTime).toISOString(),
+                result: doc.latexSource,
             })),
         ];
 
