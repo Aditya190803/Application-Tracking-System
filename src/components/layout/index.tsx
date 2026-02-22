@@ -4,12 +4,13 @@ import { UserButton,useUser } from '@stackframe/stack'
 import {
   BarChart3,
   Clock,
+  FileCode2,
   FileEdit,
   LayoutDashboard,
   Menu,
-  Sparkles,
   Upload,
   X} from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Upload', href: '/dashboard/upload', icon: Upload },
   { name: 'Analysis', href: '/dashboard/analysis', icon: BarChart3 },
   { name: 'Cover Letter', href: '/dashboard/cover-letter', icon: FileEdit },
+  { name: 'Resume Builder', href: '/dashboard/resume-builder', icon: FileCode2 },
   { name: 'History', href: '/dashboard/history', icon: Clock },
 ]
 
@@ -77,9 +79,7 @@ export function TopNav() {
       <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="p-2 rounded-xl bg-primary shadow-lg shadow-border/10 group-hover:scale-105 transition-transform">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
+            <Image src="/icon.png" alt="ATS logo" width={30} height={30} className="rounded-lg object-contain shadow-sm group-hover:scale-105 transition-transform" />
             <span className="font-black text-foreground tracking-tighter text-xl">ATS</span>
           </Link>
 

@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const toneSchema = z.enum(['professional', 'friendly', 'enthusiastic']);
 export const lengthSchema = z.enum(['concise', 'standard', 'detailed']);
 export const analysisTypeSchema = z.enum(['overview', 'keywords', 'match', 'coverLetter']);
+export const resumeTemplateIdSchema = z.enum(['jake-classic', 'deedy-modern', 'sb2nov-ats', 'custom']);
 
 const freeTextSchema = z
   .string()
@@ -52,6 +53,19 @@ export const coverLetterRequestSchema = analyzeRequestSchema
     length: lengthSchema.default('standard'),
   });
 
+export const tailoredResumeRequestSchema = z.object({
+  resumeText: z.string().trim().min(1, 'Resume text is required').max(50000, 'Resume text is too long (max 50,000 characters)'),
+  jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
+  templateId: resumeTemplateIdSchema.default('jake-classic'),
+  resumeName: optionalFreeTextSchema,
+  builderSlug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid builder slug format').min(4).max(120).optional(),
+  sourceAnalysisId: z.string().trim().min(1).max(128).optional(),
+  customTemplateName: optionalFreeTextSchema,
+  customTemplateLatex: z.string().trim().min(1).max(180000).optional(),
+  forceRegenerate: z.boolean().optional(),
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
+});
+
 export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().trim().min(1).optional(),
@@ -66,12 +80,15 @@ export const apiErrorSchema = z.object({
 
 export const historyItemSchema = z.object({
   id: z.string(),
-  type: z.enum(['analysis', 'cover-letter']),
+  type: z.enum(['analysis', 'cover-letter', 'resume']),
   analysisType: z.string().optional(),
   companyName: z.string().optional(),
   resumeName: z.string().optional(),
   jobTitle: z.string().optional(),
   jobDescription: z.string().optional(),
+  templateId: z.string().optional(),
+  builderSlug: z.string().optional(),
+  version: z.number().optional(),
   createdAt: z.string(),
   result: z.string(),
 });
@@ -98,6 +115,18 @@ export const coverLetterResponseSchema = z.object({
   cached: z.boolean().optional(),
   source: z.enum(['memory', 'database']).optional(),
   documentId: z.string().optional(),
+  requestId: z.string(),
+});
+
+export const tailoredResumeResponseSchema = z.object({
+  latexSource: z.string(),
+  structuredData: z.record(z.string(), z.unknown()),
+  templateId: resumeTemplateIdSchema,
+  cached: z.boolean(),
+  source: z.enum(['database']).optional(),
+  documentId: z.string().optional(),
+  builderSlug: z.string().optional(),
+  version: z.number().optional(),
   requestId: z.string(),
 });
 
@@ -137,5 +166,6 @@ export const draftResponseSchema = z.object({
 
 export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
 export type CoverLetterRequest = z.infer<typeof coverLetterRequestSchema>;
+export type TailoredResumeRequest = z.infer<typeof tailoredResumeRequestSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;

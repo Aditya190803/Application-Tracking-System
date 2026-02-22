@@ -6,6 +6,7 @@ import {
   BarChart3,
   Clock,
   Compass,
+  FileCode2,
   FileText,
   Loader2,
   Sparkles,
@@ -44,6 +45,13 @@ const actions = [
     href: '/dashboard/cover-letter',
     icon: Sparkles,
     cta: 'Create letter',
+  },
+  {
+    title: 'Build LaTeX Resume',
+    description: 'Generate a job-tailored resume in popular LaTeX templates.',
+    href: '/dashboard/resume-builder',
+    icon: FileCode2,
+    cta: 'Open builder',
   },
   {
     title: 'View History',

@@ -6,6 +6,7 @@ AI-powered resume analysis and cover-letter generation built with Next.js, Stack
 
 - Resume analysis with match scoring, strengths, weaknesses, skills match, and recommendations
 - Cover-letter generation with configurable tone and length
+- Tailored LaTeX resume generation using selectable templates
 - PDF resume upload and parsing
 - Searchable history for analyses and cover letters
 - Auth-protected dashboard flows
@@ -68,6 +69,8 @@ MODEL_NAME="gemini-2.5-flash"
 AI_TIMEOUT_MS="30000"
 PDF_PARSE_TIMEOUT_MS="12000"
 COVER_LETTER_ROUTE_TIMEOUT_MS="35000"
+RESUME_ROUTE_TIMEOUT_MS="45000"
+LATEX_RENDER_API_BASE="https://latexonline.cc"
 UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 # Only set true for local emergency fallback; keep false/empty in production
@@ -82,15 +85,3 @@ bun run dev
 ```
 
 App runs at `http://localhost:3000`.
-
-## Scripts
-
-```bash
-bun run dev         # Start Next.js dev server
-bun run build       # Build app
-bun run start       # Start production server
-bun run lint        # Run ESLint
-bun run test        # Run tests once (Vitest)
-bun run test:watch  # Run tests in watch mode
-bun run setup-db    # One-time Convex setup (convex dev --once)
-```

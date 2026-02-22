@@ -17,7 +17,7 @@ import { useState } from 'react'
 import { HistoryFilterTabs } from '@/components/dashboard/history/HistoryFilterTabs'
 import { Button } from '@/components/ui/button'
 import { useHistory } from '@/hooks/useHistory'
-import type { HistoryAnalysisItem, HistoryType } from '@/types/domain'
+import type { HistoryAnalysisItem, HistoryItem, HistoryType } from '@/types/domain'
 
 export default function HistoryPage() {
   const { isLoading, isLoadingMore, error, hasMore, loadMore, filterItems, refresh } = useHistory(20)
@@ -70,6 +70,10 @@ export default function HistoryPage() {
   }
 
   const getPreview = (result: string): string => {
+    if (result.trim().startsWith('\\documentclass')) {
+      return 'Generated LaTeX resume source'
+    }
+
     try {
       const parsed = JSON.parse(result)
       if (parsed.overview) return parsed.overview
@@ -82,6 +86,18 @@ export default function HistoryPage() {
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
+  }
+
+  const getDestinationHref = (item: HistoryItem): string => {
+    if (item.type === 'analysis') {
+      return `/dashboard/analysis/${item.id}`
+    }
+
+    if (item.type === 'cover-letter') {
+      return `/dashboard/cover-letter/${item.id}`
+    }
+
+    return item.builderSlug ? `/dashboard/resume-builder/${item.builderSlug}` : '/dashboard/resume-builder'
   }
 
   if (isLoading) {
@@ -105,7 +121,7 @@ export default function HistoryPage() {
             </div>
             <h1 className="text-2xl font-bold text-foreground">History</h1>
           </div>
-          <p className="text-muted-foreground font-medium ml-12">Your past analyses and generated cover letters.</p>
+          <p className="text-muted-foreground font-medium ml-12">Your past analyses, generated cover letters, and resumes.</p>
         </div>
 
         <HistoryFilterTabs filter={filter} onChange={setFilter} />
@@ -135,7 +151,9 @@ export default function HistoryPage() {
                 ? 'Run your first resume analysis to see it here.'
                 : filter === 'cover-letter'
                   ? 'Generate your first cover letter to see it here.'
-                  : 'Start by running a resume analysis or generating a cover letter.'}
+                  : filter === 'resume'
+                    ? 'Build your first tailored resume to see it here.'
+                    : 'Start by running a resume analysis, generating a cover letter, or building a resume.'}
             </p>
             <div className="flex items-center justify-center gap-3">
               <Link href="/dashboard/analysis">
@@ -161,20 +179,24 @@ export default function HistoryPage() {
                     <button onClick={() => toggleExpand(item.id)} className="w-full flex items-center gap-4 p-5 text-left">
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          item.type === 'analysis' ? 'bg-primary text-white' : 'bg-muted text-foreground/80'
+                          item.type === 'analysis' ? 'bg-primary text-white' : item.type === 'resume' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-foreground/80'
                         }`}
                       >
-                        {item.type === 'analysis' ? <Target className="w-5 h-5" /> : <FileEdit className="w-5 h-5" />}
+                        {item.type === 'analysis' ? <Target className="w-5 h-5" /> : item.type === 'resume' ? <FileText className="w-5 h-5" /> : <FileEdit className="w-5 h-5" />}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${
-                              item.type === 'analysis' ? 'bg-primary text-white' : 'bg-muted text-foreground/80'
+                              item.type === 'analysis'
+                                ? 'bg-primary text-white'
+                                : item.type === 'resume'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-muted text-foreground/80'
                             }`}
                           >
-                            {item.type === 'analysis' ? getAnalysisLabel((item as HistoryAnalysisItem).analysisType) : 'Cover Letter'}
+                            {item.type === 'analysis' ? getAnalysisLabel((item as HistoryAnalysisItem).analysisType) : item.type === 'resume' ? 'Resume' : 'Cover Letter'}
                           </span>
 
                           {score !== null && (
@@ -201,6 +223,12 @@ export default function HistoryPage() {
                                 : item.resumeName
                                   ? `Analysis for ${item.resumeName}`
                                   : 'Resume Analysis'
+                            : item.type === 'resume'
+                              ? item.jobTitle && item.companyName
+                                ? `Resume — ${item.jobTitle} at ${item.companyName}`
+                                : item.resumeName
+                                  ? `Resume — ${item.resumeName}`
+                                  : 'Tailored Resume'
                             : item.companyName
                               ? `Cover Letter — ${item.companyName}`
                               : item.resumeName
@@ -208,7 +236,7 @@ export default function HistoryPage() {
                                 : 'Cover Letter'}
                         </p>
 
-                        {item.type === 'analysis' && (
+                        {(item.type === 'analysis' || item.type === 'resume') && (
                           <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">
                             <FileText className="w-3 h-3 inline mr-1" />
                             {item.resumeName || 'Resume'}
@@ -230,7 +258,7 @@ export default function HistoryPage() {
                       <div className="px-5 pb-5 pt-0 border-t border-border/50 mt-0">
                         <div className="pt-4">
                           <p className="text-sm text-muted-foreground font-semibold mb-2 uppercase tracking-wider">
-                            {item.type === 'analysis' ? 'Analysis Result' : 'Generated Letter'}
+                            {item.type === 'analysis' ? 'Analysis Result' : item.type === 'resume' ? 'Generated Resume' : 'Generated Letter'}
                           </p>
                           <div className="p-4 rounded-xl bg-background border border-border/50 max-h-72 overflow-y-auto">
                             <p className="text-sm text-foreground/80 font-medium leading-relaxed whitespace-pre-wrap">
@@ -249,9 +277,9 @@ export default function HistoryPage() {
                                 minute: '2-digit',
                               })}
                             </span>
-                            <Link href={item.type === 'analysis' ? `/dashboard/analysis/${item.id}` : `/dashboard/cover-letter/${item.id}`}>
+                            <Link href={getDestinationHref(item)}>
                               <Button variant="outline" className="btn-secondary text-xs h-8 px-3">
-                                {item.type === 'analysis' ? 'Open Analysis' : 'Open Letter'}
+                                {item.type === 'analysis' ? 'Open Analysis' : item.type === 'resume' ? 'Open Resume' : 'Open Letter'}
                                 <ArrowRight className="w-3 h-3 ml-1" />
                               </Button>
                             </Link>

@@ -40,4 +40,25 @@ export default defineSchema({
     })
         .index("by_userId", ["userId"])
         .index("by_lookup", ["userId", "resumeHash", "jobDescriptionHash", "tone", "length"]),
+
+    tailoredResumes: defineTable({
+        userId: v.string(),
+        resumeHash: v.string(),
+        jobDescriptionHash: v.string(),
+        templateId: v.string(),
+        jobTitle: v.optional(v.string()),
+        companyName: v.optional(v.string()),
+        resumeName: v.optional(v.string()),
+        jobDescription: v.optional(v.string()),
+        structuredData: v.string(),
+        latexSource: v.string(),
+        builderSlug: v.optional(v.string()),
+        version: v.optional(v.number()),
+        sourceAnalysisId: v.optional(v.string()),
+        customTemplateName: v.optional(v.string()),
+        customTemplateSource: v.optional(v.string()),
+    })
+        .index("by_userId", ["userId"])
+        .index("by_lookup", ["userId", "resumeHash", "jobDescriptionHash", "templateId"])
+        .index("by_userId_builderSlug", ["userId", "builderSlug"]),
 });
