@@ -40,7 +40,8 @@ describe('resume-latex', () => {
     expect(output).toContain('\\documentclass');
     expect(output).toContain('Ada Lovelace');
     expect(output).toContain('Software Engineer');
-    expect(output).toContain('\\section*{Summary}');
+    expect(output).toContain('\\section{Experience}');
+    expect(output).toContain('\\section{Technical Skills}');
     expect(output).toContain('\\end{document}');
   });
 });
