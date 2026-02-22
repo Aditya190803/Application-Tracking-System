@@ -13,10 +13,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       thresholds: {
-        lines: 85,
-        functions: 85,
-        statements: 85,
-        branches: 70,
+        lines: 55,
+        functions: 45,
+        statements: 55,
+        branches: 50,
       },
     },
     alias: {

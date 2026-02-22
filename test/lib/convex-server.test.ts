@@ -1,25 +1,5 @@
 import { beforeEach,describe, expect, it, vi } from 'vitest';
 
-// Mock the convex api module (must be before imports)
-vi.mock('../../convex/_generated/api', () => ({
-    api: {
-        functions: {
-            saveResume: 'functions:saveResume',
-            getUserResumes: 'functions:getUserResumes',
-            getResumeById: 'functions:getResumeById',
-            deleteResume: 'functions:deleteResume',
-            saveAnalysis: 'functions:saveAnalysis',
-            getAnalysis: 'functions:getAnalysis',
-            getUserAnalyses: 'functions:getUserAnalyses',
-            saveCoverLetter: 'functions:saveCoverLetter',
-            getCoverLetter: 'functions:getCoverLetter',
-            getUserCoverLetters: 'functions:getUserCoverLetters',
-            getUserStats: 'functions:getUserStats',
-            getSearchHistory: 'functions:getSearchHistory',
-        },
-    },
-}));
-
 const { mockQuery, mockMutation, MockConvexHttpClient } = vi.hoisted(() => {
     const hoistedQuery = vi.fn();
     const hoistedMutation = vi.fn();
@@ -43,8 +23,6 @@ vi.mock('convex/browser', () => ({
 import { ConvexHttpClient } from 'convex/browser';
 
 import { generateHash,getUserResumes, saveResume } from '@/lib/convex-server';
-
-import { api } from '../../convex/_generated/api';
 
 describe('convex-server', () => {
     beforeEach(() => {
@@ -79,7 +57,7 @@ describe('convex-server', () => {
 
             expect(result._id).toBe('doc-1');
             expect(ConvexHttpClient).toHaveBeenCalledWith('https://test-project.convex.cloud');
-            expect(mockMutation).toHaveBeenCalledWith(api.functions.saveResume, resumeData);
+            expect(mockMutation).toHaveBeenCalledWith('functions:saveResume', resumeData);
         });
     });
 
@@ -93,7 +71,7 @@ describe('convex-server', () => {
 
             expect(result).toHaveLength(1);
             expect(result[0].name).toBe('R1');
-            expect(mockQuery).toHaveBeenCalledWith(api.functions.getUserResumes, {
+            expect(mockQuery).toHaveBeenCalledWith('functions:getUserResumes', {
                 userId: 'user-1',
                 limit: 10,
             });
