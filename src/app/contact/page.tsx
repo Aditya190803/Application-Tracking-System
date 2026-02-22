@@ -73,30 +73,30 @@ export default function ContactPage() {
 
                 {/* FAQ Section */}
                 <div className="p-12 md:p-16 rounded-[2.5rem] bg-primary text-white relative overflow-hidden shadow-2xl shadow-border/10">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-card/5 rounded-full blur-3xl -mr-48 -mt-48" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/15 rounded-full blur-3xl -mr-48 -mt-48" />
                     <h2 className="text-3xl font-bold mb-12 tracking-tight">Frequently Asked Questions</h2>
                     <div className="grid md:grid-cols-2 gap-12">
                         <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-muted-foreground">How do I delete my account?</h4>
-                            <p className="text-muted-foreground font-medium leading-relaxed">
+                            <h4 className="text-lg font-bold text-white">How do I delete my account?</h4>
+                            <p className="text-white/90 font-medium leading-relaxed">
                                 You can delete your account from the settings page. This will permanently remove all your data.
                             </p>
                         </div>
                         <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-muted-foreground">Is my resume data secure?</h4>
-                            <p className="text-muted-foreground font-medium leading-relaxed">
+                            <h4 className="text-lg font-bold text-white">Is my resume data secure?</h4>
+                            <p className="text-white/90 font-medium leading-relaxed">
                                 Yes, we use industry-standard encryption and security practices to protect your data.
                             </p>
                         </div>
                         <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-muted-foreground">Can I export my cover letters?</h4>
-                            <p className="text-muted-foreground font-medium leading-relaxed">
+                            <h4 className="text-lg font-bold text-white">Can I export my cover letters?</h4>
+                            <p className="text-white/90 font-medium leading-relaxed">
                                 Yes, you can copy or download any generated cover letter directly from the app.
                             </p>
                         </div>
                         <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-muted-foreground">How accurate is the AI analysis?</h4>
-                            <p className="text-muted-foreground font-medium leading-relaxed">
+                            <h4 className="text-lg font-bold text-white">How accurate is the AI analysis?</h4>
+                            <p className="text-white/90 font-medium leading-relaxed">
                                 Our AI uses advanced models to provide insights, but we recommend human review for important decisions.
                             </p>
                         </div>
@@ -111,11 +111,8 @@ export default function ContactPage() {
                         © 2026 ATS (Application Tracking System). All rights reserved.
                     </p>
                     <div className="flex items-center gap-4">
-                        <a href="#" className="p-2 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
+                        <a href="https://github.com/Aditya190803/Application-Tracking-System" className="p-2 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
                             <Github className="h-5 w-5" />
-                        </a>
-                        <a href="#" className="p-2 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
-                            <Twitter className="h-5 w-5" />
                         </a>
                     </div>
                 </div>
