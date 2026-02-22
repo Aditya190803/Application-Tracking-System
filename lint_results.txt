@@ -1,0 +1,45 @@
+$ eslint
+
+/home/Adi/Projects/ats-nextjs/src/app/dashboard/analysis/page.tsx
+  13:3  warning  'Sparkles' is defined but never used       @typescript-eslint/no-unused-vars
+  14:3  warning  'CheckCircle2' is defined but never used   @typescript-eslint/no-unused-vars
+  17:3  warning  'ArrowRight' is defined but never used     @typescript-eslint/no-unused-vars
+  18:3  warning  'Zap' is defined but never used            @typescript-eslint/no-unused-vars
+  28:9  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/Adi/Projects/ats-nextjs/src/app/dashboard/cover-letter/page.tsx
+  15:3  warning  'ArrowRight' is defined but never used     @typescript-eslint/no-unused-vars
+  30:9  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/Adi/Projects/ats-nextjs/src/app/dashboard/page.tsx
+   16:3   warning  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+  220:88  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/Adi/Projects/ats-nextjs/src/app/dashboard/upload/page.tsx
+   8:3  warning  'Upload' is defined but never used         @typescript-eslint/no-unused-vars
+  25:9  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/Adi/Projects/ats-nextjs/src/app/handler/[...stack]/page.tsx
+  4:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/Adi/Projects/ats-nextjs/src/app/page.tsx
+   15:3   warning  'Shield' is defined but never used                               @typescript-eslint/no-unused-vars
+   16:3   warning  'Star' is defined but never used                                 @typescript-eslint/no-unused-vars
+   18:3   warning  'BarChart3' is defined but never used                            @typescript-eslint/no-unused-vars
+   19:3   warning  'FileEdit' is defined but never used                             @typescript-eslint/no-unused-vars
+  101:17  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  125:55  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/Adi/Projects/ats-nextjs/src/components/analysis/MatchResult.tsx
+  37:9  warning  'matchScore' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/Adi/Projects/ats-nextjs/src/components/analysis/OverviewResult.tsx
+  4:46  warning  'Award' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/Adi/Projects/ats-nextjs/src/components/ui/avatar.tsx
+   3:10  warning  'AvatarFallback' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  24:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 22 problems (4 errors, 18 warnings)
+
+error: script "lint" exited with code 1

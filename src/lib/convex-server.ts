@@ -1,21 +1,41 @@
 import { ConvexHttpClient } from "convex/browser";
 import crypto from "crypto";
 
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+type Id<T extends string> = string & { __tableName?: T };
+
+const convexFunctions = {
+    deleteResume: "functions:deleteResume",
+    getAnalysis: "functions:getAnalysis",
+    getAnalysisById: "functions:getAnalysisById",
+    getCoverLetter: "functions:getCoverLetter",
+    getCoverLetterById: "functions:getCoverLetterById",
+    getSearchHistory: "functions:getSearchHistory",
+    getUserAnalyses: "functions:getUserAnalyses",
+    getUserCoverLetters: "functions:getUserCoverLetters",
+    getUserResumes: "functions:getUserResumes",
+    getUserStats: "functions:getUserStats",
+    saveAnalysis: "functions:saveAnalysis",
+    saveCoverLetter: "functions:saveCoverLetter",
+    saveResume: "functions:saveResume",
+} as const;
+
+type ConvexClient = ConvexHttpClient & {
+    mutation(path: string, args?: unknown): Promise<unknown>;
+    query(path: string, args?: unknown): Promise<unknown>;
+};
 
 // Server-side Convex client for use in API routes
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
 // Singleton client instance
-let clientInstance: ConvexHttpClient | null = null;
+let clientInstance: ConvexClient | null = null;
 
 export function getClient() {
     if (!convexUrl) {
         throw new Error("NEXT_PUBLIC_CONVEX_URL is not set");
     }
     if (!clientInstance) {
-        clientInstance = new ConvexHttpClient(convexUrl);
+        clientInstance = new ConvexHttpClient(convexUrl) as ConvexClient;
     }
     return clientInstance;
 }
@@ -83,7 +103,7 @@ export async function saveResume(
     data: Omit<Resume, "_id" | "_creationTime">
 ): Promise<Resume> {
     const client = getClient();
-    const result = await client.mutation(api.functions.saveResume, data);
+    const result = await client.mutation(convexFunctions.saveResume, data);
     return result as unknown as Resume;
 }
 
@@ -93,7 +113,7 @@ export async function getUserResumes(
 ): Promise<Resume[]> {
     try {
         const client = getClient();
-        const docs = await client.query(api.functions.getUserResumes, {
+        const docs = await client.query(convexFunctions.getUserResumes, {
             userId,
             limit,
         });
@@ -109,7 +129,7 @@ export async function getResumeById(
 ): Promise<Resume | null> {
     try {
         const client = getClient();
-        const doc = await client.query(api.functions.getResumeById, {
+        const doc = await client.query("functions:getResumeById", {
             resumeId: resumeId as Id<"resumes">,
         });
         return doc as unknown as Resume | null;
@@ -122,7 +142,7 @@ export async function getResumeById(
 export async function deleteResume(resumeId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await client.mutation(api.functions.deleteResume, {
+        await client.mutation(convexFunctions.deleteResume, {
             resumeId: resumeId as Id<"resumes">,
         });
         return true;
@@ -138,7 +158,7 @@ export async function saveAnalysis(
     data: Omit<Analysis, "_id" | "_creationTime">
 ): Promise<Analysis> {
     const client = getClient();
-    const result = await client.mutation(api.functions.saveAnalysis, data);
+    const result = await client.mutation(convexFunctions.saveAnalysis, data);
     return result as unknown as Analysis;
 }
 
@@ -147,7 +167,7 @@ export async function getAnalysisById(
 ): Promise<Analysis | null> {
     try {
         const client = getClient();
-        const doc = await client.query(api.functions.getAnalysisById, {
+        const doc = await client.query(convexFunctions.getAnalysisById, {
             analysisId: analysisId as Id<"analyses">,
         });
         return doc as unknown as Analysis | null;
@@ -160,10 +180,7 @@ export async function getAnalysisById(
 export async function deleteAnalysis(analysisId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await (client as unknown as { mutation: (path: string, args: unknown) => Promise<unknown> }).mutation(
-            "functions:deleteAnalysis",
-            { analysisId }
-        );
+        await client.mutation("functions:deleteAnalysis", { analysisId });
         return true;
     } catch (error) {
         console.error("Error deleting analysis:", error);
@@ -179,7 +196,7 @@ export async function getAnalysis(
 ): Promise<Analysis | null> {
     try {
         const client = getClient();
-        const doc = await client.query(api.functions.getAnalysis, {
+        const doc = await client.query(convexFunctions.getAnalysis, {
             userId,
             resumeHash,
             jobDescriptionHash,
@@ -198,7 +215,7 @@ export async function getUserAnalyses(
 ): Promise<Analysis[]> {
     try {
         const client = getClient();
-        const docs = await client.query(api.functions.getUserAnalyses, {
+        const docs = await client.query(convexFunctions.getUserAnalyses, {
             userId,
             limit,
         });
@@ -215,7 +232,7 @@ export async function saveCoverLetter(
     data: Omit<CoverLetter, "_id" | "_creationTime">
 ): Promise<CoverLetter> {
     const client = getClient();
-    const result = await client.mutation(api.functions.saveCoverLetter, data);
+    const result = await client.mutation(convexFunctions.saveCoverLetter, data);
     return result as unknown as CoverLetter;
 }
 
@@ -224,7 +241,7 @@ export async function getCoverLetterById(
 ): Promise<CoverLetter | null> {
     try {
         const client = getClient();
-        const doc = await client.query(api.functions.getCoverLetterById, {
+        const doc = await client.query(convexFunctions.getCoverLetterById, {
             coverLetterId: coverLetterId as Id<"coverLetters">,
         });
         return doc as unknown as CoverLetter | null;
@@ -237,10 +254,7 @@ export async function getCoverLetterById(
 export async function deleteCoverLetter(coverLetterId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await (client as unknown as { mutation: (path: string, args: unknown) => Promise<unknown> }).mutation(
-            "functions:deleteCoverLetter",
-            { coverLetterId }
-        );
+        await client.mutation("functions:deleteCoverLetter", { coverLetterId });
         return true;
     } catch (error) {
         console.error("Error deleting cover letter:", error);
@@ -257,7 +271,7 @@ export async function getCoverLetter(
 ): Promise<CoverLetter | null> {
     try {
         const client = getClient();
-        const doc = await client.query(api.functions.getCoverLetter, {
+        const doc = await client.query(convexFunctions.getCoverLetter, {
             userId,
             resumeHash,
             jobDescriptionHash,
@@ -277,7 +291,7 @@ export async function getUserCoverLetters(
 ): Promise<CoverLetter[]> {
     try {
         const client = getClient();
-        const docs = await client.query(api.functions.getUserCoverLetters, {
+        const docs = await client.query(convexFunctions.getUserCoverLetters, {
             userId,
             limit,
         });
@@ -301,8 +315,16 @@ export async function getUserStats(userId: string): Promise<{
 }> {
     try {
         const client = getClient();
-        const stats = await client.query(api.functions.getUserStats, { userId });
-        return stats;
+        const stats = await client.query(convexFunctions.getUserStats, { userId });
+        return stats as {
+            totalScans: number;
+            avgScore: number;
+            draftsMade: number;
+            resumeCount: number;
+            analysisCount: number;
+            coverLetterCount: number;
+            averageMatchScore: number | null;
+        };
     } catch (error) {
         console.error("Error fetching user stats:", error);
         return {
@@ -326,7 +348,7 @@ export async function getSearchHistory(
 ): Promise<{ items: SearchHistoryItem[]; nextCursor: string | null }> {
     try {
         const client = getClient();
-        const history = await client.query(api.functions.getSearchHistory, {
+        const history = await client.query(convexFunctions.getSearchHistory, {
             userId,
             limit,
             cursor,

@@ -1,8 +1,6 @@
 import { getClient } from '@/lib/convex-server'
 import { stackServerApp } from '@/stack/server'
 
-import { api } from '../../convex/_generated/api'
-
 interface ServiceHealth {
   status: 'ok' | 'degraded' | 'missing'
   latencyMs?: number
@@ -44,7 +42,7 @@ export async function runDependencyHealthChecks(): Promise<{
   if (process.env.NEXT_PUBLIC_CONVEX_URL) {
     try {
       const client = getClient()
-      await withTimeout(client.query(api.functions.getUserStats, { userId: '__healthcheck__' }), 2000)
+      await withTimeout(client.query('functions:getUserStats', { userId: '__healthcheck__' }), 2000)
       convex = { status: 'ok', latencyMs: Date.now() - convexStart }
     } catch {
       convex = { status: 'degraded', latencyMs: Date.now() - convexStart, details: 'Convex query probe failed' }

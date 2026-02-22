@@ -1,6 +1,5 @@
+import { mutationGeneric as mutation, queryGeneric as query } from "convex/server";
 import { v } from "convex/values";
-
-import { mutation, query } from "./_generated/server";
 
 function parseMatchScore(result: string): number | null {
     try {
@@ -122,12 +121,13 @@ export const getAnalysis = query({
     handler: async (ctx, args) => {
         const doc = await ctx.db
             .query("analyses")
-            .withIndex("by_lookup", (q) =>
-                q
-                    .eq("userId", args.userId)
-                    .eq("resumeHash", args.resumeHash)
-                    .eq("jobDescriptionHash", args.jobDescriptionHash)
-                    .eq("analysisType", args.analysisType)
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("userId"), args.userId),
+                    q.eq(q.field("resumeHash"), args.resumeHash),
+                    q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+                    q.eq(q.field("analysisType"), args.analysisType),
+                )
             )
             .order("desc")
             .first();
@@ -199,13 +199,14 @@ export const getCoverLetter = query({
     handler: async (ctx, args) => {
         const doc = await ctx.db
             .query("coverLetters")
-            .withIndex("by_lookup", (q) =>
-                q
-                    .eq("userId", args.userId)
-                    .eq("resumeHash", args.resumeHash)
-                    .eq("jobDescriptionHash", args.jobDescriptionHash)
-                    .eq("tone", args.tone)
-                    .eq("length", args.length)
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("userId"), args.userId),
+                    q.eq(q.field("resumeHash"), args.resumeHash),
+                    q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+                    q.eq(q.field("tone"), args.tone),
+                    q.eq(q.field("length"), args.length),
+                )
             )
             .order("desc")
             .first();
