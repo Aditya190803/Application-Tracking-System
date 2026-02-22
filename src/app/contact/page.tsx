@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowLeft, Clock, Github, Mail, MessageSquare, Sparkles, Twitter } from 'lucide-react'
+import { ArrowLeft, Clock, Github, Mail, MessageSquare, Twitter } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -12,9 +13,7 @@ export default function ContactPage() {
             <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-5xl mx-auto px-8 py-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="p-2.5 rounded-xl bg-primary shadow-lg shadow-border/10 group-hover:scale-110 transition-transform">
-                            <Sparkles className="h-5 w-5 text-white" />
-                        </div>
+                        <Image src="/icon.png" alt="ATS logo" width={30} height={30} className="rounded-lg object-contain shadow-sm group-hover:scale-105 transition-transform" />
                         <span className="text-xl font-bold text-foreground tracking-tight">ATS</span>
                     </Link>
                     <Link href="/">

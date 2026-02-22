@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -297,9 +298,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-3 cursor-pointer">
-              <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                <Sparkles className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <Image src="/icon.png" alt="ATS logo" width={40} height={40} className="rounded-xl object-contain shadow-sm" />
               <span className="text-2xl font-black text-foreground tracking-tight">ATS</span>
             </motion.div>
 

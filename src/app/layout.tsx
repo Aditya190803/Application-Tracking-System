@@ -18,6 +18,11 @@ const fontMono = Fira_Code({
 export const metadata: Metadata = {
   title: "ATS - Application Tracking System",
   description: "Optimize your resume with AI-powered analysis, keyword extraction, ATS compatibility scoring, and cover letter generation.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 import { StackProvider, StackTheme } from "@stackframe/stack";
