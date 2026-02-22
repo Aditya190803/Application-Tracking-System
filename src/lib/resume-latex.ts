@@ -15,8 +15,8 @@ export interface ResumeTemplateOption {
 export const RESUME_TEMPLATE_OPTIONS: ResumeTemplateOption[] = [
   {
     id: 'awesome-classic',
-    name: 'Awesome Classic',
-    description: 'Two-line section headers with polished spacing and readable hierarchy.',
+    name: "Jake's Resume",
+    description: "Jake Gutierrez's classic one-page LaTeX resume template from Overleaf.",
     atsFriendly: true,
   },
   {
@@ -102,6 +102,49 @@ function renderEntry(entry: TailoredResumeSectionItem): string {
   return `${header}\n${bullets}`.trim();
 }
 
+function renderJakeBullets(items: string[]): string {
+  if (items.length === 0) {
+    return '';
+  }
+
+  const rows = items.map((item) => `    \\resumeItem{${escapeLatex(item)}}`).join('\n');
+  return `  \\resumeItemListStart\n${rows}\n  \\resumeItemListEnd`;
+}
+
+function renderJakeEntry(entry: TailoredResumeSectionItem): string {
+  const topRight = entry.date ? escapeLatex(entry.date) : '';
+  const bottomLeft = entry.subtitle ? escapeLatex(entry.subtitle) : '';
+  const bottomRight = entry.location ? escapeLatex(entry.location) : '';
+
+  const heading = `  \\resumeSubheading\n    {${escapeLatex(entry.title)}}{${topRight}}\n    {${bottomLeft}}{${bottomRight}}`;
+  const bullets = renderJakeBullets(entry.bullets);
+  return bullets ? `${heading}\n${bullets}` : heading;
+}
+
+function renderJakeEntrySection(title: string, entries: TailoredResumeSectionItem[]): string {
+  if (entries.length === 0) {
+    return '';
+  }
+
+  return `\\section{${escapeLatex(title)}}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeEntry).join('\n\n')}\n  \\resumeSubHeadingListEnd`;
+}
+
+function renderJakeProjectEntry(entry: TailoredResumeSectionItem): string {
+  const subtitle = entry.subtitle ? ` $|$ \\emph{${escapeLatex(entry.subtitle)}}` : '';
+  const date = entry.date ? escapeLatex(entry.date) : '';
+  const heading = `  \\resumeProjectHeading\n    {\\textbf{${escapeLatex(entry.title)}}${subtitle}}{${date}}`;
+  const bullets = renderJakeBullets(entry.bullets);
+  return bullets ? `${heading}\n${bullets}` : heading;
+}
+
+function renderJakeProjectsSection(entries: TailoredResumeSectionItem[]): string {
+  if (entries.length === 0) {
+    return '';
+  }
+
+  return `\\section{Projects}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeProjectEntry).join('\n\n')}\n  \\resumeSubHeadingListEnd`;
+}
+
 function renderSection(title: string, content: string): string {
   if (!content.trim()) {
     return '';
@@ -126,7 +169,44 @@ function renderContact(data: TailoredResumeData): string {
   return parts.join(' \\textbar{} ');
 }
 
-function renderBody(data: TailoredResumeData): string {
+function buildHref(value: string): string {
+  const trimmed = normalizeLatexText(value).trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (/^(https?:\/\/|mailto:)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+function renderJakeContact(data: TailoredResumeData): string {
+  const parts: string[] = [];
+
+  if (data.phone?.trim()) {
+    parts.push(escapeLatex(data.phone.trim()));
+  }
+
+  if (data.email?.trim()) {
+    const email = data.email.trim();
+    parts.push(`\\href{mailto:${email}}{\\underline{${escapeLatex(email)}}}`);
+  }
+
+  for (const value of [data.linkedin, data.github, data.website]) {
+    if (!value?.trim()) {
+      continue;
+    }
+
+    const trimmed = value.trim();
+    parts.push(`\\href{${buildHref(trimmed)}}{\\underline{${escapeLatex(trimmed)}}}`);
+  }
+
+  return parts.join(' $|$ ');
+}
+
+function renderBody(templateId: BuiltInResumeTemplateId, data: TailoredResumeData): string {
   const summary = data.summary.trim();
   const skills = cleanList(data.skills, 18);
   const experience = cleanSectionItems(data.experience, 5);
@@ -134,6 +214,20 @@ function renderBody(data: TailoredResumeData): string {
   const education = cleanSectionItems(data.education, 3);
   const certifications = cleanList(data.certifications, 8);
   const additional = cleanList(data.additional, 8);
+
+  if (templateId === 'awesome-classic') {
+    const skillsInline = skills.map((item) => escapeLatex(item)).join(', ');
+    const sections = [
+      renderJakeEntrySection('Education', education),
+      renderJakeEntrySection('Experience', experience),
+      renderJakeProjectsSection(projects),
+      skills.length > 0
+        ? `\\section{Technical Skills}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\\textbf{Skills}{: ${skillsInline}}}}\n \\end{itemize}`
+        : '',
+    ].filter(Boolean);
+
+    return sections.join('\n\n');
+  }
 
   const sections = [
     summary ? renderSection('Summary', escapeLatex(summary)) : '',
@@ -176,14 +270,47 @@ function buildTemplatePreamble(templateId: BuiltInResumeTemplateId): string {
 \\begin{document}`;
   }
 
-  return `\\documentclass[11pt]{article}
-\\usepackage[margin=0.7in]{geometry}
+  return `\\documentclass[letterpaper,11pt]{article}
+\\usepackage{latexsym}
+\\usepackage[empty]{fullpage}
+\\usepackage{titlesec}
+\\usepackage{marvosym}
+\\usepackage[usenames,dvipsnames]{color}
+\\usepackage{verbatim}
 \\usepackage{enumitem}
+\\usepackage[hidelinks]{hyperref}
+\\usepackage{fancyhdr}
+\\usepackage[english]{babel}
+\\usepackage{tabularx}
 \\usepackage[T1]{fontenc}
 \\usepackage[utf8]{inputenc}
-\\usepackage{lmodern}
-\\setlength{\\parindent}{0pt}
-\\setlength{\\parskip}{5pt}
+\\input{glyphtounicode}
+\\pagestyle{fancy}
+\\fancyhf{}
+\\fancyfoot{}
+\\renewcommand{\\headrulewidth}{0pt}
+\\renewcommand{\\footrulewidth}{0pt}
+\\addtolength{\\oddsidemargin}{-0.5in}
+\\addtolength{\\evensidemargin}{-0.5in}
+\\addtolength{\\textwidth}{1in}
+\\addtolength{\\topmargin}{-.5in}
+\\addtolength{\\textheight}{1.0in}
+\\urlstyle{same}
+\\raggedbottom
+\\raggedright
+\\setlength{\\tabcolsep}{0in}
+\\titleformat{\\section}{\\vspace{-4pt}\\scshape\\raggedright\\large}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+\\pdfgentounicode=1
+\\newcommand{\\resumeItem}[1]{\\item\\small{{#1 \\vspace{-2pt}}}}
+\\newcommand{\\resumeSubheading}[4]{\\vspace{-2pt}\\item\\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}\\textbf{#1} & #2 \\\\\\textit{\\small#3} & \\textit{\\small #4} \\\\\\end{tabular*}\\vspace{-7pt}}
+\\newcommand{\\resumeSubSubheading}[2]{\\item\\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}\\textit{\\small#1} & \\textit{\\small #2} \\\\\\end{tabular*}\\vspace{-7pt}}
+\\newcommand{\\resumeProjectHeading}[2]{\\item\\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}\\small#1 & #2 \\\\\\end{tabular*}\\vspace{-7pt}}
+\\newcommand{\\resumeSubItem}[1]{\\resumeItem{#1}\\vspace{-4pt}}
+\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
+\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 \\pagenumbering{gobble}
 \\begin{document}`;
 }
@@ -211,9 +338,23 @@ export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: T
   const name = escapeLatex(data.fullName || 'Candidate Name');
   const contact = renderContact(data);
   const headline = data.targetTitle?.trim() ? `\\textit{${escapeLatex(data.targetTitle.trim())}}` : '';
-  const body = renderBody(data);
+  const body = renderBody(templateId, data);
 
   const preamble = buildTemplatePreamble(templateId);
+
+  if (templateId === 'awesome-classic') {
+    const contactParts = renderJakeContact(data);
+    return `${preamble}
+\\begin{center}
+    \\textbf{\\Huge \\scshape ${name}} \\\\ \\vspace{1pt}
+    ${contactParts ? `\\small ${contactParts}` : ''}
+\\end{center}
+
+${body}
+
+\\end{document}
+`;
+  }
 
   return `${preamble}
 \\begin{center}
