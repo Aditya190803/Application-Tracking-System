@@ -1,0 +1,34 @@
+# Application Tracking System
+
+> AI-powered resume analysis and cover-letter generation platform built with Next.js, Stack Auth, Convex, and Google Gemini.
+
+## Overview
+Application Tracking System helps job seekers optimize their resumes and generate tailored cover letters using AI. Upload your resume, get detailed analysis, and generate professional documents.
+
+## Key Features
+- **Resume Analysis** — Upload a resume and receive AI-powered feedback on structure, keywords, and content
+- **Cover Letter Generation** — Generate tailored cover letters based on resume and job description
+- **Resume Builder** — Create and edit professional resumes with AI assistance
+- **History & Tracking** — Keep track of all analyses and generated documents
+- **LaTeX Export** — Export resumes in professional LaTeX format
+
+## Pages
+- `/` — Landing page
+- `/dashboard` — Main dashboard
+- `/dashboard/upload` — Upload resume
+- `/dashboard/analysis` — View resume analysis
+- `/dashboard/analysis/[slug]` — Specific analysis report
+- `/dashboard/cover-letter` — Generate cover letters
+- `/dashboard/resume-builder` — Resume builder
+- `/dashboard/history` — Analysis history
+- `/how-it-works` — How the platform works
+- `/contact` — Contact page
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
+
+## Tech Stack
+- Next.js (App Router)
+- Stack Auth (Authentication)
+- Convex (Backend/Database)
+- Google Gemini (AI)
+- Tailwind CSS

@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /how-it-works
+Allow: /contact
+
+# Protected routes (require authentication)
+Disallow: /dashboard/
+
+# Legal pages
+Allow: /privacy
+Allow: /terms
+
+Sitemap: http://ats.adityamer.dev/sitemap.xml

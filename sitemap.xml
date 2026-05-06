@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://ats.adityamer.dev/</loc><priority>1.0</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard</loc><priority>0.8</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard/upload</loc><priority>0.7</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard/analysis</loc><priority>0.7</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard/cover-letter</loc><priority>0.7</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard/resume-builder</loc><priority>0.7</priority></url>
+  <url><loc>http://ats.adityamer.dev/dashboard/history</loc><priority>0.5</priority></url>
+  <url><loc>http://ats.adityamer.dev/how-it-works</loc><priority>0.8</priority></url>
+  <url><loc>http://ats.adityamer.dev/contact</loc><priority>0.5</priority></url>
+  <url><loc>http://ats.adityamer.dev/privacy</loc><priority>0.3</priority></url>
+  <url><loc>http://ats.adityamer.dev/terms</loc><priority>0.3</priority></url>
+</urlset>
