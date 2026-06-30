@@ -15,6 +15,13 @@ vi.mock('@/lib/auth', () => ({
     checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetIn: 1000 }),
 }));
 
+vi.mock('@/lib/observability', () => ({
+    logInfo: vi.fn(),
+    logError: vi.fn(),
+    logSafeFileName: (name: string) => name,
+    flushObservabilitySafely: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('/api/parse-pdf', () => {
     beforeEach(() => {
         vi.clearAllMocks();

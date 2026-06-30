@@ -10,8 +10,60 @@ export interface ParsedPDF {
   };
 }
 
+export class PDFNoExtractableTextError extends Error {
+  constructor() {
+    super('PDF_NO_EXTRACTABLE_TEXT');
+    this.name = 'PDFNoExtractableTextError';
+  }
+}
+
+/** pdf2json URL-encodes text runs; Word Print-to-PDF can produce invalid % sequences. */
+export function decodePdfTextRun(token: string): string {
+  const raw = token || '';
+  if (!raw) return '';
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, ' '));
+  } catch {
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+}
+
+function extractTextFromPages(pdfData: {
+  Pages: Array<{
+    Texts: Array<{
+      R: Array<{ T: string }>;
+    }>;
+  }>;
+}): string {
+  const pages = pdfData.Pages || [];
+  let fullText = '';
+
+  pages.forEach((page, pageIndex) => {
+    const pageTexts = page.Texts || [];
+    const pageText = pageTexts
+      .map(text => {
+        const textRuns = text.R || [];
+        return textRuns.map(run => decodePdfTextRun(run.T || '')).join('');
+      })
+      .join(' ');
+
+    if (pageText.trim()) {
+      fullText += `${pageText}\n\n`;
+    }
+
+    if (pageIndex < pages.length - 1) {
+      fullText += '---\n\n';
+    }
+  });
+
+  return fullText.trim();
+}
+
 export async function parsePDFBuffer(buffer: Buffer): Promise<ParsedPDF> {
-  // Dynamic import for server-side only
   const PDFParser = (await import('pdf2json')).default;
 
   return new Promise((resolve, reject) => {
@@ -29,33 +81,21 @@ export async function parsePDFBuffer(buffer: Buffer): Promise<ParsedPDF> {
       };
     }) => {
       try {
-        // Extract text from all pages
         const pages = pdfData.Pages || [];
-        let fullText = '';
+        let fullText = extractTextFromPages(pdfData);
 
-        pages.forEach((page, pageIndex) => {
-          const pageTexts = page.Texts || [];
-          const pageText = pageTexts
-            .map(text => {
-              const textRuns = text.R || [];
-              return textRuns
-                .map(run => decodeURIComponent(run.T || ''))
-                .join('');
-            })
-            .join(' ');
+        const parserWithRaw = pdfParser as { getRawTextContent?: () => string };
+        if (!fullText && typeof parserWithRaw.getRawTextContent === 'function') {
+          fullText = parserWithRaw.getRawTextContent().trim();
+        }
 
-          if (pageText.trim()) {
-            fullText += `${pageText}\n\n`;
-          }
-
-          // Add page break indicator for multi-page documents
-          if (pageIndex < pages.length - 1) {
-            fullText += '---\n\n';
-          }
-        });
+        if (!fullText) {
+          reject(new PDFNoExtractableTextError());
+          return;
+        }
 
         resolve({
-          text: fullText.trim(),
+          text: fullText,
           pages: pages.length,
           metadata: {
             title: pdfData.Meta?.Title,
@@ -75,7 +115,6 @@ export async function parsePDFBuffer(buffer: Buffer): Promise<ParsedPDF> {
       }
     });
 
-    // Parse the buffer
     pdfParser.parseBuffer(buffer);
   });
 }

@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ResumeList } from '@/components/dashboard/upload/ResumeList'
 import { Button } from '@/components/ui/button'
 import { useResumes } from '@/hooks/useResumes'
+import { formatApiErrorMessage } from '@/lib/api-client-error'
 
 export default function UploadPage() {
   const [file, setFile] = useState<{ name: string; text: string; pages: number } | null>(null)
@@ -61,7 +62,7 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.message || data.error || 'Failed to parse PDF')
+        throw new Error(formatApiErrorMessage(data, 'Failed to parse PDF'))
       }
 
       const data = await response.json()
@@ -99,7 +100,7 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const errorPayload = await response.json().catch(() => ({}))
-        throw new Error(errorPayload.message || errorPayload.error || 'Failed to save resume')
+        throw new Error(formatApiErrorMessage(errorPayload, 'Failed to save resume'))
       }
 
       const data = await response.json()

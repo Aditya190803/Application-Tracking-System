@@ -4,13 +4,27 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { withTimeout } from '@/lib/async-timeout';
 import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
-import { parsePDFBuffer } from '@/lib/pdf-parser';
+import {
+  flushObservabilitySafely,
+  logError,
+  logInfo,
+  logSafeFileName,
+  sanitizeLogErrorMessage,
+} from '@/lib/observability';
+import { PDFNoExtractableTextError, parsePDFBuffer } from '@/lib/pdf-parser';
 
 const MAX_SIZE = 20 * 1024 * 1024;
 const PDF_PARSE_TIMEOUT_MS = Number(process.env.PDF_PARSE_TIMEOUT_MS || 12000);
+const LOG_OBS_ERROR_DETAILS = process.env.LOG_OBS_ERROR_DETAILS === 'true';
+
+const PDF_NO_TEXT_MESSAGE =
+  'We could not read any text from this PDF. Try File → Save As → PDF in Word (instead of Print to PDF), or export from another app.';
 
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') ?? randomUUID();
+  const startedAt = Date.now();
+  const route = '/api/parse-pdf';
+  let fileMeta: { fileName?: string; fileSize?: number } = {};
 
   try {
     const userId = await getAuthenticatedUser();
@@ -34,6 +48,8 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return apiError(requestId, 400, 'VALIDATION_ERROR', 'No file provided');
     }
+
+    fileMeta = { fileName: logSafeFileName(file.name), fileSize: file.size };
 
     if (file.size > MAX_SIZE) {
       return apiError(requestId, 400, 'FILE_TOO_LARGE', 'File size must be less than 20MB');
@@ -60,6 +76,16 @@ export async function POST(request: NextRequest) {
       'PDF parsing timed out. Please try a smaller file.',
     );
 
+    logInfo({
+      event: 'pdf.parse_succeeded',
+      requestId,
+      route,
+      latencyMs: Date.now() - startedAt,
+      fileName: fileMeta.fileName,
+      fileSize: fileMeta.fileSize,
+      pageCount: parsed.pages,
+    });
+
     return apiSuccess({
       text: parsed.text,
       pages: parsed.pages,
@@ -77,9 +103,43 @@ export async function POST(request: NextRequest) {
       );
     }
     if (error instanceof Error && error.message.includes('timed out')) {
+      logError({
+        event: 'pdf.parse_timeout',
+        requestId,
+        route,
+        latencyMs: Date.now() - startedAt,
+        code: 'PDF_PARSE_TIMEOUT',
+        ...fileMeta,
+      });
       return apiError(requestId, 504, 'PDF_PARSE_TIMEOUT', error.message);
     }
-    console.error('PDF parsing error', { requestId, error });
-    return apiError(requestId, 500, 'PDF_PARSE_FAILED', 'Failed to parse PDF');
+    if (error instanceof PDFNoExtractableTextError) {
+      logError({
+        event: 'pdf.parse_no_text',
+        requestId,
+        route,
+        latencyMs: Date.now() - startedAt,
+        code: 'PDF_NO_EXTRACTABLE_TEXT',
+        ...fileMeta,
+      });
+      return apiError(requestId, 400, 'PDF_NO_EXTRACTABLE_TEXT', PDF_NO_TEXT_MESSAGE);
+    }
+
+    logError({
+      event: 'pdf.parse_failed',
+      requestId,
+      route,
+      latencyMs: Date.now() - startedAt,
+      code: 'PDF_PARSE_FAILED',
+      errorMessage: sanitizeLogErrorMessage(error, LOG_OBS_ERROR_DETAILS),
+      ...fileMeta,
+    });
+
+    const userMessage =
+      'Failed to parse PDF. If you used Word, try File → Save As → PDF instead of Print to PDF.';
+
+    return apiError(requestId, 500, 'PDF_PARSE_FAILED', userMessage);
+  } finally {
+    await flushObservabilitySafely();
   }
 }

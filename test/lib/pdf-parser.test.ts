@@ -1,8 +1,18 @@
 import { describe, expect,it } from 'vitest';
 
-import { validatePDFFile } from '@/lib/pdf-parser';
+import { decodePdfTextRun, validatePDFFile } from '@/lib/pdf-parser';
 
 describe('pdf-parser', () => {
+    describe('decodePdfTextRun', () => {
+        it('decodes valid URI-encoded text', () => {
+            expect(decodePdfTextRun('hello%20world')).toBe('hello world');
+        });
+
+        it('returns raw token when decode fails', () => {
+            expect(decodePdfTextRun('bad%ZZ')).toBe('bad%ZZ');
+        });
+    });
+
     describe('validatePDFFile', () => {
         it('should return valid for a proper PDF file', () => {
             const file = new File([''], 'test.pdf', { type: 'application/pdf' });

@@ -15,7 +15,7 @@ import {
 } from '@/lib/convex-server';
 import { AnalysisType, analyzeResume, LENGTH_OPTIONS,TONE_OPTIONS } from '@/lib/gemini';
 import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
-import { logError, logInfo } from '@/lib/observability';
+import { flushObservabilitySafely, logError, logInfo } from '@/lib/observability';
 import { createHash,LRUCache } from '@/lib/utils';
 
 const analysisCache = new LRUCache<string | object>(32, 600);
@@ -242,8 +242,6 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess(response);
   } catch (error) {
-    console.error('Analysis error', { requestId, error });
-
     if (error instanceof Error) {
       if (error.message === 'RATE_LIMIT_BACKEND_UNCONFIGURED') {
         logError({
@@ -315,5 +313,7 @@ export async function POST(request: NextRequest) {
       code: 'ANALYSIS_FAILED',
     });
     return apiError(requestId, 500, 'ANALYSIS_FAILED', 'Failed to analyze resume. Please try again.');
+  } finally {
+    await flushObservabilitySafely();
   }
 }
