@@ -10,6 +10,14 @@ import {
   getUserResumes,
   saveResume,
 } from '@/lib/convex-server';
+import {
+  flushObservabilitySafely,
+  logError,
+  logInfo,
+  sanitizeLogErrorMessage,
+} from '@/lib/observability';
+
+const LOG_OBS_ERROR_DETAILS = process.env.LOG_OBS_ERROR_DETAILS === 'true';
 
 const MAX_RESUMES_PER_USER = 20;
 
@@ -58,10 +66,26 @@ export async function POST(request: NextRequest) {
       pageCount,
     });
 
+    logInfo({
+      event: 'resume.save_succeeded',
+      requestId,
+      route: '/api/resumes',
+      pageCount,
+      fileSize,
+    });
+
     return apiSuccess({ resume, deduplicated: false, requestId });
   } catch (error) {
-    console.error('Error saving resume', { requestId, error });
+    logError({
+      event: 'resume.save_failed',
+      requestId,
+      route: '/api/resumes',
+      code: 'RESUME_SAVE_FAILED',
+      errorMessage: sanitizeLogErrorMessage(error, LOG_OBS_ERROR_DETAILS),
+    });
     return apiError(requestId, 500, 'RESUME_SAVE_FAILED', 'Failed to save resume');
+  } finally {
+    flushObservabilitySafely();
   }
 }
 
@@ -82,8 +106,16 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess({ resumes, requestId });
   } catch (error) {
-    console.error('Error fetching resumes', { requestId, error });
+    logError({
+      event: 'resume.fetch_failed',
+      requestId,
+      route: '/api/resumes',
+      code: 'RESUME_FETCH_FAILED',
+      errorMessage: sanitizeLogErrorMessage(error, LOG_OBS_ERROR_DETAILS),
+    });
     return apiError(requestId, 500, 'RESUME_FETCH_FAILED', 'Failed to fetch resumes');
+  } finally {
+    flushObservabilitySafely();
   }
 }
 
@@ -118,7 +150,15 @@ export async function DELETE(request: NextRequest) {
 
     return apiSuccess({ success: true, requestId });
   } catch (error) {
-    console.error('Error deleting resume', { requestId, error });
+    logError({
+      event: 'resume.delete_failed',
+      requestId,
+      route: '/api/resumes',
+      code: 'RESUME_DELETE_FAILED',
+      errorMessage: sanitizeLogErrorMessage(error, LOG_OBS_ERROR_DETAILS),
+    });
     return apiError(requestId, 500, 'RESUME_DELETE_FAILED', 'Failed to delete resume');
+  } finally {
+    flushObservabilitySafely();
   }
 }

@@ -75,6 +75,12 @@ UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 # Only set true for local emergency fallback; keep false/empty in production
 ALLOW_IN_MEMORY_RATE_LIMIT=""
+
+# Axiom (production logging)
+AXIOM_TOKEN=""
+AXIOM_DATASET=""
+AXIOM_SERVICE="ats"
+LOG_OBS_ERROR_DETAILS=""
 ```
 
 4. Start Convex dev backend and Next.js app
@@ -85,3 +91,32 @@ bun run dev
 ```
 
 App runs at `http://localhost:3000`.
+
+## Observability (Axiom)
+
+Server routes emit structured JSON logs (`[obs]` prefix) via `src/lib/observability.ts`.
+
+1. Create an [Axiom](https://axiom.co) dataset (e.g. `ats-prod`).
+2. Create an API token with ingest permission.
+3. Set on Vercel (and in `.env.local` for dev ingest):
+   - `AXIOM_TOKEN` — bearer token (never commit)
+   - `AXIOM_DATASET` — e.g. `ats-prod`
+   - `AXIOM_EDGE` — optional, e.g. `us-east-1.aws.edge.axiom.co` (matches your ingest URL region)
+4. Optional: add the **Vercel → Axiom** integration for raw platform logs in addition to direct ingest.
+
+**Useful Axiom queries**
+
+```apl
+['your-dataset']
+| where event == "pdf.parse_failed" or event == "pdf.parse_no_text"
+| sort by _time desc
+```
+
+```apl
+['your-dataset']
+| where requestId == "paste-ref-from-user"
+```
+
+PDF upload failures include `requestId` in the API error; the upload UI shows it as `(ref: …)` so users can share it with support.
+
+Set `LOG_OBS_ERROR_DETAILS=true` temporarily to include sanitized `errorMessage` on failure events (never resume or job description content).

@@ -1,8 +1,26 @@
 import { describe, expect,it } from 'vitest';
 
-import { validatePDFFile } from '@/lib/pdf-parser';
+import { decodePdfTextRun, validatePDFFile } from '@/lib/pdf-parser';
 
 describe('pdf-parser', () => {
+    describe('decodePdfTextRun', () => {
+        it('decodes valid URI-encoded text', () => {
+            expect(decodePdfTextRun('hello%20world')).toBe('hello world');
+        });
+
+        it('treats + as a space', () => {
+            expect(decodePdfTextRun('hello+world')).toBe('hello world');
+        });
+
+        it('returns raw token when decode fails', () => {
+            expect(decodePdfTextRun('bad%ZZ')).toBe('bad%ZZ');
+        });
+
+        it('returns empty string for empty token', () => {
+            expect(decodePdfTextRun('')).toBe('');
+        });
+    });
+
     describe('validatePDFFile', () => {
         it('should return valid for a proper PDF file', () => {
             const file = new File([''], 'test.pdf', { type: 'application/pdf' });
@@ -18,6 +36,12 @@ describe('pdf-parser', () => {
             const result = validatePDFFile(file);
             expect(result.valid).toBe(false);
             expect(result.error).toBe('File must be a PDF');
+        });
+
+        it('should return invalid when no file', () => {
+            const result = validatePDFFile(null as unknown as File);
+            expect(result.valid).toBe(false);
+            expect(result.error).toBe('No file provided');
         });
 
         it('should return invalid for large files', () => {

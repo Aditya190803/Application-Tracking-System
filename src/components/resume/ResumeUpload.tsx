@@ -6,6 +6,7 @@ import { useCallback,useState } from 'react'
 
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Button } from '@/components/ui/button'
+import { formatApiErrorMessage } from '@/lib/api-client-error'
 
 interface ResumeUploadProps {
   onUpload: (data: { text: string; fileName: string; pages: number }) => void
@@ -40,8 +41,8 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.message || data.error || 'Failed to parse PDF')
+        const data = await response.json().catch(() => ({}))
+        throw new Error(formatApiErrorMessage(data, 'Failed to parse PDF'))
       }
 
       const data = await response.json()
