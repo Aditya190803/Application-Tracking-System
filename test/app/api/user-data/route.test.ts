@@ -51,8 +51,8 @@ describe('/api/user-data', () => {
 
     expect(response.status).toBe(200)
     expect(data.success).toBe(true)
-    expect(deleteResume).toHaveBeenCalledWith('resume-1')
-    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1')
-    expect(deleteCoverLetter).toHaveBeenCalledWith('cover-1')
+    expect(deleteResume).toHaveBeenCalledWith('resume-1', 'user-1')
+    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1', 'user-1')
+    expect(deleteCoverLetter).toHaveBeenCalledWith('cover-1', 'user-1')
   })
 })

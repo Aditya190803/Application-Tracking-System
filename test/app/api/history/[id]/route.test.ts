@@ -60,7 +60,7 @@ describe('GET /api/history/[id]', () => {
     expect(data.item.type).toBe('analysis');
     expect(data.item.id).toBe('analysis-1');
     expect(data.item.companyName).toBe('Acme');
-    expect(getAnalysisById).toHaveBeenCalledWith('analysis-1');
+    expect(getAnalysisById).toHaveBeenCalledWith('analysis-1', 'user-1');
     expect(getCoverLetterById).not.toHaveBeenCalled();
   });
 
@@ -83,7 +83,7 @@ describe('GET /api/history/[id]', () => {
     expect(data.item.type).toBe('cover-letter');
     expect(data.item.id).toBe('cover-1');
     expect(data.item.companyName).toBe('Acme');
-    expect(getCoverLetterById).toHaveBeenCalledWith('cover-1');
+    expect(getCoverLetterById).toHaveBeenCalledWith('cover-1', 'user-1');
     expect(getAnalysisById).not.toHaveBeenCalled();
   });
 
@@ -119,6 +119,6 @@ describe('GET /api/history/[id]', () => {
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1');
+    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1', 'user-1');
   });
 });

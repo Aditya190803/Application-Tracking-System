@@ -23,8 +23,10 @@ vi.mock('convex/browser', () => ({
 import { ConvexHttpClient } from 'convex/browser';
 
 import {
+  deleteResume,
   generateHash,
   getAnalysis,
+  getResumeById,
   getUserResumes,
   getUserStats,
   saveResume,
@@ -67,6 +69,34 @@ describe('convex-server', () => {
         });
     });
 
+    describe('getResumeById', () => {
+        it('should pass userId for ownership check', async () => {
+            mockQuery.mockResolvedValue({ _id: '1', userId: 'user-1', name: 'R1', textContent: 'content' });
+
+            const result = await getResumeById('1', 'user-1');
+
+            expect(result).not.toBeNull();
+            expect(mockQuery).toHaveBeenCalledWith('functions:getResumeById', {
+                resumeId: '1',
+                userId: 'user-1',
+            });
+        });
+    });
+
+    describe('deleteResume', () => {
+        it('should pass userId for ownership check', async () => {
+            mockMutation.mockResolvedValue(true);
+
+            const result = await deleteResume('1', 'user-1');
+
+            expect(result).toBe(true);
+            expect(mockMutation).toHaveBeenCalledWith('functions:deleteResume', {
+                resumeId: '1',
+                userId: 'user-1',
+            });
+        });
+    });
+
     describe('getUserResumes', () => {
         it('should return resumes for a user', async () => {
             mockQuery.mockResolvedValue([
@@ -94,7 +124,6 @@ describe('convex-server', () => {
         it('returns stats from convex', async () => {
             mockQuery.mockResolvedValue({
                 totalScans: 2,
-                avgScore: 70,
                 draftsMade: 1,
                 resumeCount: 3,
                 analysisCount: 2,

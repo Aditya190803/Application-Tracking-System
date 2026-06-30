@@ -58,6 +58,7 @@ describe('/api/resumes', () => {
             const data = await res.json();
             expect(res.status).toBe(200);
             expect(data.success).toBe(true);
+            expect(getResumeById).toHaveBeenCalledWith('res1', 'u1');
         });
 
         it("should reject deleting another user's resume", async () => {

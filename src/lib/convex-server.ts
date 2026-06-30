@@ -4,23 +4,27 @@ import crypto from "crypto";
 type Id<T extends string> = string & { __tableName?: T };
 
 const convexFunctions = {
+    deleteAnalysis: "functions:deleteAnalysis",
+    deleteCoverLetter: "functions:deleteCoverLetter",
     deleteResume: "functions:deleteResume",
+    deleteTailoredResume: "functions:deleteTailoredResume",
     getAnalysis: "functions:getAnalysis",
     getAnalysisById: "functions:getAnalysisById",
     getCoverLetter: "functions:getCoverLetter",
     getCoverLetterById: "functions:getCoverLetterById",
+    getResumeById: "functions:getResumeById",
     getSearchHistory: "functions:getSearchHistory",
+    getTailoredResume: "functions:getTailoredResume",
+    getTailoredResumeById: "functions:getTailoredResumeById",
+    getTailoredResumeVersionsBySlug: "functions:getTailoredResumeVersionsBySlug",
     getUserAnalyses: "functions:getUserAnalyses",
     getUserCoverLetters: "functions:getUserCoverLetters",
     getUserResumes: "functions:getUserResumes",
-    getUserTailoredResumes: "functions:getUserTailoredResumes",
-    getTailoredResumeVersionsBySlug: "functions:getTailoredResumeVersionsBySlug",
     getUserStats: "functions:getUserStats",
+    getUserTailoredResumes: "functions:getUserTailoredResumes",
     saveAnalysis: "functions:saveAnalysis",
     saveCoverLetter: "functions:saveCoverLetter",
     saveResume: "functions:saveResume",
-    getTailoredResume: "functions:getTailoredResume",
-    getTailoredResumeById: "functions:getTailoredResumeById",
     saveTailoredResume: "functions:saveTailoredResume",
 } as const;
 
@@ -154,12 +158,14 @@ export async function getUserResumes(
 }
 
 export async function getResumeById(
-    resumeId: string
+    resumeId: string,
+    userId: string,
 ): Promise<Resume | null> {
     try {
         const client = getClient();
-        const doc = await client.query("functions:getResumeById", {
+        const doc = await client.query(convexFunctions.getResumeById, {
             resumeId: resumeId as Id<"resumes">,
+            userId,
         });
         return doc as unknown as Resume | null;
     } catch (error) {
@@ -168,13 +174,13 @@ export async function getResumeById(
     }
 }
 
-export async function deleteResume(resumeId: string): Promise<boolean> {
+export async function deleteResume(resumeId: string, userId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await client.mutation(convexFunctions.deleteResume, {
+        return await client.mutation(convexFunctions.deleteResume, {
             resumeId: resumeId as Id<"resumes">,
-        });
-        return true;
+            userId,
+        }) as boolean;
     } catch (error) {
         console.error("Error deleting resume:", error);
         return false;
@@ -192,12 +198,14 @@ export async function saveAnalysis(
 }
 
 export async function getAnalysisById(
-    analysisId: string
+    analysisId: string,
+    userId: string,
 ): Promise<Analysis | null> {
     try {
         const client = getClient();
         const doc = await client.query(convexFunctions.getAnalysisById, {
             analysisId: analysisId as Id<"analyses">,
+            userId,
         });
         return doc as unknown as Analysis | null;
     } catch (error) {
@@ -206,11 +214,13 @@ export async function getAnalysisById(
     }
 }
 
-export async function deleteAnalysis(analysisId: string): Promise<boolean> {
+export async function deleteAnalysis(analysisId: string, userId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await client.mutation("functions:deleteAnalysis", { analysisId });
-        return true;
+        return await client.mutation(convexFunctions.deleteAnalysis, {
+            analysisId,
+            userId,
+        }) as boolean;
     } catch (error) {
         console.error("Error deleting analysis:", error);
         return false;
@@ -266,12 +276,14 @@ export async function saveCoverLetter(
 }
 
 export async function getCoverLetterById(
-    coverLetterId: string
+    coverLetterId: string,
+    userId: string,
 ): Promise<CoverLetter | null> {
     try {
         const client = getClient();
         const doc = await client.query(convexFunctions.getCoverLetterById, {
             coverLetterId: coverLetterId as Id<"coverLetters">,
+            userId,
         });
         return doc as unknown as CoverLetter | null;
     } catch (error) {
@@ -280,11 +292,13 @@ export async function getCoverLetterById(
     }
 }
 
-export async function deleteCoverLetter(coverLetterId: string): Promise<boolean> {
+export async function deleteCoverLetter(coverLetterId: string, userId: string): Promise<boolean> {
     try {
         const client = getClient();
-        await client.mutation("functions:deleteCoverLetter", { coverLetterId });
-        return true;
+        return await client.mutation(convexFunctions.deleteCoverLetter, {
+            coverLetterId,
+            userId,
+        }) as boolean;
     } catch (error) {
         console.error("Error deleting cover letter:", error);
         return false;
@@ -363,17 +377,32 @@ export async function getTailoredResume(
 }
 
 export async function getTailoredResumeById(
-    tailoredResumeId: string
+    tailoredResumeId: string,
+    userId: string,
 ): Promise<TailoredResume | null> {
     try {
         const client = getClient();
         const doc = await client.query(convexFunctions.getTailoredResumeById, {
             tailoredResumeId: tailoredResumeId as Id<"tailoredResumes">,
+            userId,
         });
         return doc as unknown as TailoredResume | null;
     } catch (error) {
         console.error("Error fetching tailored resume by id:", error);
         return null;
+    }
+}
+
+export async function deleteTailoredResume(tailoredResumeId: string, userId: string): Promise<boolean> {
+    try {
+        const client = getClient();
+        return await client.mutation(convexFunctions.deleteTailoredResume, {
+            tailoredResumeId: tailoredResumeId as Id<"tailoredResumes">,
+            userId,
+        }) as boolean;
+    } catch (error) {
+        console.error("Error deleting tailored resume:", error);
+        return false;
     }
 }
 
@@ -417,7 +446,6 @@ export async function getTailoredResumeVersionsBySlug(
 
 export async function getUserStats(userId: string): Promise<{
     totalScans: number;
-    avgScore: number;
     draftsMade: number;
     resumeCount: number;
     analysisCount: number;
@@ -429,7 +457,6 @@ export async function getUserStats(userId: string): Promise<{
         const stats = await client.query(convexFunctions.getUserStats, { userId });
         return stats as {
             totalScans: number;
-            avgScore: number;
             draftsMade: number;
             resumeCount: number;
             analysisCount: number;
@@ -440,7 +467,6 @@ export async function getUserStats(userId: string): Promise<{
         console.error("Error fetching user stats:", error);
         return {
             totalScans: 0,
-            avgScore: 0,
             draftsMade: 0,
             resumeCount: 0,
             analysisCount: 0,

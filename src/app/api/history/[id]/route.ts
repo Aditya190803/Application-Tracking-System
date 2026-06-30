@@ -33,12 +33,12 @@ export async function GET(
     let coverLetter = null;
 
     if (typeParam === 'analysis') {
-      analysis = await getAnalysisById(id);
+      analysis = await getAnalysisById(id, userId);
     } else if (typeParam === 'cover-letter') {
-      coverLetter = await getCoverLetterById(id);
+      coverLetter = await getCoverLetterById(id, userId);
     } else {
-      analysis = await getAnalysisById(id);
-      coverLetter = await getCoverLetterById(id);
+      analysis = await getAnalysisById(id, userId);
+      coverLetter = await getCoverLetterById(id, userId);
     }
 
     const item = analysis || coverLetter;
@@ -106,12 +106,12 @@ export async function DELETE(
     let analysis = null;
     let coverLetter = null;
     if (typeParam === 'analysis') {
-      analysis = await getAnalysisById(id);
+      analysis = await getAnalysisById(id, userId);
     } else if (typeParam === 'cover-letter') {
-      coverLetter = await getCoverLetterById(id);
+      coverLetter = await getCoverLetterById(id, userId);
     } else {
-      analysis = await getAnalysisById(id);
-      coverLetter = await getCoverLetterById(id);
+      analysis = await getAnalysisById(id, userId);
+      coverLetter = await getCoverLetterById(id, userId);
     }
 
     const item = analysis || coverLetter;
@@ -124,8 +124,8 @@ export async function DELETE(
     }
 
     const ok = analysis
-      ? await deleteAnalysis(id)
-      : await deleteCoverLetter(id);
+      ? await deleteAnalysis(id, userId)
+      : await deleteCoverLetter(id, userId);
 
     if (!ok) {
       return apiError(requestId, 500, 'HISTORY_ITEM_DELETE_FAILED', 'Failed to delete item');

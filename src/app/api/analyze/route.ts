@@ -17,7 +17,7 @@ import { isValidCoverLetterLength, isValidCoverLetterTone } from '@/lib/cover-le
 import { AnalysisType, analyzeResume, LENGTH_OPTIONS, TONE_OPTIONS } from '@/lib/gemini';
 import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
 import { flushObservabilitySafely, logError, logInfo } from '@/lib/observability';
-import { createHash,LRUCache } from '@/lib/utils';
+import { createHash, LRUCache } from '@/lib/utils';
 
 const analysisCache = new LRUCache<string | object>(32, 600);
 const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 30000);

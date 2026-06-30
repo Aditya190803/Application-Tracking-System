@@ -55,9 +55,9 @@ export async function DELETE(request: NextRequest) {
       getUserCoverLetters(userId, 1000),
     ])
 
-    const resumeDeletes = await Promise.all(resumes.map((item) => deleteResume(item._id)))
-    const analysisDeletes = await Promise.all(analyses.map((item) => deleteAnalysis(item._id)))
-    const coverLetterDeletes = await Promise.all(coverLetters.map((item) => deleteCoverLetter(item._id)))
+    const resumeDeletes = await Promise.all(resumes.map((item) => deleteResume(item._id, userId)))
+    const analysisDeletes = await Promise.all(analyses.map((item) => deleteAnalysis(item._id, userId)))
+    const coverLetterDeletes = await Promise.all(coverLetters.map((item) => deleteCoverLetter(item._id, userId)))
 
     deleteDraft(userId, 'analysis')
     deleteDraft(userId, 'cover-letter')

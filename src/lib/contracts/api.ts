@@ -146,7 +146,6 @@ export const resumesResponseSchema = z.object({
 
 export const userStatsResponseSchema = z.object({
   totalScans: z.number(),
-  avgScore: z.number(),
   draftsMade: z.number(),
   resumeCount: z.number(),
   analysisCount: z.number(),
