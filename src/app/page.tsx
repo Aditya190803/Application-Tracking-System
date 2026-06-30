@@ -16,7 +16,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 
@@ -25,7 +25,6 @@ const MotionLink = motion(Link);
 export default function HomePage() {
   const user = useUser()
   const router = useRouter()
-  const [isHovered, setIsHovered] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -54,22 +53,6 @@ export default function HomePage() {
         damping: 15
       }
     },
-  }
-
-  const badgeVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    show: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        bounce: 0.5,
-      }
-    },
-    hover: {
-      scale: 1.05,
-      boxShadow: "0 0 20px rgba(var(--primary), 0.5)",
-      transition: { yoyo: Infinity, duration: 0.3 }
-    }
   }
 
   return (

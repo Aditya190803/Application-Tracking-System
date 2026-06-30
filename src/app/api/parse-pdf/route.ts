@@ -11,7 +11,7 @@ import {
   logSafeFileName,
   sanitizeLogErrorMessage,
 } from '@/lib/observability';
-import { PDFNoExtractableTextError, parsePDFBuffer } from '@/lib/pdf-parser';
+import { parsePDFBuffer,PDFNoExtractableTextError } from '@/lib/pdf-parser';
 
 const MAX_SIZE = 20 * 1024 * 1024;
 const PDF_PARSE_TIMEOUT_MS = Number(process.env.PDF_PARSE_TIMEOUT_MS || 12000);
