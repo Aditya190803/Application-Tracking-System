@@ -3,7 +3,7 @@ import { beforeEach,describe, expect, it, vi } from 'vitest';
 
 import { DELETE,GET, POST } from '@/app/api/resumes/route';
 import { getAuthenticatedUser } from '@/lib/auth';
-import { getResumeById } from '@/lib/convex-server';
+import { deleteResume, getResumeById } from '@/lib/convex-server';
 
 vi.mock('@/lib/convex-server', () => ({
     saveResume: vi.fn().mockResolvedValue({ _id: 'res1' }),
@@ -58,10 +58,13 @@ describe('/api/resumes', () => {
             const data = await res.json();
             expect(res.status).toBe(200);
             expect(data.success).toBe(true);
+            expect(getResumeById).toHaveBeenCalledWith('res1', 'u1');
+            expect(deleteResume).toHaveBeenCalledWith('res1', 'u1');
         });
 
-        it("should reject deleting another user's resume", async () => {
-            vi.mocked(getResumeById).mockResolvedValue({ _id: 'res1', userId: 'u2' } as never);
+        it("returns 404 when deleting another user's resume (scoped lookup)", async () => {
+            // getResumeById(resumeId, userId) returns null on ownership mismatch.
+            vi.mocked(getResumeById).mockResolvedValue(null);
 
             const req = new NextRequest('http://localhost/api/resumes?resumeId=res1', {
                 method: 'DELETE',
@@ -69,8 +72,8 @@ describe('/api/resumes', () => {
             const res = await DELETE(req);
             const data = await res.json();
 
-            expect(res.status).toBe(403);
-            expect(data.code).toBe('FORBIDDEN');
+            expect(res.status).toBe(404);
+            expect(data.code).toBe('RESUME_NOT_FOUND');
         });
     });
 });

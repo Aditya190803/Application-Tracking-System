@@ -3,23 +3,22 @@
 import { useUser } from '@stackframe/stack'
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle,
   Clock,
   Compass,
-  Copy,
-  Download,
-  FileEdit,
   FileText,
   Loader2,
-  RefreshCw,
   Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
+import { CoverLetterPreferencesPanel } from '@/components/dashboard/cover-letter/CoverLetterPreferencesPanel'
+import { CoverLetterRecentHistory } from '@/components/dashboard/cover-letter/CoverLetterRecentHistory'
+import { CoverLetterResultPanel } from '@/components/dashboard/cover-letter/CoverLetterResultPanel'
 import { CoverLetterDraftRestoreBanner } from '@/components/dashboard/cover-letter/DraftRestoreBanner'
+import type { RecentAnalysis, RecentCoverLetter, SearchHistoryItem } from '@/components/dashboard/cover-letter/types'
 import { ResumeSelect } from '@/components/resume/ResumeSelect'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,38 +30,14 @@ import {
   exportCoverLetterDocx,
   exportCoverLetterPdf,
 } from '@/lib/cover-letter-export'
+import {
+  type CoverLetterLength,
+  type CoverLetterTone,
+  isValidCoverLetterLength,
+  isValidCoverLetterTone,
+} from '@/lib/cover-letter-options'
 
-type Tone = 'professional' | 'friendly' | 'enthusiastic'
-type Length = 'concise' | 'standard' | 'detailed'
-type HistoryType = 'analysis' | 'cover-letter'
-
-interface SearchHistoryItem {
-  id: string
-  type: HistoryType
-  analysisType?: string
-  companyName?: string
-  resumeName?: string
-  jobTitle?: string
-  jobDescription?: string
-  createdAt: string
-  result: string
-}
-
-type RecentAnalysis = SearchHistoryItem & { type: 'analysis' }
-type RecentCoverLetter = SearchHistoryItem & { type: 'cover-letter' }
 const COVER_LETTER_DRAFT_KEY = 'coverLetterDraft'
-
-const TONE_OPTIONS: { value: Tone; label: string; description: string }[] = [
-  { value: 'professional', label: 'Professional', description: 'Formal and business-like' },
-  { value: 'friendly', label: 'Friendly', description: 'Warm and approachable' },
-  { value: 'enthusiastic', label: 'Enthusiastic', description: 'Energetic and passionate' },
-]
-
-const LENGTH_OPTIONS: { value: Length; label: string; description: string }[] = [
-  { value: 'concise', label: 'Concise', description: '~200 words' },
-  { value: 'standard', label: 'Standard', description: '~350 words' },
-  { value: 'detailed', label: 'Detailed', description: '~500 words' },
-]
 
 export default function CoverLetterPage() {
   const { addToast } = useToast()
@@ -81,8 +56,8 @@ export default function CoverLetterPage() {
         jobDescription?: string
         companyName?: string
         jobTitle?: string
-        tone?: Tone
-        length?: Length
+        tone?: CoverLetterTone
+        length?: CoverLetterLength
       }
     } catch {
       localStorage.removeItem(COVER_LETTER_DRAFT_KEY)
@@ -92,8 +67,12 @@ export default function CoverLetterPage() {
   const [jobDescription, setJobDescription] = useState(draft?.jobDescription ?? '')
   const [companyName, setCompanyName] = useState(draft?.companyName ?? '')
   const [jobTitle, setJobTitle] = useState(draft?.jobTitle ?? '')
-  const [tone, setTone] = useState<Tone>(draft?.tone ?? 'professional')
-  const [length, setLength] = useState<Length>(draft?.length ?? 'standard')
+  const [tone, setTone] = useState<CoverLetterTone>(
+    draft?.tone && isValidCoverLetterTone(draft.tone) ? draft.tone : 'professional',
+  )
+  const [length, setLength] = useState<CoverLetterLength>(
+    draft?.length && isValidCoverLetterLength(draft.length) ? draft.length : 'standard',
+  )
   const [resumeText, setResumeText] = useState<string | null>(null)
   const [resumeName, setResumeName] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -106,8 +85,8 @@ export default function CoverLetterPage() {
     jobDescription?: string
     companyName?: string
     jobTitle?: string
-    tone?: Tone
-    length?: Length
+    tone?: CoverLetterTone
+    length?: CoverLetterLength
   } | null>(null)
 
   const router = useRouter()
@@ -158,8 +137,8 @@ export default function CoverLetterPage() {
           jobDescription?: string
           companyName?: string
           jobTitle?: string
-          tone?: Tone
-          length?: Length
+          tone?: CoverLetterTone
+          length?: CoverLetterLength
         } | null
 
         if (!isMounted || !remote || !remote.jobDescription) {
@@ -241,14 +220,14 @@ export default function CoverLetterPage() {
           jobDescription?: string
           companyName?: string
           jobTitle?: string
-          tone?: Tone
-          length?: Length
+          tone?: CoverLetterTone
+          length?: CoverLetterLength
         }
         if (parsed.jobDescription) setJobDescription(parsed.jobDescription)
         if (parsed.companyName) setCompanyName(parsed.companyName)
         if (parsed.jobTitle) setJobTitle(parsed.jobTitle)
-        if (parsed.tone) setTone(parsed.tone)
-        if (parsed.length) setLength(parsed.length)
+        if (parsed.tone && isValidCoverLetterTone(parsed.tone)) setTone(parsed.tone)
+        if (parsed.length && isValidCoverLetterLength(parsed.length)) setLength(parsed.length)
         setShowDraftRestoreHint(false)
         return
       } catch {
@@ -260,8 +239,8 @@ export default function CoverLetterPage() {
       if (serverDraft.jobDescription) setJobDescription(serverDraft.jobDescription)
       if (serverDraft.companyName) setCompanyName(serverDraft.companyName)
       if (serverDraft.jobTitle) setJobTitle(serverDraft.jobTitle)
-      if (serverDraft.tone) setTone(serverDraft.tone)
-      if (serverDraft.length) setLength(serverDraft.length)
+      if (serverDraft.tone && isValidCoverLetterTone(serverDraft.tone)) setTone(serverDraft.tone)
+      if (serverDraft.length && isValidCoverLetterLength(serverDraft.length)) setLength(serverDraft.length)
       setShowDraftRestoreHint(false)
     }
   }
@@ -376,63 +355,13 @@ export default function CoverLetterPage() {
                   <h2 className="text-lg font-bold text-foreground">Job details</h2>
                 </div>
 
-                {recentAnalyses.length > 0 && !coverLetter && (
-                  <div className="mb-6">
-                    <p className="mb-3 ml-1 flex items-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <Clock className="mr-1.5 h-3.5 w-3.5" /> Recent analyses
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      {recentAnalyses.map((analysis) => (
-                        <button
-                          key={analysis.id}
-                          onClick={() => applyAnalysisData(analysis)}
-                          className="group flex items-center justify-between rounded-xl border border-border/55 bg-background/80 px-4 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:bg-background"
-                        >
-                          <div className="min-w-0 flex-1 pr-4">
-                            <span className="block truncate text-sm font-bold text-foreground">
-                              {analysis.jobTitle && analysis.companyName ? `${analysis.jobTitle} at ${analysis.companyName}` : analysis.jobTitle ? analysis.jobTitle : (analysis.resumeName ? `Analysis for ${analysis.resumeName}` : 'Resume Analysis')}
-                            </span>
-                            <span className="truncate text-xs font-medium text-muted-foreground">
-                              {new Date(analysis.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center whitespace-nowrap text-xs font-bold text-primary opacity-80 transition-opacity group-hover:opacity-100">
-                            Use details <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {recentCoverLetters.length > 0 && !coverLetter && (
-                  <div className="mb-6">
-                    <p className="mb-3 ml-1 flex items-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <FileEdit className="mr-1.5 h-3.5 w-3.5" /> Recent cover letters
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      {recentCoverLetters.map((cl) => (
-                        <button
-                          key={cl.id}
-                          onClick={() => loadPastCoverLetter(cl)}
-                          className="group flex items-center justify-between rounded-xl border border-border/55 bg-background/80 px-4 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:bg-background"
-                        >
-                          <div className="min-w-0 flex-1 pr-4">
-                            <span className="block truncate text-sm font-bold text-foreground">
-                              {cl.companyName ? `Cover Letter - ${cl.companyName}` : (cl.resumeName ? `Cover Letter - ${cl.resumeName}` : 'Cover Letter')}
-                            </span>
-                            <span className="truncate text-xs font-medium text-muted-foreground">
-                              {new Date(cl.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center whitespace-nowrap text-xs font-bold text-primary opacity-80 transition-opacity group-hover:opacity-100">
-                            Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <CoverLetterRecentHistory
+                  recentAnalyses={recentAnalyses}
+                  recentCoverLetters={recentCoverLetters}
+                  showHistory={!coverLetter}
+                  onApplyAnalysis={applyAnalysisData}
+                  onLoadCoverLetter={loadPastCoverLetter}
+                />
 
                 <div className="mb-6 grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -548,152 +477,32 @@ export default function CoverLetterPage() {
                 />
               </section>
 
-              <section className="relative z-10 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-lg shadow-border/20 backdrop-blur sm:p-8">
-                <h2 className="mb-6 text-lg font-bold text-foreground">Preferences</h2>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Tone</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {TONE_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            setDraftStatus('saving')
-                            setTone(option.value)
-                          }}
-                          className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition-all ${tone === option.value
-                            ? 'border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                            : 'border-border/60 bg-background/80 text-foreground/85 hover:border-border'
-                            }`}
-                        >
-                          {option.label}
-                          <span className={`mt-0.5 block text-[10px] font-medium opacity-75 ${tone === option.value ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                            {option.description}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Length</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {LENGTH_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            setDraftStatus('saving')
-                            setLength(option.value)
-                          }}
-                          className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition-all ${length === option.value
-                            ? 'border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                            : 'border-border/60 bg-background/80 text-foreground/85 hover:border-border'
-                            }`}
-                        >
-                          {option.label}
-                          <span className={`mt-0.5 block text-[10px] font-medium opacity-75 ${length === option.value ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                            {option.description}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <CoverLetterPreferencesPanel
+                tone={tone}
+                length={length}
+                onToneChange={setTone}
+                onLengthChange={setLength}
+                onDraftTouch={() => setDraftStatus('saving')}
+              />
             </aside>
           </div>
         )}
 
         {coverLetter && (
-          <section className="rounded-[2rem] border border-border/70 bg-card/90 p-6 shadow-2xl shadow-border/15 backdrop-blur sm:p-10">
-            <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-lg shadow-primary/20">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Your cover letter</h2>
-                  <p className="text-sm font-medium text-muted-foreground">AI-generated and tailored to your application</p>
-                  <Link href="/dashboard/history" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
-                    Save and review in history
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleCopy}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle className="mr-2 h-4 w-4 text-foreground" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy Text
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDownload}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download .txt
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCopyMarkdown}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Markdown
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportPdf}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportDocx}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export DOCX
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCoverLetter(null)
-                    router.replace('/dashboard/cover-letter')
-                  }}
-                  disabled={isGenerating}
-                  className="h-11 rounded-xl border-border/70 px-5 font-bold text-foreground/85 hover:bg-background"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  New Letter
-                </Button>
-              </div>
-            </div>
-
-            <div className="min-h-[400px] rounded-3xl border border-border/60 bg-background/80 p-6 sm:p-8">
-              <pre className="whitespace-pre-wrap font-sans text-lg leading-relaxed text-foreground/90 selection:bg-primary selection:text-white">
-                {coverLetter}
-              </pre>
-            </div>
-          </section>
+          <CoverLetterResultPanel
+            coverLetter={coverLetter}
+            copied={copied}
+            isGenerating={isGenerating}
+            onCopy={handleCopy}
+            onDownload={handleDownload}
+            onCopyMarkdown={handleCopyMarkdown}
+            onExportPdf={handleExportPdf}
+            onExportDocx={handleExportDocx}
+            onNewLetter={() => {
+              setCoverLetter(null)
+              router.replace('/dashboard/cover-letter')
+            }}
+          />
         )}
       </div>
     </div>

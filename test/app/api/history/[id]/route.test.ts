@@ -60,7 +60,7 @@ describe('GET /api/history/[id]', () => {
     expect(data.item.type).toBe('analysis');
     expect(data.item.id).toBe('analysis-1');
     expect(data.item.companyName).toBe('Acme');
-    expect(getAnalysisById).toHaveBeenCalledWith('analysis-1');
+    expect(getAnalysisById).toHaveBeenCalledWith('analysis-1', 'user-1');
     expect(getCoverLetterById).not.toHaveBeenCalled();
   });
 
@@ -83,23 +83,19 @@ describe('GET /api/history/[id]', () => {
     expect(data.item.type).toBe('cover-letter');
     expect(data.item.id).toBe('cover-1');
     expect(data.item.companyName).toBe('Acme');
-    expect(getCoverLetterById).toHaveBeenCalledWith('cover-1');
+    expect(getCoverLetterById).toHaveBeenCalledWith('cover-1', 'user-1');
     expect(getAnalysisById).not.toHaveBeenCalled();
   });
 
-  it('returns 403 when requesting someone else\'s item', async () => {
+  it('returns 404 when requesting another user\'s item (scoped lookup)', async () => {
     vi.mocked(getAuthenticatedUser).mockResolvedValue('user-1');
-    vi.mocked(getAnalysisById).mockResolvedValue({
-      _id: 'analysis-1',
-      _creationTime: 1700000000000,
-      userId: 'user-2',
-      result: '{}',
-    } as never);
+    // getAnalysisById already enforces ownership — returns null on mismatch.
+    vi.mocked(getAnalysisById).mockResolvedValue(null);
 
     const req = new NextRequest('http://localhost/api/history/analysis-1?type=analysis');
     const res = await GET(req, { params: Promise.resolve({ id: 'analysis-1' }) });
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it('deletes owned analysis item', async () => {
@@ -119,6 +115,6 @@ describe('GET /api/history/[id]', () => {
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1');
+    expect(deleteAnalysis).toHaveBeenCalledWith('analysis-1', 'user-1');
   });
 });

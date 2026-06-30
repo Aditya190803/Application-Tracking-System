@@ -134,16 +134,13 @@ export async function DELETE(request: NextRequest) {
       return apiError(requestId, 400, 'VALIDATION_ERROR', 'resumeId is required');
     }
 
-    const resume = await getResumeById(resumeId);
+    const resume = await getResumeById(resumeId, userId);
     if (!resume) {
       return apiError(requestId, 404, 'RESUME_NOT_FOUND', 'Resume not found');
     }
+    // ponytail: getResumeById(resumeId, userId) already enforces ownership.
 
-    if (resume.userId !== userId) {
-      return apiError(requestId, 403, 'FORBIDDEN', 'Not authorized to delete this resume');
-    }
-
-    const success = await deleteResume(resumeId);
+    const success = await deleteResume(resumeId, userId);
     if (!success) {
       return apiError(requestId, 500, 'RESUME_DELETE_FAILED', 'Failed to delete resume');
     }

@@ -43,7 +43,6 @@ vi.mock('@/lib/convex-server', () => ({
   ]),
   getUserStats: vi.fn().mockResolvedValue({
     totalScans: 1,
-    avgScore: 80,
     draftsMade: 1,
     resumeCount: 1,
     analysisCount: 1,

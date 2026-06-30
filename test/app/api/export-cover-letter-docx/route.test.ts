@@ -1,19 +1,15 @@
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { POST } from '@/app/api/extract-skills/route';
+import { POST } from '@/app/api/export-cover-letter-docx/route';
 import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
-
-vi.mock('@/lib/gemini', () => ({
-  analyzeResume: vi.fn().mockResolvedValue('{"technical_skills":["JS"], "analytical_skills":[], "soft_skills":[]}'),
-}));
 
 vi.mock('@/lib/auth', () => ({
   getAuthenticatedUser: vi.fn(),
   checkRateLimit: vi.fn(),
 }));
 
-describe('/api/extract-skills', () => {
+describe('/api/export-cover-letter-docx', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getAuthenticatedUser).mockResolvedValue('user1');
@@ -24,7 +20,7 @@ describe('/api/extract-skills', () => {
     vi.mocked(getAuthenticatedUser).mockResolvedValue(null);
     const req = new NextRequest('http://localhost', {
       method: 'POST',
-      body: JSON.stringify({ resumeText: 'I know JS' }),
+      body: JSON.stringify({ coverLetter: 'Hello' }),
     });
     const res = await POST(req);
     expect(res.status).toBe(401);
@@ -34,37 +30,18 @@ describe('/api/extract-skills', () => {
     vi.mocked(checkRateLimit).mockResolvedValue({ allowed: false, remaining: 0, resetIn: 1000 });
     const req = new NextRequest('http://localhost', {
       method: 'POST',
-      body: JSON.stringify({ resumeText: 'I know JS' }),
+      body: JSON.stringify({ coverLetter: 'Hello' }),
     });
     const res = await POST(req);
     expect(res.status).toBe(429);
   });
 
-  it('should extract skills from resume', async () => {
-    const req = new NextRequest('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({
-        resumeText: 'I know JS',
-      }),
-    });
-
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(data.result).toContain('technical_skills');
-  });
-
-  it('should return 400 if resumeText is missing', async () => {
+  it('returns 400 when cover letter is missing', async () => {
     const req = new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({}),
     });
-
     const res = await POST(req);
-    const data = await res.json();
-
     expect(res.status).toBe(400);
-    expect(data.message).toBe('Resume text is required');
   });
 });
