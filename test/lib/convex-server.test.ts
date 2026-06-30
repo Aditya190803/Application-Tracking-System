@@ -22,7 +22,13 @@ vi.mock('convex/browser', () => ({
 // Import after mocks are set up
 import { ConvexHttpClient } from 'convex/browser';
 
-import { generateHash,getUserResumes, saveResume } from '@/lib/convex-server';
+import {
+  generateHash,
+  getAnalysis,
+  getUserResumes,
+  getUserStats,
+  saveResume,
+} from '@/lib/convex-server';
 
 describe('convex-server', () => {
     beforeEach(() => {
@@ -81,6 +87,39 @@ describe('convex-server', () => {
             mockQuery.mockRejectedValue(new Error('Fail'));
             const result = await getUserResumes('user-1');
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('getUserStats', () => {
+        it('returns stats from convex', async () => {
+            mockQuery.mockResolvedValue({
+                totalScans: 2,
+                avgScore: 70,
+                draftsMade: 1,
+                resumeCount: 3,
+                analysisCount: 2,
+                coverLetterCount: 1,
+                averageMatchScore: 70,
+            });
+
+            const stats = await getUserStats('user-1');
+            expect(stats.totalScans).toBe(2);
+            expect(mockQuery).toHaveBeenCalledWith('functions:getUserStats', { userId: 'user-1' });
+        });
+
+        it('returns zeros when fetch fails', async () => {
+            mockQuery.mockRejectedValue(new Error('Fail'));
+            const stats = await getUserStats('user-1');
+            expect(stats.totalScans).toBe(0);
+            expect(stats.averageMatchScore).toBeNull();
+        });
+    });
+
+    describe('getAnalysis', () => {
+        it('returns null when not found', async () => {
+            mockQuery.mockResolvedValue(null);
+            const result = await getAnalysis('user-1', 'h1', 'h2', 'match');
+            expect(result).toBeNull();
         });
     });
 });

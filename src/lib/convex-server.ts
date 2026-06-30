@@ -29,7 +29,8 @@ type ConvexClient = ConvexHttpClient & {
     query(path: string, args?: unknown): Promise<unknown>;
 };
 
-// Server-side Convex client for use in API routes
+// Server-side Convex client for use in API routes.
+// ponytail: userId in mutation/query args must come from getAuthenticatedUser() on API routes only — Convex does not verify Stack Auth here.
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
 // Singleton client instance
