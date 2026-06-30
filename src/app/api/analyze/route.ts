@@ -13,7 +13,8 @@ import {
   saveAnalysis,
   saveCoverLetter,
 } from '@/lib/convex-server';
-import { AnalysisType, analyzeResume, LENGTH_OPTIONS,TONE_OPTIONS } from '@/lib/gemini';
+import { isValidCoverLetterLength, isValidCoverLetterTone } from '@/lib/cover-letter-options';
+import { AnalysisType, analyzeResume, LENGTH_OPTIONS, TONE_OPTIONS } from '@/lib/gemini';
 import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
 import { flushObservabilitySafely, logError, logInfo } from '@/lib/observability';
 import { createHash,LRUCache } from '@/lib/utils';
@@ -83,11 +84,11 @@ export async function POST(request: NextRequest) {
     const finalLength = length ?? 'standard';
 
     if (analysisType === 'coverLetter') {
-      if (!Object.keys(TONE_OPTIONS).includes(finalTone)) {
+      if (!isValidCoverLetterTone(finalTone)) {
         return apiError(requestId, 400, 'INVALID_TONE', 'Invalid tone. Must be: professional, friendly, or enthusiastic');
       }
 
-      if (!Object.keys(LENGTH_OPTIONS).includes(finalLength)) {
+      if (!isValidCoverLetterLength(finalLength)) {
         return apiError(requestId, 400, 'INVALID_LENGTH', 'Invalid length. Must be: concise, standard, or detailed');
       }
     }

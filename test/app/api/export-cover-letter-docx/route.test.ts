@@ -1,19 +1,15 @@
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { POST } from '@/app/api/match-score/route';
+import { POST } from '@/app/api/export-cover-letter-docx/route';
 import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
-
-vi.mock('@/lib/gemini', () => ({
-  analyzeResume: vi.fn().mockResolvedValue('Match Score: 85%'),
-}));
 
 vi.mock('@/lib/auth', () => ({
   getAuthenticatedUser: vi.fn(),
   checkRateLimit: vi.fn(),
 }));
 
-describe('/api/match-score', () => {
+describe('/api/export-cover-letter-docx', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getAuthenticatedUser).mockResolvedValue('user1');
@@ -24,32 +20,18 @@ describe('/api/match-score', () => {
     vi.mocked(getAuthenticatedUser).mockResolvedValue(null);
     const req = new NextRequest('http://localhost', {
       method: 'POST',
-      body: JSON.stringify({ resumeText: 'R', jobDescription: 'J' }),
+      body: JSON.stringify({ coverLetter: 'Hello' }),
     });
     const res = await POST(req);
     expect(res.status).toBe(401);
   });
 
-  it('should return 400 if text is missing', async () => {
+  it('returns 400 when cover letter is missing', async () => {
     const req = new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({}),
     });
     const res = await POST(req);
     expect(res.status).toBe(400);
-  });
-
-  it('should return score', async () => {
-    const req = new NextRequest('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({
-        resumeText: 'R',
-        jobDescription: 'J',
-      }),
-    });
-    const res = await POST(req);
-    const data = await res.json();
-    expect(res.status).toBe(200);
-    expect(data.score).toBe(85);
   });
 });
