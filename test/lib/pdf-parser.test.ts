@@ -11,6 +11,10 @@ describe('pdf-parser', () => {
         it('returns raw token when decode fails', () => {
             expect(decodePdfTextRun('bad%ZZ')).toBe('bad%ZZ');
         });
+
+        it('returns empty string for empty token', () => {
+            expect(decodePdfTextRun('')).toBe('');
+        });
     });
 
     describe('validatePDFFile', () => {
@@ -28,6 +32,12 @@ describe('pdf-parser', () => {
             const result = validatePDFFile(file);
             expect(result.valid).toBe(false);
             expect(result.error).toBe('File must be a PDF');
+        });
+
+        it('should return invalid when no file', () => {
+            const result = validatePDFFile(null as unknown as File);
+            expect(result.valid).toBe(false);
+            expect(result.error).toBe('No file provided');
         });
 
         it('should return invalid for large files', () => {

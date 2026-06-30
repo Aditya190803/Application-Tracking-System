@@ -113,7 +113,10 @@ export async function POST(request: NextRequest) {
       });
       return apiError(requestId, 504, 'PDF_PARSE_TIMEOUT', error.message);
     }
-    if (error instanceof PDFNoExtractableTextError) {
+    const noText =
+      error instanceof PDFNoExtractableTextError ||
+      (error instanceof Error && error.message === 'PDF_NO_EXTRACTABLE_TEXT');
+    if (noText) {
       logError({
         event: 'pdf.parse_no_text',
         requestId,
