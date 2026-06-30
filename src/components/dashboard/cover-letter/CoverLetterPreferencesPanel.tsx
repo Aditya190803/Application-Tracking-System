@@ -34,6 +34,7 @@ export function CoverLetterPreferencesPanel({
               <button
                 key={option.value}
                 type="button"
+                aria-pressed={tone === option.value}
                 onClick={() => {
                   onDraftTouch();
                   onToneChange(option.value);
@@ -64,6 +65,7 @@ export function CoverLetterPreferencesPanel({
               <button
                 key={option.value}
                 type="button"
+                aria-pressed={length === option.value}
                 onClick={() => {
                   onDraftTouch();
                   onLengthChange(option.value);

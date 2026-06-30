@@ -34,11 +34,13 @@ export async function POST(request: NextRequest) {
       return apiError(requestId, 400, 'VALIDATION_ERROR', 'Resume text and job description are required');
     }
 
-    const cacheKey = `match_${createHash(resumeText)}_${createHash(jobDescription)}`;
+    const cacheKey = `match_${userId}_${createHash(resumeText)}_${createHash(jobDescription)}`;
 
     const cached = matchCache.get(cacheKey);
     if (cached) {
-      return NextResponse.json({ result: cached, cached: true });
+      const scoreMatch = (cached as string).match(/(\d+)%/);
+      const score = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
+      return NextResponse.json({ result: cached, cached: true, score });
     }
 
     const result = await analyzeResume(resumeText, jobDescription, 'match');

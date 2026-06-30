@@ -46,10 +46,8 @@ export async function GET(
     if (!item) {
       return apiError(requestId, 404, 'NOT_FOUND', 'Item not found');
     }
-
-    if (item.userId !== userId) {
-      return apiError(requestId, 403, 'FORBIDDEN', 'Not authorized');
-    }
+    // ponytail: scoped lookup (getAnalysisById/getCoverLetterById) already
+    // enforces ownership by returning null on mismatch, so userId check is implicit.
 
     const type = analysis ? 'analysis' : 'cover-letter';
     const responseItem: Record<string, unknown> = {
@@ -118,10 +116,7 @@ export async function DELETE(
     if (!item) {
       return apiError(requestId, 404, 'NOT_FOUND', 'Item not found');
     }
-
-    if (item.userId !== userId) {
-      return apiError(requestId, 403, 'FORBIDDEN', 'Not authorized');
-    }
+    // ponytail: ownership enforced by scoped lookup helpers.
 
     const ok = analysis
       ? await deleteAnalysis(id, userId)

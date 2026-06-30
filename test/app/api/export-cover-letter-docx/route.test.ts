@@ -26,6 +26,16 @@ describe('/api/export-cover-letter-docx', () => {
     expect(res.status).toBe(401);
   });
 
+  it('returns 429 when rate limited', async () => {
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: false, remaining: 0, resetIn: 1000 });
+    const req = new NextRequest('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({ coverLetter: 'Hello' }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(429);
+  });
+
   it('returns 400 when cover letter is missing', async () => {
     const req = new NextRequest('http://localhost', {
       method: 'POST',

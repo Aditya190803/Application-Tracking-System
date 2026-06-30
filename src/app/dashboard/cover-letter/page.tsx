@@ -30,7 +30,12 @@ import {
   exportCoverLetterDocx,
   exportCoverLetterPdf,
 } from '@/lib/cover-letter-export'
-import type { CoverLetterLength, CoverLetterTone } from '@/lib/cover-letter-options'
+import {
+  type CoverLetterLength,
+  type CoverLetterTone,
+  isValidCoverLetterLength,
+  isValidCoverLetterTone,
+} from '@/lib/cover-letter-options'
 
 const COVER_LETTER_DRAFT_KEY = 'coverLetterDraft'
 
@@ -62,8 +67,12 @@ export default function CoverLetterPage() {
   const [jobDescription, setJobDescription] = useState(draft?.jobDescription ?? '')
   const [companyName, setCompanyName] = useState(draft?.companyName ?? '')
   const [jobTitle, setJobTitle] = useState(draft?.jobTitle ?? '')
-  const [tone, setTone] = useState<CoverLetterTone>(draft?.tone ?? 'professional')
-  const [length, setLength] = useState<CoverLetterLength>(draft?.length ?? 'standard')
+  const [tone, setTone] = useState<CoverLetterTone>(
+    draft?.tone && isValidCoverLetterTone(draft.tone) ? draft.tone : 'professional',
+  )
+  const [length, setLength] = useState<CoverLetterLength>(
+    draft?.length && isValidCoverLetterLength(draft.length) ? draft.length : 'standard',
+  )
   const [resumeText, setResumeText] = useState<string | null>(null)
   const [resumeName, setResumeName] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -217,8 +226,8 @@ export default function CoverLetterPage() {
         if (parsed.jobDescription) setJobDescription(parsed.jobDescription)
         if (parsed.companyName) setCompanyName(parsed.companyName)
         if (parsed.jobTitle) setJobTitle(parsed.jobTitle)
-        if (parsed.tone) setTone(parsed.tone)
-        if (parsed.length) setLength(parsed.length)
+        if (parsed.tone && isValidCoverLetterTone(parsed.tone)) setTone(parsed.tone)
+        if (parsed.length && isValidCoverLetterLength(parsed.length)) setLength(parsed.length)
         setShowDraftRestoreHint(false)
         return
       } catch {
@@ -230,8 +239,8 @@ export default function CoverLetterPage() {
       if (serverDraft.jobDescription) setJobDescription(serverDraft.jobDescription)
       if (serverDraft.companyName) setCompanyName(serverDraft.companyName)
       if (serverDraft.jobTitle) setJobTitle(serverDraft.jobTitle)
-      if (serverDraft.tone) setTone(serverDraft.tone)
-      if (serverDraft.length) setLength(serverDraft.length)
+      if (serverDraft.tone && isValidCoverLetterTone(serverDraft.tone)) setTone(serverDraft.tone)
+      if (serverDraft.length && isValidCoverLetterLength(serverDraft.length)) setLength(serverDraft.length)
       setShowDraftRestoreHint(false)
     }
   }

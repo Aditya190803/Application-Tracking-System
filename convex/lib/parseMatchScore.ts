@@ -1,6 +1,11 @@
 export function parseMatchScore(result: string): number | null {
   try {
-    const parsed = JSON.parse(result);
+    // Strip markdown fences before parsing (```json ... ```)
+    const normalized = result
+      .replace(/^```json\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const parsed = JSON.parse(normalized);
     if (typeof parsed.matchScore === 'number') {
       return parsed.matchScore;
     }

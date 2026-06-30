@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       return apiError(requestId, 400, 'VALIDATION_ERROR', 'Resume text is required');
     }
 
-    const cacheKey = `skills_${createHash(resumeText)}_${createHash(jobDescription || '')}`;
+    const cacheKey = `skills_${userId}_${createHash(resumeText)}_${createHash(jobDescription || '')}`;
 
     const cached = skillsCache.get(cacheKey);
     if (cached) {

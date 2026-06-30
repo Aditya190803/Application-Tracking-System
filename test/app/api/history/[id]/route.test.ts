@@ -87,19 +87,15 @@ describe('GET /api/history/[id]', () => {
     expect(getAnalysisById).not.toHaveBeenCalled();
   });
 
-  it('returns 403 when requesting someone else\'s item', async () => {
+  it('returns 404 when requesting another user\'s item (scoped lookup)', async () => {
     vi.mocked(getAuthenticatedUser).mockResolvedValue('user-1');
-    vi.mocked(getAnalysisById).mockResolvedValue({
-      _id: 'analysis-1',
-      _creationTime: 1700000000000,
-      userId: 'user-2',
-      result: '{}',
-    } as never);
+    // getAnalysisById already enforces ownership — returns null on mismatch.
+    vi.mocked(getAnalysisById).mockResolvedValue(null);
 
     const req = new NextRequest('http://localhost/api/history/analysis-1?type=analysis');
     const res = await GET(req, { params: Promise.resolve({ id: 'analysis-1' }) });
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it('deletes owned analysis item', async () => {

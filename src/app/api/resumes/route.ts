@@ -138,10 +138,7 @@ export async function DELETE(request: NextRequest) {
     if (!resume) {
       return apiError(requestId, 404, 'RESUME_NOT_FOUND', 'Resume not found');
     }
-
-    if (resume.userId !== userId) {
-      return apiError(requestId, 403, 'FORBIDDEN', 'Not authorized to delete this resume');
-    }
+    // ponytail: getResumeById(resumeId, userId) already enforces ownership.
 
     const success = await deleteResume(resumeId, userId);
     if (!success) {

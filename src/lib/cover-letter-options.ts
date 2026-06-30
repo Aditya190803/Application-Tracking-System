@@ -11,8 +11,8 @@ const TONE_DESCRIPTIONS: Record<CoverLetterTone, string> = {
 
 const LENGTH_DESCRIPTIONS: Record<CoverLetterLength, string> = {
   concise: '~200 words',
-  standard: '~350 words',
-  detailed: '~500 words',
+  standard: '~300 words',
+  detailed: '~400 words',
 };
 
 export const COVER_LETTER_TONE_UI_OPTIONS = (Object.keys(TONE_OPTIONS) as CoverLetterTone[]).map(
@@ -32,9 +32,9 @@ export const COVER_LETTER_LENGTH_UI_OPTIONS = (Object.keys(LENGTH_OPTIONS) as Co
 );
 
 export function isValidCoverLetterTone(tone: string): tone is CoverLetterTone {
-  return tone in TONE_OPTIONS;
+  return Object.hasOwn(TONE_OPTIONS, tone);
 }
 
 export function isValidCoverLetterLength(length: string): length is CoverLetterLength {
-  return length in LENGTH_OPTIONS;
+  return Object.hasOwn(LENGTH_OPTIONS, length);
 }
