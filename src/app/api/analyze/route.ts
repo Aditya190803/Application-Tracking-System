@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     const resumeHash = generateHash(resumeText);
     const jobDescriptionHash = generateHash(jobDescription);
 
-    const cacheKey = `${analysisType}_${createHash(resumeText)}_${createHash(jobDescription)}_${finalTone}_${finalLength}`;
+    const cacheKey = `${userId}_${analysisType}_${createHash(resumeText)}_${createHash(jobDescription)}_${finalTone}_${finalLength}`;
 
     if (!forceRegenerate && analysisType !== 'coverLetter') {
       const cached = analysisCache.get(cacheKey);

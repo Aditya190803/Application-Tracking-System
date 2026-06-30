@@ -31,10 +31,10 @@ const convexFunctions = {
 type ConvexClient = ConvexHttpClient & {
     mutation(path: string, args?: unknown): Promise<unknown>;
     query(path: string, args?: unknown): Promise<unknown>;
+    setAdminAuth(token: string): void;
 };
 
 // Server-side Convex client for use in API routes.
-// ponytail: userId in mutation/query args must come from getAuthenticatedUser() on API routes only — Convex does not verify Stack Auth here.
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
 // Singleton client instance
@@ -46,6 +46,10 @@ export function getClient() {
     }
     if (!clientInstance) {
         clientInstance = new ConvexHttpClient(convexUrl) as ConvexClient;
+        const deployKey = process.env.CONVEX_DEPLOY_KEY;
+        if (deployKey) {
+            clientInstance.setAdminAuth(deployKey);
+        }
     }
     return clientInstance;
 }

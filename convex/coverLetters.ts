@@ -1,4 +1,4 @@
-import { mutationGeneric as mutation, queryGeneric as query } from 'convex/server';
+import { internalMutationGeneric as mutation, internalQueryGeneric as query } from 'convex/server';
 import { v } from 'convex/values';
 
 export const saveCoverLetter = mutation({

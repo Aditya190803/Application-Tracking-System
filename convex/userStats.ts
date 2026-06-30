@@ -1,4 +1,4 @@
-import { queryGeneric as query } from 'convex/server';
+import { internalQueryGeneric as query } from 'convex/server';
 import { v } from 'convex/values';
 
 import { parseMatchScore } from './lib/parseMatchScore';

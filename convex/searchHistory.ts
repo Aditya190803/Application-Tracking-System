@@ -1,4 +1,4 @@
-import { queryGeneric as query } from 'convex/server';
+import { internalQueryGeneric as query } from 'convex/server';
 import { v } from 'convex/values';
 
 export const getSearchHistory = query({
@@ -18,29 +18,25 @@ export const getSearchHistory = query({
     // before the cursor can still crowd out items from other tables.
     const OVER_FETCH = 10;
 
+    const fetchTable = async (table: 'analyses' | 'coverLetters' | 'tailoredResumes') => {
+      let q = ctx.db
+        .query(table)
+        .withIndex('by_userId', (idx) => idx.eq('userId', args.userId))
+        .order('desc');
+      if (cursorTime !== null) {
+        q = q.filter((f) => f.lt(f.field('_creationTime'), cursorTime));
+      }
+      return q.take(limit * OVER_FETCH);
+    };
+
     const [analysesRaw, coverLettersRaw, tailoredResumesRaw] = await Promise.all([
-      ctx.db
-        .query('analyses')
-        .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-        .order('desc')
-        .take(limit * OVER_FETCH),
-      ctx.db
-        .query('coverLetters')
-        .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-        .order('desc')
-        .take(limit * OVER_FETCH),
-      ctx.db
-        .query('tailoredResumes')
-        .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-        .order('desc')
-        .take(limit * OVER_FETCH),
+      fetchTable('analyses'),
+      fetchTable('coverLetters'),
+      fetchTable('tailoredResumes'),
     ]);
 
-    const beforeCursor = (doc: { _creationTime: number }) =>
-      cursorTime === null || doc._creationTime < cursorTime;
-
     const history = [
-      ...analysesRaw.filter(beforeCursor).map((doc) => ({
+      ...analysesRaw.map((doc) => ({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,
@@ -54,7 +50,7 @@ export const getSearchHistory = query({
           result: doc.result,
         },
       })),
-      ...coverLettersRaw.filter(beforeCursor).map((doc) => ({
+      ...coverLettersRaw.map((doc) => ({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,
@@ -66,7 +62,7 @@ export const getSearchHistory = query({
           result: doc.result,
         },
       })),
-      ...tailoredResumesRaw.filter(beforeCursor).map((doc) => ({
+      ...tailoredResumesRaw.map((doc) => ({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,

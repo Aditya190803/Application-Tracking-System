@@ -1,4 +1,4 @@
-import { mutationGeneric as mutation, queryGeneric as query } from 'convex/server';
+import { internalMutationGeneric as mutation, internalQueryGeneric as query } from 'convex/server';
 import { v } from 'convex/values';
 
 export const saveTailoredResume = mutation({
@@ -99,8 +99,10 @@ export const getTailoredResumeVersionsBySlug = query({
     const limit = args.limit ?? 30;
     const docs = await ctx.db
       .query('tailoredResumes')
-      .withIndex('by_userId_builderSlug', (q) => q.eq('userId', args.userId))
-      .filter((q) => q.eq(q.field('builderSlug'), args.builderSlug))
+      .withIndex('by_userId_builderSlug', (q) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- queryGeneric index builder typing stops after first eq
+        (q.eq('userId', args.userId) as any).eq('builderSlug', args.builderSlug),
+      )
       .order('desc')
       .take(limit);
     return docs;
