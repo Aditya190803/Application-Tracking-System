@@ -21,13 +21,17 @@ export interface LogPayload {
 const SERVICE = process.env.AXIOM_SERVICE || 'ats'
 const DATASET = process.env.AXIOM_DATASET
 const TOKEN = process.env.AXIOM_TOKEN
+const EDGE = process.env.AXIOM_EDGE?.trim()
 
 let axiomClient: Axiom | null = null
 
 function getAxiom(): Axiom | null {
   if (!DATASET || !TOKEN) return null
   if (!axiomClient) {
-    axiomClient = new Axiom({ token: TOKEN })
+    axiomClient = new Axiom({
+      token: TOKEN,
+      ...(EDGE ? { edge: EDGE } : {}),
+    })
   }
   return axiomClient
 }

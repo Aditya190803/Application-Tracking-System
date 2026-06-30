@@ -96,9 +96,12 @@ App runs at `http://localhost:3000`.
 
 Server routes emit structured JSON logs (`[obs]` prefix) via `src/lib/observability.ts`.
 
-1. Create an [Axiom](https://axiom.co) dataset (e.g. `ats-production`).
+1. Create an [Axiom](https://axiom.co) dataset (e.g. `ats-prod`).
 2. Create an API token with ingest permission.
-3. Set `AXIOM_TOKEN` and `AXIOM_DATASET` on Vercel (and locally if you want ingest from dev).
+3. Set on Vercel (and in `.env.local` for dev ingest):
+   - `AXIOM_TOKEN` — bearer token (never commit)
+   - `AXIOM_DATASET` — e.g. `ats-prod`
+   - `AXIOM_EDGE` — optional, e.g. `us-east-1.aws.edge.axiom.co` (matches your ingest URL region)
 4. Optional: add the **Vercel → Axiom** integration for raw platform logs in addition to direct ingest.
 
 **Useful Axiom queries**
