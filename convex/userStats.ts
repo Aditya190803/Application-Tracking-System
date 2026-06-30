@@ -38,16 +38,15 @@ export const getUserStats = query({
       }
     }
 
-    const avgScore = matchScoreCount > 0 ? Math.round(matchScoreSum / matchScoreCount) : 0;
+    const averageMatchScore = matchScoreCount > 0 ? Math.round(matchScoreSum / matchScoreCount) : null;
 
     return {
       totalScans: analysisCount,
-      avgScore,
       draftsMade: coverLetterCount,
       resumeCount,
       analysisCount,
       coverLetterCount,
-      averageMatchScore: avgScore || null,
+      averageMatchScore,
     };
   },
 });

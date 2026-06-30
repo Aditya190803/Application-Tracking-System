@@ -38,7 +38,8 @@ export const saveAnalysis = mutation({
       jobDescription,
     });
 
-    return { _id: analysisId, ...args };
+    const doc = await ctx.db.get(analysisId);
+    return doc;
   },
 });
 
@@ -52,9 +53,9 @@ export const getAnalysis = query({
   handler: async (ctx, args) => {
     const doc = await ctx.db
       .query('analyses')
+      .withIndex('by_lookup', (q) => q.eq('userId', args.userId))
       .filter((q) =>
         q.and(
-          q.eq(q.field('userId'), args.userId),
           q.eq(q.field('resumeHash'), args.resumeHash),
           q.eq(q.field('jobDescriptionHash'), args.jobDescriptionHash),
           q.eq(q.field('analysisType'), args.analysisType),
@@ -67,17 +68,25 @@ export const getAnalysis = query({
 });
 
 export const getAnalysisById = query({
-  args: { analysisId: v.id('analyses') },
+  args: { analysisId: v.id('analyses'), userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.analysisId);
+    const doc = await ctx.db.get(args.analysisId);
+    if (!doc || doc.userId !== args.userId) {
+      return null;
+    }
+    return doc;
   },
 });
 
 export const deleteAnalysis = mutation({
-  args: { analysisId: v.id('analyses') },
+  args: { analysisId: v.id('analyses'), userId: v.string() },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.analysisId);
+    if (!doc || doc.userId !== args.userId) {
+      return false;
+    }
     await ctx.db.delete(args.analysisId);
-    return { success: true };
+    return true;
   },
 });
 

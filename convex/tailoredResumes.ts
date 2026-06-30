@@ -51,17 +51,25 @@ export const getTailoredResume = query({
 });
 
 export const getTailoredResumeById = query({
-  args: { tailoredResumeId: v.id('tailoredResumes') },
+  args: { tailoredResumeId: v.id('tailoredResumes'), userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.tailoredResumeId);
+    const doc = await ctx.db.get(args.tailoredResumeId);
+    if (!doc || doc.userId !== args.userId) {
+      return null;
+    }
+    return doc;
   },
 });
 
 export const deleteTailoredResume = mutation({
-  args: { tailoredResumeId: v.id('tailoredResumes') },
+  args: { tailoredResumeId: v.id('tailoredResumes'), userId: v.string() },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.tailoredResumeId);
+    if (!doc || doc.userId !== args.userId) {
+      return false;
+    }
     await ctx.db.delete(args.tailoredResumeId);
-    return { success: true };
+    return true;
   },
 });
 

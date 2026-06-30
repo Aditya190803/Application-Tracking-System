@@ -32,9 +32,9 @@ export const getCoverLetter = query({
   handler: async (ctx, args) => {
     const doc = await ctx.db
       .query('coverLetters')
+      .withIndex('by_lookup', (q) => q.eq('userId', args.userId))
       .filter((q) =>
         q.and(
-          q.eq(q.field('userId'), args.userId),
           q.eq(q.field('resumeHash'), args.resumeHash),
           q.eq(q.field('jobDescriptionHash'), args.jobDescriptionHash),
           q.eq(q.field('tone'), args.tone),
@@ -48,17 +48,25 @@ export const getCoverLetter = query({
 });
 
 export const getCoverLetterById = query({
-  args: { coverLetterId: v.id('coverLetters') },
+  args: { coverLetterId: v.id('coverLetters'), userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.coverLetterId);
+    const doc = await ctx.db.get(args.coverLetterId);
+    if (!doc || doc.userId !== args.userId) {
+      return null;
+    }
+    return doc;
   },
 });
 
 export const deleteCoverLetter = mutation({
-  args: { coverLetterId: v.id('coverLetters') },
+  args: { coverLetterId: v.id('coverLetters'), userId: v.string() },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.coverLetterId);
+    if (!doc || doc.userId !== args.userId) {
+      return false;
+    }
     await ctx.db.delete(args.coverLetterId);
-    return { success: true };
+    return true;
   },
 });
 

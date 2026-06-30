@@ -33,16 +33,24 @@ export const getUserResumes = query({
 });
 
 export const getResumeById = query({
-  args: { resumeId: v.id('resumes') },
+  args: { resumeId: v.id('resumes'), userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.resumeId);
+    const doc = await ctx.db.get(args.resumeId);
+    if (!doc || doc.userId !== args.userId) {
+      return null;
+    }
+    return doc;
   },
 });
 
 export const deleteResume = mutation({
-  args: { resumeId: v.id('resumes') },
+  args: { resumeId: v.id('resumes'), userId: v.string() },
   handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.resumeId);
+    if (!doc || doc.userId !== args.userId) {
+      return false;
+    }
     await ctx.db.delete(args.resumeId);
-    return { success: true };
+    return true;
   },
 });
