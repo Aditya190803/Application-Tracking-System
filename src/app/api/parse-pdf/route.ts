@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return apiError(requestId, 400, 'VALIDATION_ERROR', 'No file provided');
     }
 
@@ -143,6 +143,6 @@ export async function POST(request: NextRequest) {
 
     return apiError(requestId, 500, 'PDF_PARSE_FAILED', userMessage);
   } finally {
-    await flushObservabilitySafely();
+    flushObservabilitySafely();
   }
 }

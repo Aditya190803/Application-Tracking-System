@@ -54,8 +54,8 @@ describe('observability', () => {
   });
 
   describe('flushObservabilitySafely', () => {
-    it('resolves when Axiom is not configured', async () => {
-      await expect(flushObservabilitySafely()).resolves.toBeUndefined();
+    it('does not throw when Axiom is not configured', () => {
+      expect(() => flushObservabilitySafely()).not.toThrow();
     });
   });
 });

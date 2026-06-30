@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     });
     return apiError(requestId, 500, 'RESUME_SAVE_FAILED', 'Failed to save resume');
   } finally {
-    await flushObservabilitySafely();
+    flushObservabilitySafely();
   }
 }
 
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     });
     return apiError(requestId, 500, 'RESUME_FETCH_FAILED', 'Failed to fetch resumes');
   } finally {
-    await flushObservabilitySafely();
+    flushObservabilitySafely();
   }
 }
 
@@ -159,6 +159,6 @@ export async function DELETE(request: NextRequest) {
     });
     return apiError(requestId, 500, 'RESUME_DELETE_FAILED', 'Failed to delete resume');
   } finally {
-    await flushObservabilitySafely();
+    flushObservabilitySafely();
   }
 }

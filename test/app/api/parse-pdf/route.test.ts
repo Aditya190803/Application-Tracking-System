@@ -26,7 +26,7 @@ vi.mock('@/lib/observability', async (importOriginal) => {
         ...actual,
         logInfo: vi.fn(),
         logError: vi.fn(),
-        flushObservabilitySafely: vi.fn().mockResolvedValue(undefined),
+        flushObservabilitySafely: vi.fn(),
     };
 });
 

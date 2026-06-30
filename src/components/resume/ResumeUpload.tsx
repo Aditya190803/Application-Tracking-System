@@ -41,7 +41,7 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
       })
 
       if (!response.ok) {
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
         throw new Error(formatApiErrorMessage(data, 'Failed to parse PDF'))
       }
 

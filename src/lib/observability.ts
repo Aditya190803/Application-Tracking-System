@@ -87,18 +87,13 @@ export async function flushObservability(): Promise<void> {
   await client.flush()
 }
 
-/** Never fail the HTTP response if Axiom flush fails (serverless). */
-export async function flushObservabilitySafely(): Promise<void> {
-  try {
-    await flushObservability()
-  } catch (err: unknown) {
+/** Fire-and-forget flush; never blocks or fails the HTTP response (serverless). */
+export function flushObservabilitySafely(): void {
+  void flushObservability().catch((err: unknown) => {
     const errorMessage = err instanceof Error ? err.message.slice(0, 300) : 'flush_failed'
-    emitToStdout(
-      { event: 'observability.flush_failed', errorMessage },
-      'error',
-    )
+    emitToStdout({ event: 'observability.flush_failed', errorMessage }, 'error')
     ingestToAxiom({ event: 'observability.flush_failed', errorMessage }, 'error')
-  }
+  })
 }
 
 export function sanitizeLogErrorMessage(error: unknown, includeDetails: boolean): string | undefined {

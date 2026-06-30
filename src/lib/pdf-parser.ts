@@ -40,27 +40,27 @@ function extractTextFromPages(pdfData: {
   }>;
 }): string {
   const pages = pdfData.Pages || [];
-  let fullText = '';
-
-  pages.forEach((page, pageIndex) => {
-    const pageTexts = page.Texts || [];
-    const pageText = pageTexts
+  const pageTexts = pages.map(page =>
+    (page.Texts || [])
       .map(text => {
         const textRuns = text.R || [];
         return textRuns.map(run => decodePdfTextRun(run.T || '')).join('');
       })
-      .join(' ');
+      .join(' ')
+      .trim(),
+  );
 
-    if (pageText.trim()) {
-      fullText += `${pageText}\n\n`;
-    }
+  const firstTextIndex = pageTexts.findIndex(Boolean);
+  if (firstTextIndex === -1) {
+    return '';
+  }
 
-    if (pageIndex < pages.length - 1) {
-      fullText += '---\n\n';
-    }
-  });
+  let lastTextIndex = pageTexts.length - 1;
+  while (lastTextIndex >= 0 && !pageTexts[lastTextIndex]) {
+    lastTextIndex -= 1;
+  }
 
-  return fullText.trim();
+  return pageTexts.slice(firstTextIndex, lastTextIndex + 1).join('\n\n---\n\n');
 }
 
 export async function parsePDFBuffer(buffer: Buffer): Promise<ParsedPDF> {

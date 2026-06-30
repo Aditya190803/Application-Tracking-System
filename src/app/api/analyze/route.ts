@@ -314,6 +314,6 @@ export async function POST(request: NextRequest) {
     });
     return apiError(requestId, 500, 'ANALYSIS_FAILED', 'Failed to analyze resume. Please try again.');
   } finally {
-    await flushObservabilitySafely();
+    flushObservabilitySafely();
   }
 }

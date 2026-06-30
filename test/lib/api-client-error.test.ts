@@ -20,4 +20,10 @@ describe('formatApiErrorMessage', () => {
       formatApiErrorMessage({ message: 'Failed', requestId: 'abc-123' }, 'fallback'),
     ).toBe('Failed (ref: abc-123)');
   });
+
+  it('uses fallback for non-object payloads', () => {
+    expect(formatApiErrorMessage(null, 'fallback')).toBe('fallback');
+    expect(formatApiErrorMessage('oops', 'fallback')).toBe('fallback');
+    expect(formatApiErrorMessage(['err'], 'fallback')).toBe('fallback');
+  });
 });

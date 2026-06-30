@@ -8,6 +8,10 @@ describe('pdf-parser', () => {
             expect(decodePdfTextRun('hello%20world')).toBe('hello world');
         });
 
+        it('treats + as a space', () => {
+            expect(decodePdfTextRun('hello+world')).toBe('hello world');
+        });
+
         it('returns raw token when decode fails', () => {
             expect(decodePdfTextRun('bad%ZZ')).toBe('bad%ZZ');
         });
