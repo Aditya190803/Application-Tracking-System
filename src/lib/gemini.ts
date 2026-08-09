@@ -1,11 +1,12 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const apiKey = process.env.GOOGLE_API_KEY;
+const apiKey = process.env.OPENCODE_API_KEY;
 if (!apiKey) {
-  console.warn("GOOGLE_API_KEY is not set. Gemini API calls will fail.");
+  console.warn('OPENCODE_API_KEY is not set. AI calls will fail.');
 }
 
-const genAI = new GoogleGenerativeAI(apiKey || 'missing-api-key');
+const baseUrl = process.env.OPENCODE_BASE_URL || 'https://opencode.ai/zen/v1';
+
+const MISSING_KEY_ERROR =
+  'OpenCode Zen API key is not configured. Please set OPENCODE_API_KEY environment variable.';
 
 export const PROMPTS = {
   resumeOverview: `You are an experienced Technical Human Resource Manager. Your task is to evaluate the provided resume against the job description.
@@ -167,15 +168,52 @@ export interface TailoredResumeData {
   keywordsUsed: string[];
 }
 
-function createGeminiModel(analysisType: AnalysisType | 'tailoredResume' | 'latexFix') {
-  const modelName = process.env.MODEL_NAME || 'gemini-2.5-flash';
-  return genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: analysisType === 'coverLetter' ? 0.8 : analysisType === 'latexFix' ? 0.2 : 0.4,
-      maxOutputTokens: 16384,
+type ModelTask = AnalysisType | 'tailoredResume' | 'latexFix';
+
+/**
+ * `big-pickle` is a reasoning model: it returns a `reasoning_content` field
+ * alongside `content`, and those reasoning tokens are charged against
+ * `max_tokens`. Budgets under ~1024 are consumed entirely by reasoning and come
+ * back with empty content, so we stay well above that. The model's hard output
+ * ceiling is 32k.
+ */
+const MAX_OUTPUT_TOKENS = 16384;
+
+function temperatureFor(task: ModelTask): number {
+  if (task === 'coverLetter') return 0.8;
+  if (task === 'latexFix') return 0.2;
+  return 0.4;
+}
+
+/**
+ * Calls OpenCode Zen's OpenAI-compatible `POST /chat/completions` endpoint.
+ * Plain `fetch` — no provider SDK.
+ */
+async function generateContent(task: ModelTask, prompt: string): Promise<string> {
+  const modelName = process.env.MODEL_NAME || 'big-pickle';
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
     },
+    body: JSON.stringify({
+      model: modelName,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: temperatureFor(task),
+      max_tokens: MAX_OUTPUT_TOKENS,
+    }),
   });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`OpenCode Zen API error (${response.status}): ${detail}`);
+  }
+
+  const data = await response.json();
+  // Only `content` carries the answer; `reasoning_content` is scratch work.
+  return data?.choices?.[0]?.message?.content ?? '';
 }
 
 function stripMarkdownJsonFence(input: string): string {
@@ -205,10 +243,8 @@ export async function analyzeResume(
   options?: AnalysisOptions
 ): Promise<string> {
   if (!apiKey) {
-    throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
+    throw new Error(MISSING_KEY_ERROR);
   }
-
-  const model = createGeminiModel(analysisType);
 
   let prompt: string;
 
@@ -250,18 +286,16 @@ Job Description:
 ${jobDescription}`;
 
   try {
-    const result = await model.generateContent(fullPrompt);
-    const response = result.response;
-    const text = response.text();
+    const text = await generateContent(analysisType, fullPrompt);
 
     if (!text || text.trim() === '') {
-      console.error('Gemini returned empty response');
+      console.error('AI returned empty response');
       throw new Error('AI returned an empty response. Please try again.');
     }
 
     return text;
   } catch (error) {
-    console.error('Gemini API error:', error);
+    console.error('OpenCode Zen API error:', error);
     throw error;
   }
 }
@@ -271,10 +305,9 @@ export async function generateTailoredResumeData(
   jobDescription: string
 ): Promise<TailoredResumeData> {
   if (!apiKey) {
-    throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
+    throw new Error(MISSING_KEY_ERROR);
   }
 
-  const model = createGeminiModel('tailoredResume');
   const prompt = `You are an expert ATS resume writer.
 Generate tailored resume content from the SOURCE RESUME and JOB DESCRIPTION.
 
@@ -334,8 +367,7 @@ ${resumeText}
 JOB DESCRIPTION:
 ${jobDescription}`;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const text = await generateContent('tailoredResume', prompt);
 
   if (!text || text.trim() === '') {
     throw new Error('AI returned an empty response. Please try again.');
@@ -355,10 +387,9 @@ export async function fixLatexCompilationError(
   compileLog?: string,
 ): Promise<string> {
   if (!apiKey) {
-    throw new Error('Google Gemini API key is not configured. Please set GOOGLE_API_KEY environment variable.');
+    throw new Error(MISSING_KEY_ERROR);
   }
 
-  const model = createGeminiModel('latexFix');
   const boundedLog = (compileLog || '').slice(0, 12000);
 
   const prompt = `You are a strict LaTeX repair assistant.
@@ -377,8 +408,7 @@ ${boundedLog || '(no compiler log provided)'}
 Original LaTeX:
 ${latexSource}`;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const text = await generateContent('latexFix', prompt);
   const normalized = stripMarkdownCodeFence(text);
 
   if (!normalized || normalized.trim().length === 0) {

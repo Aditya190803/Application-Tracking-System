@@ -19,7 +19,7 @@ AI-powered resume analysis and cover-letter generation built with Next.js, Stack
 - Tailwind CSS 4
 - Convex (data storage and queries)
 - Stack Auth
-- Google Gemini (`@google/generative-ai`)
+- OpenCode Zen `big-pickle` (OpenAI-compatible API)
 - Radix UI + Lucide icons
 - Vitest + Testing Library
 
@@ -53,7 +53,7 @@ cp .env.example .env.local
 
 ```env
 # Gemini
-GOOGLE_API_KEY=""
+OPENCODE_API_KEY=""
 
 # Convex
 NEXT_PUBLIC_CONVEX_URL=""
@@ -65,7 +65,7 @@ STACK_SECRET_SERVER_KEY=""
 
 # Optional
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-MODEL_NAME="gemini-2.5-flash"
+MODEL_NAME="big-pickle"
 AI_TIMEOUT_MS="30000"
 PDF_PARSE_TIMEOUT_MS="12000"
 COVER_LETTER_ROUTE_TIMEOUT_MS="35000"

@@ -14,7 +14,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       services: {
-        gemini: checks.gemini,
+        ai: checks.ai,
         convex: checks.convex,
         auth: checks.auth,
       },

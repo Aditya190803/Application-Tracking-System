@@ -14,7 +14,7 @@ describe('/api/health', () => {
 
   it('should return 200 and health status', async () => {
     vi.mocked(runDependencyHealthChecks).mockResolvedValue({
-      gemini: { status: 'ok', latencyMs: 120 },
+      ai: { status: 'ok', latencyMs: 120 },
       convex: { status: 'ok', latencyMs: 80 },
       auth: { status: 'ok', latencyMs: 60 },
     });
@@ -24,7 +24,7 @@ describe('/api/health', () => {
 
     expect(res.status).toBe(200);
     expect(data.status).toBe('ok');
-    expect(data.services.gemini.status).toBe('ok');
+    expect(data.services.ai.status).toBe('ok');
     expect(data.services.convex.status).toBe('ok');
     expect(data.services.auth.status).toBe('ok');
     expect(data.timestamp).toBeDefined();
@@ -32,7 +32,7 @@ describe('/api/health', () => {
 
   it('returns 206 when any service is degraded', async () => {
     vi.mocked(runDependencyHealthChecks).mockResolvedValue({
-      gemini: { status: 'degraded', latencyMs: 120, details: 'Probe failed' },
+      ai: { status: 'degraded', latencyMs: 120, details: 'Probe failed' },
       convex: { status: 'ok', latencyMs: 80 },
       auth: { status: 'ok', latencyMs: 60 },
     });
@@ -46,7 +46,7 @@ describe('/api/health', () => {
 
   it('returns 503 when any service is missing', async () => {
     vi.mocked(runDependencyHealthChecks).mockResolvedValue({
-      gemini: { status: 'missing', details: 'Missing API key' },
+      ai: { status: 'missing', details: 'Missing API key' },
       convex: { status: 'ok', latencyMs: 80 },
       auth: { status: 'ok', latencyMs: 60 },
     });

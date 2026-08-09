@@ -22,18 +22,24 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 export async function runDependencyHealthChecks(): Promise<{
-  gemini: ServiceHealth
+  ai: ServiceHealth
   convex: ServiceHealth
   auth: ServiceHealth
 }> {
-  const geminiStart = Date.now()
-  let gemini: ServiceHealth = { status: process.env.GOOGLE_API_KEY ? 'degraded' : 'missing' }
-  if (process.env.GOOGLE_API_KEY) {
+  const aiStart = Date.now()
+  let ai: ServiceHealth = { status: process.env.OPENCODE_API_KEY ? 'degraded' : 'missing' }
+  if (process.env.OPENCODE_API_KEY) {
+    const baseUrl = process.env.OPENCODE_BASE_URL || 'https://opencode.ai/zen/v1'
     try {
-      await withTimeout(fetch('https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'), 2000)
-      gemini = { status: 'ok', latencyMs: Date.now() - geminiStart }
+      await withTimeout(
+        fetch(`${baseUrl}/models`, {
+          headers: { Authorization: `Bearer ${process.env.OPENCODE_API_KEY}` },
+        }),
+        2000,
+      )
+      ai = { status: 'ok', latencyMs: Date.now() - aiStart }
     } catch {
-      gemini = { status: 'degraded', latencyMs: Date.now() - geminiStart, details: 'Gemini endpoint probe failed' }
+      ai = { status: 'degraded', latencyMs: Date.now() - aiStart, details: 'OpenCode Zen endpoint probe failed' }
     }
   }
 
@@ -62,5 +68,5 @@ export async function runDependencyHealthChecks(): Promise<{
     }
   }
 
-  return { gemini, convex, auth }
+  return { ai, convex, auth }
 }
