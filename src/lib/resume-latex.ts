@@ -1,10 +1,9 @@
-import type { TailoredResumeData, TailoredResumeSectionItem } from '@/lib/gemini';
+import type { TailoredResumeData, TailoredResumeSectionItem } from "@/lib/gemini";
+import type { BuiltInResumeTemplateId } from "@/types/resume-templates";
 
-export const BUILT_IN_RESUME_TEMPLATE_IDS = ['jake-classic', 'deedy-modern', 'sb2nov-ats'] as const;
+export type { BuiltInResumeTemplateId, ResumeTemplateId } from "@/types/resume-templates";
+export { BUILT_IN_RESUME_TEMPLATE_IDS } from "@/types/resume-templates";
 export const JAKE_CLASSIC_TEMPLATE_PUBLIC_PATH = "/jake's_resume.tex";
-
-export type BuiltInResumeTemplateId = (typeof BUILT_IN_RESUME_TEMPLATE_IDS)[number];
-export type ResumeTemplateId = BuiltInResumeTemplateId | 'custom';
 
 export interface ResumeTemplateOption {
   id: BuiltInResumeTemplateId;
@@ -15,21 +14,48 @@ export interface ResumeTemplateOption {
 
 export const RESUME_TEMPLATE_OPTIONS: ResumeTemplateOption[] = [
   {
-    id: 'jake-classic',
+    id: "jake-classic",
     name: "Jake's Resume",
-    description: "Jake Gutierrez's classic one-page LaTeX resume template (public/jake's_resume.tex).",
+    description:
+      "Jake Gutierrez's classic one-page LaTeX resume template (public/jake's_resume.tex).",
     atsFriendly: true,
   },
   {
-    id: 'deedy-modern',
-    name: 'Deedy Modern',
-    description: 'Dense one-page format inspired by Deedy-style technical resumes.',
+    id: "deedy-modern",
+    name: "Deedy Modern",
+    description: "Dense one-page format inspired by Deedy-style technical resumes.",
     atsFriendly: true,
   },
   {
-    id: 'sb2nov-ats',
-    name: 'SB2Nov ATS',
-    description: 'Simple ATS-friendly formatting with minimal visual noise.',
+    id: "sb2nov-ats",
+    name: "SB2Nov ATS",
+    description: "Simple ATS-friendly formatting with minimal visual noise.",
+    atsFriendly: true,
+  },
+  {
+    id: "executive-serif",
+    name: "Executive Serif",
+    description: "A spacious serif layout that leads with experience and professional impact.",
+    atsFriendly: true,
+  },
+  {
+    id: "modern-sidebar",
+    name: "Modern Sidebar",
+    description:
+      "Two columns: skills and education beside experience and projects. Best for direct sharing.",
+    atsFriendly: false,
+  },
+  {
+    id: "graduate-focus",
+    name: "Graduate Focus",
+    description:
+      "Education and projects first, designed for graduates and early-career applicants.",
+    atsFriendly: true,
+  },
+  {
+    id: "compact-tech",
+    name: "Compact Technical",
+    description: "A dense sans-serif layout with skills first and room for technical projects.",
     atsFriendly: true,
   },
 ];
@@ -41,10 +67,13 @@ function cleanList(values: string[] | undefined, maxItems: number): string[] {
     .slice(0, maxItems);
 }
 
-function cleanSectionItems(items: TailoredResumeSectionItem[] | undefined, maxItems: number): TailoredResumeSectionItem[] {
+function cleanSectionItems(
+  items: TailoredResumeSectionItem[] | undefined,
+  maxItems: number,
+): TailoredResumeSectionItem[] {
   return (items ?? [])
     .map((item) => ({
-      title: item.title?.trim() ?? '',
+      title: item.title?.trim() ?? "",
       subtitle: item.subtitle?.trim() || undefined,
       date: item.date?.trim() || undefined,
       location: item.location?.trim() || undefined,
@@ -55,49 +84,59 @@ function cleanSectionItems(items: TailoredResumeSectionItem[] | undefined, maxIt
 }
 
 function normalizeLatexText(input: string): string {
-  return input
-    .replace(/\r\n?/g, '\n')
-    .replace(/\u00A0/g, ' ')
-    .replace(/[‘’]/g, '\'')
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-')
-    .replace(/•/g, '-')
-    .replace(/…/g, '...')
-    .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '');
+  return (
+    input
+      .replace(/\r\n?/g, "\n")
+      .replace(/\u00A0/g, " ")
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/[–—]/g, "-")
+      .replace(/•/g, "-")
+      .replace(/…/g, "...")
+      // oxlint-disable-next-line no-control-regex -- Allow only printable ASCII and whitespace in LaTeX output.
+      .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "")
+  );
 }
 
 export function escapeLatex(input: string): string {
-  return normalizeLatexText(input)
-    .replace(/\\/g, '\\textbackslash{}')
-    .replace(/&/g, '\\&')
-    .replace(/%/g, '\\%')
-    .replace(/\$/g, '\\$')
-    .replace(/#/g, '\\#')
-    .replace(/_/g, '\\_')
-    .replace(/{/g, '\\{')
-    .replace(/}/g, '\\}')
-    .replace(/~/g, '\\textasciitilde{}')
-    .replace(/\^/g, '\\textasciicircum{}');
+  const escapes: Record<string, string> = {
+    "\\": "\\textbackslash{}",
+    "&": "\\&",
+    "%": "\\%",
+    $: "\\$",
+    "#": "\\#",
+    _: "\\_",
+    "{": "\\{",
+    "}": "\\}",
+    "~": "\\textasciitilde{}",
+    "^": "\\textasciicircum{}",
+  };
+  return normalizeLatexText(input).replace(/[\\&%$#_{}~^]/g, (character) => escapes[character]);
 }
 
 function renderBullets(items: string[]): string {
   if (items.length === 0) {
-    return '';
+    return "";
   }
 
-  const rows = items.map((item) => `\\item ${escapeLatex(item)}`).join('\n');
+  const rows = items.map((item) => `\\item ${escapeLatex(item)}`).join("\n");
   return `\\begin{itemize}[leftmargin=*, itemsep=2pt, topsep=3pt]\n${rows}\n\\end{itemize}`;
 }
 
 function renderEntry(entry: TailoredResumeSectionItem): string {
-  const headerParts = [entry.title, entry.subtitle].filter(Boolean).map((value) => `\\textbf{${escapeLatex(value as string)}}`);
-  const left = headerParts.join(' -- ');
-  const rightParts = [entry.location, entry.date].filter(Boolean).map((value) => escapeLatex(value as string));
-  const right = rightParts.join(' | ');
+  const headerParts = [entry.title, entry.subtitle]
+    .filter(Boolean)
+    .map((value) => `\\textbf{${escapeLatex(value as string)}}`);
+  const left = headerParts.join(" -- ");
+  const rightParts = [entry.location, entry.date]
+    .filter(Boolean)
+    .map((value) => escapeLatex(value as string));
+  const right = rightParts.join(" | ");
 
-  const header = right.length > 0
-    ? `\\textbf{${escapeLatex(entry.title)}} ${entry.subtitle ? `\\textit{${escapeLatex(entry.subtitle)}}` : ''} \\hfill ${right}`
-    : left;
+  const header =
+    right.length > 0
+      ? `\\textbf{${escapeLatex(entry.title)}} ${entry.subtitle ? `\\textit{${escapeLatex(entry.subtitle)}}` : ""} \\hfill ${right}`
+      : left;
 
   const bullets = renderBullets(entry.bullets);
   return `${header}\n${bullets}`.trim();
@@ -105,17 +144,17 @@ function renderEntry(entry: TailoredResumeSectionItem): string {
 
 function renderJakeBullets(items: string[]): string {
   if (items.length === 0) {
-    return '';
+    return "";
   }
 
-  const rows = items.map((item) => `    \\resumeItem{${escapeLatex(item)}}`).join('\n');
+  const rows = items.map((item) => `    \\resumeItem{${escapeLatex(item)}}`).join("\n");
   return `  \\resumeItemListStart\n${rows}\n  \\resumeItemListEnd`;
 }
 
 function renderJakeEntry(entry: TailoredResumeSectionItem): string {
-  const topRight = entry.date ? escapeLatex(entry.date) : '';
-  const bottomLeft = entry.subtitle ? escapeLatex(entry.subtitle) : '';
-  const bottomRight = entry.location ? escapeLatex(entry.location) : '';
+  const topRight = entry.date ? escapeLatex(entry.date) : "";
+  const bottomLeft = entry.subtitle ? escapeLatex(entry.subtitle) : "";
+  const bottomRight = entry.location ? escapeLatex(entry.location) : "";
 
   const heading = `  \\resumeSubheading\n    {${escapeLatex(entry.title)}}{${topRight}}\n    {${bottomLeft}}{${bottomRight}}`;
   const bullets = renderJakeBullets(entry.bullets);
@@ -124,15 +163,15 @@ function renderJakeEntry(entry: TailoredResumeSectionItem): string {
 
 function renderJakeEntrySection(title: string, entries: TailoredResumeSectionItem[]): string {
   if (entries.length === 0) {
-    return '';
+    return "";
   }
 
-  return `\\section{${escapeLatex(title)}}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeEntry).join('\n\n')}\n  \\resumeSubHeadingListEnd`;
+  return `\\section{${escapeLatex(title)}}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeEntry).join("\n\n")}\n  \\resumeSubHeadingListEnd`;
 }
 
 function renderJakeProjectEntry(entry: TailoredResumeSectionItem): string {
-  const subtitle = entry.subtitle ? ` $|$ \\emph{${escapeLatex(entry.subtitle)}}` : '';
-  const date = entry.date ? escapeLatex(entry.date) : '';
+  const subtitle = entry.subtitle ? ` $|$ \\emph{${escapeLatex(entry.subtitle)}}` : "";
+  const date = entry.date ? escapeLatex(entry.date) : "";
   const heading = `  \\resumeProjectHeading\n    {\\textbf{${escapeLatex(entry.title)}}${subtitle}}{${date}}`;
   const bullets = renderJakeBullets(entry.bullets);
   return bullets ? `${heading}\n${bullets}` : heading;
@@ -140,15 +179,15 @@ function renderJakeProjectEntry(entry: TailoredResumeSectionItem): string {
 
 function renderJakeProjectsSection(entries: TailoredResumeSectionItem[]): string {
   if (entries.length === 0) {
-    return '';
+    return "";
   }
 
-  return `\\section{Projects}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeProjectEntry).join('\n\n')}\n  \\resumeSubHeadingListEnd`;
+  return `\\section{Projects}\n  \\resumeSubHeadingListStart\n${entries.map(renderJakeProjectEntry).join("\n\n")}\n  \\resumeSubHeadingListEnd`;
 }
 
 function renderSection(title: string, content: string): string {
   if (!content.trim()) {
-    return '';
+    return "";
   }
 
   return `\\section*{${escapeLatex(title)}}\n${content}`;
@@ -156,10 +195,10 @@ function renderSection(title: string, content: string): string {
 
 function renderSkills(skills: string[]): string {
   if (skills.length === 0) {
-    return '';
+    return "";
   }
 
-  return escapeLatex(skills.join('  |  '));
+  return escapeLatex(skills.join("  |  "));
 }
 
 function renderContact(data: TailoredResumeData): string {
@@ -167,13 +206,13 @@ function renderContact(data: TailoredResumeData): string {
     .filter((value): value is string => Boolean(value && value.trim()))
     .map((value) => escapeLatex(value.trim()));
 
-  return parts.join(' \\textbar{} ');
+  return parts.join(" \\textbar{} ");
 }
 
 function buildHref(value: string): string {
   const trimmed = normalizeLatexText(value).trim();
   if (!trimmed) {
-    return '';
+    return "";
   }
 
   if (/^(https?:\/\/|mailto:)/i.test(trimmed)) {
@@ -204,7 +243,7 @@ function renderJakeContact(data: TailoredResumeData): string {
     parts.push(`\\href{${buildHref(trimmed)}}{\\underline{${escapeLatex(trimmed)}}}`);
   }
 
-  return parts.join(' $|$ ');
+  return parts.join(" $|$ ");
 }
 
 function renderBody(templateId: BuiltInResumeTemplateId, data: TailoredResumeData): string {
@@ -216,35 +255,110 @@ function renderBody(templateId: BuiltInResumeTemplateId, data: TailoredResumeDat
   const certifications = cleanList(data.certifications, 8);
   const additional = cleanList(data.additional, 8);
 
-  if (templateId === 'jake-classic') {
-    const skillsInline = skills.map((item) => escapeLatex(item)).join(', ');
+  if (templateId === "jake-classic") {
+    const skillsInline = skills.map((item) => escapeLatex(item)).join(", ");
     const sections = [
-      renderJakeEntrySection('Education', education),
-      renderJakeEntrySection('Experience', experience),
+      summary ? renderSection("Summary", escapeLatex(summary)) : "",
+      renderJakeEntrySection("Education", education),
+      renderJakeEntrySection("Experience", experience),
       renderJakeProjectsSection(projects),
       skills.length > 0
         ? `\\section{Technical Skills}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\\textbf{Skills}{: ${skillsInline}}}}\n \\end{itemize}`
-        : '',
+        : "",
+      renderSection("Certifications", renderBullets(certifications)),
+      renderSection("Additional", renderBullets(additional)),
     ].filter(Boolean);
 
-    return sections.join('\n\n');
+    return sections.join("\n\n");
   }
 
-  const sections = [
-    summary ? renderSection('Summary', escapeLatex(summary)) : '',
-    renderSection('Skills', renderSkills(skills)),
-    renderSection('Experience', experience.map(renderEntry).join('\n\n')),
-    renderSection('Projects', projects.map(renderEntry).join('\n\n')),
-    renderSection('Education', education.map(renderEntry).join('\n\n')),
-    certifications.length > 0 ? renderSection('Certifications', certifications.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n')) : '',
-    additional.length > 0 ? renderSection('Additional', additional.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n')) : '',
-  ].filter(Boolean);
-
-  return sections.join('\n\n');
+  const content = {
+    summary: summary ? renderSection("Summary", escapeLatex(summary)) : "",
+    skills: renderSection("Skills", renderSkills(skills)),
+    experience: renderSection("Experience", experience.map(renderEntry).join("\n\n")),
+    projects: renderSection("Projects", projects.map(renderEntry).join("\n\n")),
+    education: renderSection("Education", education.map(renderEntry).join("\n\n")),
+    certifications: renderSection("Certifications", renderBullets(certifications)),
+    additional: renderSection("Additional", renderBullets(additional)),
+  };
+  if (templateId === "modern-sidebar") {
+    return `\\columnratio{0.32}
+\\begin{paracol}{2}
+${[content.skills, content.education, content.certifications].filter(Boolean).join("\n\n")}
+\\switchcolumn
+${[content.summary, content.experience, content.projects, content.additional].filter(Boolean).join("\n\n")}
+\\end{paracol}`;
+  }
+  if (templateId === "graduate-focus") {
+    return [
+      content.summary,
+      content.education,
+      content.projects,
+      content.skills,
+      content.experience,
+      content.certifications,
+      content.additional,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  if (templateId === "executive-serif") {
+    return [
+      content.summary,
+      content.experience,
+      content.projects,
+      content.skills,
+      content.education,
+      content.certifications,
+      content.additional,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  if (templateId === "compact-tech") {
+    return [
+      content.skills,
+      content.summary,
+      content.experience,
+      content.projects,
+      content.education,
+      content.certifications,
+      content.additional,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  return Object.values(content).filter(Boolean).join("\n\n");
 }
 
 function buildTemplatePreamble(templateId: BuiltInResumeTemplateId): string {
-  if (templateId === 'deedy-modern') {
+  if (
+    ["executive-serif", "modern-sidebar", "graduate-focus", "compact-tech"].includes(templateId)
+  ) {
+    const compact = templateId === "compact-tech";
+    const serif = templateId === "executive-serif" || templateId === "graduate-focus";
+    const margin = compact ? "0.5in" : templateId === "executive-serif" ? "0.85in" : "0.7in";
+    return `\\documentclass[letterpaper,${compact ? "10" : "11"}pt]{article}
+\\usepackage[margin=${margin}]{geometry}
+\\usepackage[T1]{fontenc}
+\\usepackage[utf8]{inputenc}
+\\usepackage{${serif ? "mathptmx" : "helvet"}}
+${serif ? "" : "\\renewcommand{\\familydefault}{\\sfdefault}"}
+\\usepackage{enumitem}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+\\usepackage[hidelinks]{hyperref}
+${templateId === "modern-sidebar" ? "\\usepackage{paracol}\n\\setlength{\\columnsep}{20pt}" : ""}
+\\definecolor{resumeaccent}{HTML}{${templateId === "graduate-focus" ? "1D4F7A" : compact ? "155E63" : "242424"}}
+\\titleformat{\\section}{\\color{resumeaccent}\\${serif ? "scshape" : "bfseries"}\\${compact ? "normalsize" : "large"}}{}{0em}{}[\\titlerule]
+\\titlespacing*{\\section}{0pt}{${compact ? "7" : "12"}pt}{${compact ? "4" : "6"}pt}
+\\setlength{\\parindent}{0pt}
+\\setlength{\\parskip}{${compact ? "2" : "5"}pt}
+\\raggedright
+\\pagenumbering{gobble}
+\\begin{document}`;
+  }
+  if (templateId === "deedy-modern") {
     return `\\documentclass[11pt]{article}
 \\usepackage[margin=0.65in]{geometry}
 \\usepackage{enumitem}
@@ -257,7 +371,7 @@ function buildTemplatePreamble(templateId: BuiltInResumeTemplateId): string {
 \\begin{document}`;
   }
 
-  if (templateId === 'sb2nov-ats') {
+  if (templateId === "sb2nov-ats") {
     return `\\documentclass[11pt]{article}
 \\usepackage[margin=0.75in]{geometry}
 \\usepackage{enumitem}
@@ -316,7 +430,10 @@ function buildTemplatePreamble(templateId: BuiltInResumeTemplateId): string {
 \\begin{document}`;
 }
 
-export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: TailoredResumeData): string {
+export function buildLatexResume(
+  templateId: BuiltInResumeTemplateId,
+  rawData: TailoredResumeData,
+): string {
   const data: TailoredResumeData = {
     fullName: rawData.fullName?.trim(),
     email: rawData.email?.trim(),
@@ -325,7 +442,7 @@ export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: T
     linkedin: rawData.linkedin?.trim(),
     github: rawData.github?.trim(),
     website: rawData.website?.trim(),
-    summary: rawData.summary?.trim() ?? '',
+    summary: rawData.summary?.trim() ?? "",
     skills: rawData.skills ?? [],
     experience: rawData.experience ?? [],
     projects: rawData.projects ?? [],
@@ -336,19 +453,21 @@ export function buildLatexResume(templateId: BuiltInResumeTemplateId, rawData: T
     keywordsUsed: rawData.keywordsUsed ?? [],
   };
 
-  const name = escapeLatex(data.fullName || 'Candidate Name');
+  const name = escapeLatex(data.fullName || "Candidate Name");
   const contact = renderContact(data);
-  const headline = data.targetTitle?.trim() ? `\\textit{${escapeLatex(data.targetTitle.trim())}}` : '';
+  const headline = data.targetTitle?.trim()
+    ? `\\textit{${escapeLatex(data.targetTitle.trim())}}`
+    : "";
   const body = renderBody(templateId, data);
 
   const preamble = buildTemplatePreamble(templateId);
 
-  if (templateId === 'jake-classic') {
+  if (templateId === "jake-classic") {
     const contactParts = renderJakeContact(data);
     return `${preamble}
 \\begin{center}
     \\textbf{\\Huge \\scshape ${name}} \\\\ \\vspace{1pt}
-    ${contactParts ? `\\small ${contactParts}` : ''}
+    ${contactParts ? `\\small ${contactParts}` : ""}
 \\end{center}
 
 ${body}
@@ -357,11 +476,21 @@ ${body}
 `;
   }
 
+  if (templateId === "executive-serif") {
+    return `${preamble}
+{\\Huge \\textbf{${name}}}\\\\[5pt]
+${headline ? `${headline}\\\\[3pt]` : ""}
+${contact ? `{\\small ${contact}}\\\\[6pt]` : ""}
+${body}
+\\end{document}
+`;
+  }
+
   return `${preamble}
 \\begin{center}
 {\\LARGE \\textbf{${name}}}\\\\
-${headline}
-${contact ? `${contact}\\\\` : ''}
+${headline ? `${headline}\\\\` : ""}
+${contact ? `${contact}\\\\` : ""}
 \\end{center}
 
 ${body}
@@ -374,8 +503,11 @@ function toJsonString(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-export function buildLatexResumeFromCustomTemplate(templateSource: string, rawData: TailoredResumeData): string {
-  const builtInFallback = buildLatexResume('jake-classic', rawData);
+export function buildLatexResumeFromCustomTemplate(
+  templateSource: string,
+  rawData: TailoredResumeData,
+): string {
+  const builtInFallback = buildLatexResume("jake-classic", rawData);
   const experience = cleanSectionItems(rawData.experience, 6);
   const projects = cleanSectionItems(rawData.projects, 6);
   const education = cleanSectionItems(rawData.education, 4);
@@ -384,25 +516,29 @@ export function buildLatexResumeFromCustomTemplate(templateSource: string, rawDa
   const additional = cleanList(rawData.additional, 15);
 
   const replacements: Record<string, string> = {
-    '{{fullName}}': escapeLatex(rawData.fullName?.trim() || ''),
-    '{{email}}': escapeLatex(rawData.email?.trim() || ''),
-    '{{phone}}': escapeLatex(rawData.phone?.trim() || ''),
-    '{{location}}': escapeLatex(rawData.location?.trim() || ''),
-    '{{linkedin}}': escapeLatex(rawData.linkedin?.trim() || ''),
-    '{{github}}': escapeLatex(rawData.github?.trim() || ''),
-    '{{website}}': escapeLatex(rawData.website?.trim() || ''),
-    '{{summary}}': escapeLatex(rawData.summary?.trim() || ''),
-    '{{targetTitle}}': escapeLatex(rawData.targetTitle?.trim() || ''),
-    '{{skills}}': escapeLatex(skills.join(', ')),
-    '{{skills_latex}}': renderSkills(skills),
-    '{{experience_entries}}': experience.map(renderEntry).join('\n\n'),
-    '{{projects_entries}}': projects.map(renderEntry).join('\n\n'),
-    '{{education_entries}}': education.map(renderEntry).join('\n\n'),
-    '{{certifications}}': certifications.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n'),
-    '{{additional}}': additional.map((item) => `\\textbullet{} ${escapeLatex(item)}`).join('\\\\\n'),
-    '{{keywordsUsed}}': escapeLatex((rawData.keywordsUsed ?? []).join(', ')),
-    '{{structuredDataJson}}': escapeLatex(toJsonString(rawData)),
-    '{{generated_resume}}': builtInFallback,
+    "{{fullName}}": escapeLatex(rawData.fullName?.trim() || ""),
+    "{{email}}": escapeLatex(rawData.email?.trim() || ""),
+    "{{phone}}": escapeLatex(rawData.phone?.trim() || ""),
+    "{{location}}": escapeLatex(rawData.location?.trim() || ""),
+    "{{linkedin}}": escapeLatex(rawData.linkedin?.trim() || ""),
+    "{{github}}": escapeLatex(rawData.github?.trim() || ""),
+    "{{website}}": escapeLatex(rawData.website?.trim() || ""),
+    "{{summary}}": escapeLatex(rawData.summary?.trim() || ""),
+    "{{targetTitle}}": escapeLatex(rawData.targetTitle?.trim() || ""),
+    "{{skills}}": escapeLatex(skills.join(", ")),
+    "{{skills_latex}}": renderSkills(skills),
+    "{{experience_entries}}": experience.map(renderEntry).join("\n\n"),
+    "{{projects_entries}}": projects.map(renderEntry).join("\n\n"),
+    "{{education_entries}}": education.map(renderEntry).join("\n\n"),
+    "{{certifications}}": certifications
+      .map((item) => `\\textbullet{} ${escapeLatex(item)}`)
+      .join("\\\\\n"),
+    "{{additional}}": additional
+      .map((item) => `\\textbullet{} ${escapeLatex(item)}`)
+      .join("\\\\\n"),
+    "{{keywordsUsed}}": escapeLatex((rawData.keywordsUsed ?? []).join(", ")),
+    "{{structuredDataJson}}": escapeLatex(toJsonString(rawData)),
+    "{{generated_resume}}": builtInFallback,
   };
 
   let output = templateSource;
@@ -413,51 +549,52 @@ export function buildLatexResumeFromCustomTemplate(templateSource: string, rawDa
 }
 
 export const TEMPLATE_PREVIEW_DATA: TailoredResumeData = {
-  fullName: 'Jordan Rivera',
-  email: 'jordan.rivera@example.com',
-  phone: '+1 (555) 010-2193',
-  location: 'San Francisco, CA',
-  linkedin: 'linkedin.com/in/jordanrivera',
-  github: 'github.com/jordanrivera',
-  website: 'jordanrivera.dev',
-  summary: 'Product-minded software engineer with 6+ years building scalable web platforms, AI-assisted workflows, and data-heavy applications.',
-  skills: ['TypeScript', 'Next.js', 'Node.js', 'PostgreSQL', 'Redis', 'Docker', 'GraphQL', 'CI/CD'],
+  fullName: "Jordan Rivera",
+  email: "jordan.rivera@example.com",
+  phone: "+1 (555) 010-2193",
+  location: "San Francisco, CA",
+  linkedin: "linkedin.com/in/jordanrivera",
+  github: "github.com/jordanrivera",
+  website: "jordanrivera.dev",
+  summary:
+    "Product-minded software engineer with 6+ years building scalable web platforms, AI-assisted workflows, and data-heavy applications.",
+  skills: ["TypeScript", "Next.js", "Node.js", "PostgreSQL", "Redis", "Docker", "GraphQL", "CI/CD"],
   experience: [
     {
-      title: 'Senior Software Engineer',
-      subtitle: 'BlueWave Systems',
-      date: '2022-Present',
-      location: 'Remote',
+      title: "Senior Software Engineer",
+      subtitle: "BlueWave Systems",
+      date: "2022-Present",
+      location: "Remote",
       bullets: [
-        'Led migration to Next.js App Router and reduced page load times by 34%.',
-        'Built AI-assisted resume and cover letter workflows used by 50k+ users.',
-        'Introduced observability dashboards that cut incident resolution time in half.',
+        "Led migration to Next.js App Router and reduced page load times by 34%.",
+        "Built AI-assisted resume and cover letter workflows used by 50k+ users.",
+        "Introduced observability dashboards that cut incident resolution time in half.",
       ],
     },
   ],
   projects: [
     {
-      title: 'Hiring Intelligence Platform',
-      subtitle: 'Next.js, Convex, Gemini API',
-      date: '2024',
-      location: 'Remote',
+      title: "Hiring Intelligence Platform",
+      subtitle: "Next.js, Convex, Gemini API",
+      date: "2024",
+      location: "Remote",
       bullets: [
-        'Designed role-matching pipeline to score resumes against job descriptions.',
-        'Implemented robust caching and idempotency for high-volume generation APIs.',
+        "Designed role-matching pipeline to score resumes against job descriptions.",
+        "Implemented robust caching and idempotency for high-volume generation APIs.",
       ],
     },
   ],
   education: [
     {
-      title: 'B.S. Computer Science',
-      subtitle: 'University of California, Davis',
-      date: '2017-2021',
-      location: 'Davis, CA',
+      title: "B.S. Computer Science",
+      subtitle: "University of California, Davis",
+      date: "2017-2021",
+      location: "Davis, CA",
       bullets: [],
     },
   ],
-  certifications: ['AWS Certified Developer - Associate'],
-  additional: ['Speaker: Bay Area JS Meetup (2025)'],
-  targetTitle: 'Senior Full Stack Engineer',
-  keywordsUsed: ['scalable systems', 'AI workflows', 'cloud deployment'],
+  certifications: ["AWS Certified Developer - Associate"],
+  additional: ["Speaker: Bay Area JS Meetup (2025)"],
+  targetTitle: "Senior Full Stack Engineer",
+  keywordsUsed: ["scalable systems", "AI workflows", "cloud deployment"],
 };

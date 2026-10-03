@@ -1,79 +1,79 @@
-import { NextRequest } from 'next/server';
-import { beforeEach,describe, expect, it, vi } from 'vitest';
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { DELETE,GET, POST } from '@/app/api/resumes/route';
-import { getAuthenticatedUser } from '@/lib/auth';
-import { deleteResume, getResumeById } from '@/lib/convex-server';
+import { DELETE, GET, POST } from "@/app/api/resumes/route";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { deleteResume, getResumeById } from "@/lib/convex-server";
 
-vi.mock('@/lib/convex-server', () => ({
-    saveResume: vi.fn().mockResolvedValue({ _id: 'res1' }),
-    getUserResumes: vi.fn().mockResolvedValue([{ _id: 'res1' }]),
-    deleteResume: vi.fn().mockResolvedValue(true),
-    getResumeById: vi.fn().mockResolvedValue({ _id: 'res1', userId: 'u1' }),
-    generateHash: vi.fn().mockImplementation((value: string) => value),
+vi.mock("@/lib/convex-server", () => ({
+  saveResume: vi.fn().mockResolvedValue({ _id: "res1" }),
+  getUserResumes: vi.fn().mockResolvedValue([{ _id: "res1" }]),
+  deleteResume: vi.fn().mockResolvedValue(true),
+  getResumeById: vi.fn().mockResolvedValue({ _id: "res1", userId: "u1" }),
+  generateHash: vi.fn().mockImplementation((value: string) => value),
 }));
 
-vi.mock('@/lib/auth', () => ({
-    getAuthenticatedUser: vi.fn(),
+vi.mock("@/lib/auth", () => ({
+  getAuthenticatedUser: vi.fn(),
 }));
 
-describe('/api/resumes', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        vi.mocked(getAuthenticatedUser).mockResolvedValue('u1');
+describe("/api/resumes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getAuthenticatedUser).mockResolvedValue("u1");
+  });
+
+  describe("POST", () => {
+    it("should save resume", async () => {
+      const req = new NextRequest("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "r.pdf",
+          textContent: "text",
+        }),
+      });
+      const res = await POST(req);
+      const data = await res.json();
+      expect(res.status).toBe(200);
+      expect(data.resume._id).toBe("res1");
+    });
+  });
+
+  describe("GET", () => {
+    it("should fetch resumes", async () => {
+      const req = new NextRequest("http://localhost/api/resumes");
+      const res = await GET(req);
+      const data = await res.json();
+      expect(res.status).toBe(200);
+      expect(data.resumes).toHaveLength(1);
+    });
+  });
+
+  describe("DELETE", () => {
+    it("should delete resume", async () => {
+      const req = new NextRequest("http://localhost/api/resumes?resumeId=res1", {
+        method: "DELETE",
+      });
+      const res = await DELETE(req);
+      const data = await res.json();
+      expect(res.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(getResumeById).toHaveBeenCalledWith("res1", "u1");
+      expect(deleteResume).toHaveBeenCalledWith("res1", "u1");
     });
 
-    describe('POST', () => {
-        it('should save resume', async () => {
-            const req = new NextRequest('http://localhost', {
-                method: 'POST',
-                body: JSON.stringify({
-                    name: 'r.pdf',
-                    textContent: 'text',
-                }),
-            });
-            const res = await POST(req);
-            const data = await res.json();
-            expect(res.status).toBe(200);
-            expect(data.resume._id).toBe('res1');
-        });
+    it("returns 404 when deleting another user's resume (scoped lookup)", async () => {
+      // getResumeById(resumeId, userId) returns null on ownership mismatch.
+      vi.mocked(getResumeById).mockResolvedValue(null);
+
+      const req = new NextRequest("http://localhost/api/resumes?resumeId=res1", {
+        method: "DELETE",
+      });
+      const res = await DELETE(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(404);
+      expect(data.code).toBe("RESUME_NOT_FOUND");
     });
-
-    describe('GET', () => {
-        it('should fetch resumes', async () => {
-            const req = new NextRequest('http://localhost/api/resumes');
-            const res = await GET(req);
-            const data = await res.json();
-            expect(res.status).toBe(200);
-            expect(data.resumes).toHaveLength(1);
-        });
-    });
-
-    describe('DELETE', () => {
-        it('should delete resume', async () => {
-            const req = new NextRequest('http://localhost/api/resumes?resumeId=res1', {
-                method: 'DELETE',
-            });
-            const res = await DELETE(req);
-            const data = await res.json();
-            expect(res.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(getResumeById).toHaveBeenCalledWith('res1', 'u1');
-            expect(deleteResume).toHaveBeenCalledWith('res1', 'u1');
-        });
-
-        it("returns 404 when deleting another user's resume (scoped lookup)", async () => {
-            // getResumeById(resumeId, userId) returns null on ownership mismatch.
-            vi.mocked(getResumeById).mockResolvedValue(null);
-
-            const req = new NextRequest('http://localhost/api/resumes?resumeId=res1', {
-                method: 'DELETE',
-            });
-            const res = await DELETE(req);
-            const data = await res.json();
-
-            expect(res.status).toBe(404);
-            expect(data.code).toBe('RESUME_NOT_FOUND');
-        });
-    });
+  });
 });

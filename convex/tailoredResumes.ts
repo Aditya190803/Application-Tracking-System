@@ -1,5 +1,5 @@
-import { internalMutationGeneric as mutation, internalQueryGeneric as query } from 'convex/server';
-import { v } from 'convex/values';
+import { internalMutationGeneric as mutation, internalQueryGeneric as query } from "convex/server";
+import { v } from "convex/values";
 
 export const saveTailoredResume = mutation({
   args: {
@@ -20,7 +20,7 @@ export const saveTailoredResume = mutation({
     customTemplateSource: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const id = await ctx.db.insert('tailoredResumes', args);
+    const id = await ctx.db.insert("tailoredResumes", args);
     const doc = await ctx.db.get(id);
     return doc;
   },
@@ -35,23 +35,23 @@ export const getTailoredResume = query({
   },
   handler: async (ctx, args) => {
     const doc = await ctx.db
-      .query('tailoredResumes')
+      .query("tailoredResumes")
       .filter((q) =>
         q.and(
-          q.eq(q.field('userId'), args.userId),
-          q.eq(q.field('resumeHash'), args.resumeHash),
-          q.eq(q.field('jobDescriptionHash'), args.jobDescriptionHash),
-          q.eq(q.field('templateId'), args.templateId),
+          q.eq(q.field("userId"), args.userId),
+          q.eq(q.field("resumeHash"), args.resumeHash),
+          q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+          q.eq(q.field("templateId"), args.templateId),
         ),
       )
-      .order('desc')
+      .order("desc")
       .first();
     return doc;
   },
 });
 
 export const getTailoredResumeById = query({
-  args: { tailoredResumeId: v.id('tailoredResumes'), userId: v.string() },
+  args: { tailoredResumeId: v.id("tailoredResumes"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.tailoredResumeId);
     if (!doc || doc.userId !== args.userId) {
@@ -62,7 +62,7 @@ export const getTailoredResumeById = query({
 });
 
 export const deleteTailoredResume = mutation({
-  args: { tailoredResumeId: v.id('tailoredResumes'), userId: v.string() },
+  args: { tailoredResumeId: v.id("tailoredResumes"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.tailoredResumeId);
     if (!doc || doc.userId !== args.userId) {
@@ -81,9 +81,9 @@ export const getUserTailoredResumes = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 20;
     const docs = await ctx.db
-      .query('tailoredResumes')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-      .order('desc')
+      .query("tailoredResumes")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .order("desc")
       .take(limit);
     return docs;
   },
@@ -98,12 +98,12 @@ export const getTailoredResumeVersionsBySlug = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 30;
     const docs = await ctx.db
-      .query('tailoredResumes')
-      .withIndex('by_userId_builderSlug', (q) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- queryGeneric index builder typing stops after first eq
-        (q.eq('userId', args.userId) as any).eq('builderSlug', args.builderSlug),
+      .query("tailoredResumes")
+      .withIndex("by_userId_builderSlug", (q) =>
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any -- queryGeneric index builder typing stops after first eq
+        (q.eq("userId", args.userId) as any).eq("builderSlug", args.builderSlug),
       )
-      .order('desc')
+      .order("desc")
       .take(limit);
     return docs;
   },

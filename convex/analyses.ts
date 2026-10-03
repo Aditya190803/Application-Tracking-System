@@ -1,5 +1,5 @@
-import { internalMutationGeneric as mutation, internalQueryGeneric as query } from 'convex/server';
-import { v } from 'convex/values';
+import { internalMutationGeneric as mutation, internalQueryGeneric as query } from "convex/server";
+import { v } from "convex/values";
 
 export const saveAnalysis = mutation({
   args: {
@@ -26,7 +26,7 @@ export const saveAnalysis = mutation({
       jobDescription,
     } = args;
 
-    const analysisId = await ctx.db.insert('analyses', {
+    const analysisId = await ctx.db.insert("analyses", {
       userId,
       resumeHash,
       jobDescriptionHash,
@@ -52,23 +52,23 @@ export const getAnalysis = query({
   },
   handler: async (ctx, args) => {
     const doc = await ctx.db
-      .query('analyses')
-      .withIndex('by_lookup', (q) => q.eq('userId', args.userId))
+      .query("analyses")
+      .withIndex("by_lookup", (q) => q.eq("userId", args.userId))
       .filter((q) =>
         q.and(
-          q.eq(q.field('resumeHash'), args.resumeHash),
-          q.eq(q.field('jobDescriptionHash'), args.jobDescriptionHash),
-          q.eq(q.field('analysisType'), args.analysisType),
+          q.eq(q.field("resumeHash"), args.resumeHash),
+          q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+          q.eq(q.field("analysisType"), args.analysisType),
         ),
       )
-      .order('desc')
+      .order("desc")
       .first();
     return doc;
   },
 });
 
 export const getAnalysisById = query({
-  args: { analysisId: v.id('analyses'), userId: v.string() },
+  args: { analysisId: v.id("analyses"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.analysisId);
     if (!doc || doc.userId !== args.userId) {
@@ -79,7 +79,7 @@ export const getAnalysisById = query({
 });
 
 export const deleteAnalysis = mutation({
-  args: { analysisId: v.id('analyses'), userId: v.string() },
+  args: { analysisId: v.id("analyses"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.analysisId);
     if (!doc || doc.userId !== args.userId) {
@@ -98,9 +98,9 @@ export const getUserAnalyses = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 20;
     const docs = await ctx.db
-      .query('analyses')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-      .order('desc')
+      .query("analyses")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .order("desc")
       .take(limit);
     return docs;
   },

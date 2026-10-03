@@ -1,13 +1,21 @@
-'use client'
+"use client";
 
-import { AlertCircle, Briefcase, CheckCircle, FileText, GraduationCap, Sparkles,TrendingUp } from 'lucide-react'
+import {
+  AlertCircle,
+  Briefcase,
+  CheckCircle,
+  FileText,
+  GraduationCap,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 
 interface OverviewResultProps {
-  data: string | null
+  data: string | null;
 }
 
 export function OverviewResult({ data }: OverviewResultProps) {
-  if (!data) return null
+  if (!data) return null;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -26,7 +34,8 @@ export function OverviewResult({ data }: OverviewResultProps) {
             AI Summary
           </h3>
           <p className="text-foreground/80 leading-relaxed font-medium">
-            {data.split('**Summary**')[1]?.split('**Strengths**')[0]?.trim() || 'No summary available.'}
+            {data.split("**Summary**")[1]?.split("**Strengths**")[0]?.trim() ||
+              "No summary available."}
           </p>
         </div>
 
@@ -40,12 +49,20 @@ export function OverviewResult({ data }: OverviewResultProps) {
               <h3 className="text-lg font-bold text-foreground">Strengths</h3>
             </div>
             <ul className="space-y-4">
-              {data.split('**Strengths**')[1]?.split('**Areas for Improvement**')[0]?.split('\n').filter(line => line.startsWith('*')).map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-foreground/80 font-medium">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                  <span className="flex-1">{item.replace('*', '').trim()}</span>
-                </li>
-              ))}
+              {data
+                .split("**Strengths**")[1]
+                ?.split("**Areas for Improvement**")[0]
+                ?.split("\n")
+                .filter((line) => line.startsWith("*"))
+                .map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-foreground/80 font-medium"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                    <span className="flex-1">{item.replace("*", "").trim()}</span>
+                  </li>
+                ))}
             </ul>
           </div>
 
@@ -57,12 +74,20 @@ export function OverviewResult({ data }: OverviewResultProps) {
               <h3 className="text-lg font-bold text-foreground">Areas for Improvement</h3>
             </div>
             <ul className="space-y-4">
-              {data.split('**Areas for Improvement**')[1]?.split('**Experience Overview**')[0]?.split('\n').filter(line => line.startsWith('*')).map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-foreground/80 font-medium">
-                  <div className="w-1.5 h-1.5 rounded-full bg-muted mt-1.5 flex-shrink-0" />
-                  <span className="flex-1">{item.replace('*', '').trim()}</span>
-                </li>
-              ))}
+              {data
+                .split("**Areas for Improvement**")[1]
+                ?.split("**Experience Overview**")[0]
+                ?.split("\n")
+                .filter((line) => line.startsWith("*"))
+                .map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-foreground/80 font-medium"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted mt-1.5 flex-shrink-0" />
+                    <span className="flex-1">{item.replace("*", "").trim()}</span>
+                  </li>
+                ))}
             </ul>
           </div>
         </div>
@@ -77,7 +102,8 @@ export function OverviewResult({ data }: OverviewResultProps) {
               <h3 className="font-bold text-foreground">Experience</h3>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-              {data.split('**Experience Overview**')[1]?.split('**Education**')[0]?.trim() || 'No experience data available.'}
+              {data.split("**Experience Overview**")[1]?.split("**Education**")[0]?.trim() ||
+                "No experience data available."}
             </p>
           </div>
 
@@ -89,7 +115,8 @@ export function OverviewResult({ data }: OverviewResultProps) {
               <h3 className="font-bold text-foreground">Education</h3>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-              {data.split('**Education**')[1]?.split('**Overall Assessment**')[0]?.trim() || 'No education data available.'}
+              {data.split("**Education**")[1]?.split("**Overall Assessment**")[0]?.trim() ||
+                "No education data available."}
             </p>
           </div>
         </div>
@@ -107,16 +134,20 @@ export function OverviewResult({ data }: OverviewResultProps) {
               <h3 className="font-bold text-white">Overall Assessment</h3>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6 font-medium">
-              {data.split('**Overall Assessment**')[1]?.split('**Recommendation**')[0]?.trim() || 'No assessment available.'}
+              {data.split("**Overall Assessment**")[1]?.split("**Recommendation**")[0]?.trim() ||
+                "No assessment available."}
             </p>
             <div className="rounded-xl bg-card/10 border border-white/10 p-5 backdrop-blur-md">
               <p className="text-sm font-bold text-white">
-                Recommendation: <span className="text-muted-foreground font-medium">{data.split('**Recommendation**')[1]?.trim() || 'No recommendation available.'}</span>
+                Recommendation:{" "}
+                <span className="text-muted-foreground font-medium">
+                  {data.split("**Recommendation**")[1]?.trim() || "No recommendation available."}
+                </span>
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

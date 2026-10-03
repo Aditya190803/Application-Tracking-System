@@ -1,4 +1,8 @@
-export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
 
   const timeout = new Promise<never>((_, reject) => {

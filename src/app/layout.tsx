@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Fira_Code,Oxanium } from "next/font/google";
+import { Fira_Code, Oxanium } from "next/font/google";
 
 import { Sidebar, TopNav } from "@/components/layout";
 
@@ -17,7 +17,8 @@ const fontMono = Fira_Code({
 
 export const metadata: Metadata = {
   title: "ATS - Application Tracking System",
-  description: "Optimize your resume with AI-powered analysis, keyword extraction, ATS compatibility scoring, and cover letter generation.",
+  description:
+    "Monitor career sites, build AI resumes in seven LaTeX formats, analyze job matches, write cover letters, track applications, and prepare for interviews.",
 };
 
 import { StackProvider, StackTheme } from "@stackframe/stack";
@@ -35,9 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
-      >
+      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
         <ConvexClientProvider>
           <StackProvider app={stackServerApp}>
             <StackTheme>
@@ -49,9 +48,7 @@ export default function RootLayout({
                       <TopNav />
                       <div className="flex">
                         <Sidebar />
-                        <main className="flex-1">
-                          {children}
-                        </main>
+                        <main className="flex-1">{children}</main>
                       </div>
                     </div>
                   </Suspense>

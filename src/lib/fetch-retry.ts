@@ -25,7 +25,7 @@ export async function fetchWithRetry(
 
   while (attempt <= retries) {
     if (options.signal?.aborted) {
-      throw new DOMException('Request was aborted', 'AbortError');
+      throw new DOMException("Request was aborted", "AbortError");
     }
 
     try {
@@ -51,5 +51,5 @@ export async function fetchWithRetry(
     throw lastError;
   }
 
-  throw new Error('Request failed after retries');
+  throw new Error("Request failed after retries");
 }

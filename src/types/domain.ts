@@ -1,7 +1,7 @@
-export type Tone = 'professional' | 'friendly' | 'enthusiastic';
-export type LetterLength = 'concise' | 'standard' | 'detailed';
-export type AnalysisType = 'overview' | 'keywords' | 'match' | 'coverLetter';
-export type HistoryType = 'analysis' | 'cover-letter' | 'resume';
+export type Tone = "professional" | "friendly" | "enthusiastic";
+export type LetterLength = "concise" | "standard" | "detailed";
+export type AnalysisType = "overview" | "keywords" | "match" | "coverLetter";
+export type HistoryType = "analysis" | "cover-letter" | "resume";
 
 export interface ResumeItem {
   _id: string;
@@ -28,7 +28,7 @@ export interface MatchAnalysisResult {
 
 export interface HistoryAnalysisItem {
   id: string;
-  type: 'analysis';
+  type: "analysis";
   analysisType: string;
   resumeName?: string;
   jobTitle?: string;
@@ -40,7 +40,7 @@ export interface HistoryAnalysisItem {
 
 export interface HistoryCoverLetterItem {
   id: string;
-  type: 'cover-letter';
+  type: "cover-letter";
   companyName?: string;
   resumeName?: string;
   jobDescription?: string;
@@ -50,7 +50,7 @@ export interface HistoryCoverLetterItem {
 
 export interface HistoryResumeItem {
   id: string;
-  type: 'resume';
+  type: "resume";
   resumeName?: string;
   jobTitle?: string;
   companyName?: string;

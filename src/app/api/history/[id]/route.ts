@@ -1,40 +1,47 @@
-import { randomUUID } from 'crypto';
-import { NextRequest } from 'next/server';
+import { randomUUID } from "crypto";
+import { NextRequest } from "next/server";
 
-import { apiError, apiSuccess } from '@/lib/api-response';
-import { getAuthenticatedUser } from '@/lib/auth';
-import { deleteAnalysis, deleteCoverLetter, getAnalysisById, getCoverLetterById } from '@/lib/convex-server';
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { getAuthenticatedUser } from "@/lib/auth";
+import {
+  deleteAnalysis,
+  deleteCoverLetter,
+  getAnalysisById,
+  getCoverLetterById,
+} from "@/lib/convex-server";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const requestId = request.headers.get('x-request-id') ?? randomUUID();
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
 
   try {
     const userId = await getAuthenticatedUser();
     if (!userId) {
-      return apiError(requestId, 401, 'AUTH_REQUIRED', 'Authentication required');
+      return apiError(requestId, 401, "AUTH_REQUIRED", "Authentication required");
     }
 
     const params = await context.params;
     const id = params.id;
-    const typeParam = request.nextUrl.searchParams.get('type');
+    const typeParam = request.nextUrl.searchParams.get("type");
 
     if (!id) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'ID is required');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "ID is required");
     }
 
-    if (typeParam && typeParam !== 'analysis' && typeParam !== 'cover-letter') {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Invalid type. Must be analysis or cover-letter');
+    if (typeParam && typeParam !== "analysis" && typeParam !== "cover-letter") {
+      return apiError(
+        requestId,
+        400,
+        "VALIDATION_ERROR",
+        "Invalid type. Must be analysis or cover-letter",
+      );
     }
 
     let analysis = null;
     let coverLetter = null;
 
-    if (typeParam === 'analysis') {
+    if (typeParam === "analysis") {
       analysis = await getAnalysisById(id, userId);
-    } else if (typeParam === 'cover-letter') {
+    } else if (typeParam === "cover-letter") {
       coverLetter = await getCoverLetterById(id, userId);
     } else {
       analysis = await getAnalysisById(id, userId);
@@ -44,17 +51,19 @@ export async function GET(
     const item = analysis || coverLetter;
 
     if (!item) {
-      return apiError(requestId, 404, 'NOT_FOUND', 'Item not found');
+      return apiError(requestId, 404, "NOT_FOUND", "Item not found");
     }
     // ponytail: scoped lookup (getAnalysisById/getCoverLetterById) already
     // enforces ownership by returning null on mismatch, so userId check is implicit.
 
-    const type = analysis ? 'analysis' : 'cover-letter';
+    const type = analysis ? "analysis" : "cover-letter";
     const responseItem: Record<string, unknown> = {
       id: item._id,
       type,
       result: item.result,
-      createdAt: item._creationTime ? new Date(item._creationTime).toISOString() : new Date().toISOString(),
+      createdAt: item._creationTime
+        ? new Date(item._creationTime).toISOString()
+        : new Date().toISOString(),
     };
 
     if (item.resumeName) responseItem.resumeName = item.resumeName;
@@ -72,40 +81,42 @@ export async function GET(
 
     return apiSuccess({ item: responseItem, requestId });
   } catch (error) {
-    console.error('Error fetching history item', { requestId, error });
-    return apiError(requestId, 500, 'HISTORY_ITEM_FETCH_FAILED', 'Failed to fetch item');
+    console.error("Error fetching history item", { requestId, error });
+    return apiError(requestId, 500, "HISTORY_ITEM_FETCH_FAILED", "Failed to fetch item");
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const requestId = request.headers.get('x-request-id') ?? randomUUID();
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
 
   try {
     const userId = await getAuthenticatedUser();
     if (!userId) {
-      return apiError(requestId, 401, 'AUTH_REQUIRED', 'Authentication required');
+      return apiError(requestId, 401, "AUTH_REQUIRED", "Authentication required");
     }
 
     const params = await context.params;
     const id = params.id;
-    const typeParam = request.nextUrl.searchParams.get('type');
+    const typeParam = request.nextUrl.searchParams.get("type");
 
     if (!id) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'ID is required');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "ID is required");
     }
 
-    if (typeParam && typeParam !== 'analysis' && typeParam !== 'cover-letter') {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Invalid type. Must be analysis or cover-letter');
+    if (typeParam && typeParam !== "analysis" && typeParam !== "cover-letter") {
+      return apiError(
+        requestId,
+        400,
+        "VALIDATION_ERROR",
+        "Invalid type. Must be analysis or cover-letter",
+      );
     }
 
     let analysis = null;
     let coverLetter = null;
-    if (typeParam === 'analysis') {
+    if (typeParam === "analysis") {
       analysis = await getAnalysisById(id, userId);
-    } else if (typeParam === 'cover-letter') {
+    } else if (typeParam === "cover-letter") {
       coverLetter = await getCoverLetterById(id, userId);
     } else {
       analysis = await getAnalysisById(id, userId);
@@ -114,21 +125,19 @@ export async function DELETE(
 
     const item = analysis || coverLetter;
     if (!item) {
-      return apiError(requestId, 404, 'NOT_FOUND', 'Item not found');
+      return apiError(requestId, 404, "NOT_FOUND", "Item not found");
     }
     // ponytail: ownership enforced by scoped lookup helpers.
 
-    const ok = analysis
-      ? await deleteAnalysis(id, userId)
-      : await deleteCoverLetter(id, userId);
+    const ok = analysis ? await deleteAnalysis(id, userId) : await deleteCoverLetter(id, userId);
 
     if (!ok) {
-      return apiError(requestId, 500, 'HISTORY_ITEM_DELETE_FAILED', 'Failed to delete item');
+      return apiError(requestId, 500, "HISTORY_ITEM_DELETE_FAILED", "Failed to delete item");
     }
 
     return apiSuccess({ success: true, requestId });
   } catch (error) {
-    console.error('Error deleting history item', { requestId, error });
-    return apiError(requestId, 500, 'HISTORY_ITEM_DELETE_FAILED', 'Failed to delete item');
+    console.error("Error deleting history item", { requestId, error });
+    return apiError(requestId, 500, "HISTORY_ITEM_DELETE_FAILED", "Failed to delete item");
   }
 }

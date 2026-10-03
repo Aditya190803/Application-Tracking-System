@@ -1,22 +1,26 @@
-'use client'
+"use client";
 
-import { Briefcase, Code, Lightbulb,Users, Zap } from 'lucide-react'
+import { Briefcase, Code, Lightbulb, Users, Zap } from "lucide-react";
 
-import { Badge } from '@/components/ui/badge'
+import { Badge } from "@/components/ui/badge";
 
 interface SkillsResultProps {
-  data: string | null
+  data: string | null;
 }
 
 export function SkillsResult({ data }: SkillsResultProps) {
-  if (!data) return null
+  if (!data) return null;
 
-  let parsedData: { technical_skills: string[], analytical_skills: string[], soft_skills: string[] } | null = null
+  let parsedData: {
+    technical_skills: string[];
+    analytical_skills: string[];
+    soft_skills: string[];
+  } | null = null;
 
   try {
-    parsedData = JSON.parse(data)
+    parsedData = JSON.parse(data);
   } catch (e) {
-    console.error('Failed to parse skills data:', e)
+    console.error("Failed to parse skills data:", e);
   }
 
   if (!parsedData) {
@@ -34,7 +38,7 @@ export function SkillsResult({ data }: SkillsResultProps) {
           </pre>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -57,7 +61,10 @@ export function SkillsResult({ data }: SkillsResultProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {parsedData.technical_skills.map((skill, i) => (
-              <span key={i} className="inline-flex items-center rounded-full bg-background text-foreground/90 border border-border px-3 py-1 text-xs font-bold">
+              <span
+                key={i}
+                className="inline-flex items-center rounded-full bg-background text-foreground/90 border border-border px-3 py-1 text-xs font-bold"
+              >
                 {skill}
               </span>
             ))}
@@ -74,7 +81,10 @@ export function SkillsResult({ data }: SkillsResultProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {parsedData.analytical_skills.map((skill, i) => (
-              <span key={i} className="inline-flex items-center rounded-full bg-background text-foreground/90 border border-border px-3 py-1 text-xs font-bold">
+              <span
+                key={i}
+                className="inline-flex items-center rounded-full bg-background text-foreground/90 border border-border px-3 py-1 text-xs font-bold"
+              >
                 {skill}
               </span>
             ))}
@@ -91,7 +101,11 @@ export function SkillsResult({ data }: SkillsResultProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {parsedData.soft_skills.map((skill, i) => (
-              <Badge key={i} variant="outline" className="px-3 py-1 border-border bg-background text-foreground/90 hover:bg-muted">
+              <Badge
+                key={i}
+                variant="outline"
+                className="px-3 py-1 border-border bg-background text-foreground/90 hover:bg-muted"
+              >
                 {skill}
               </Badge>
             ))}
@@ -108,13 +122,20 @@ export function SkillsResult({ data }: SkillsResultProps) {
           <div>
             <h4 className="font-bold text-foreground mb-1">Skills Summary</h4>
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-              {parsedData.technical_skills.length + parsedData.analytical_skills.length + parsedData.soft_skills.length} total skills identified. 
-              Your profile shows a strong balance of {parsedData.technical_skills.length > 5 ? 'technical expertise' : 'diverse capabilities'} 
-              {' '}and {parsedData.soft_skills.length > 3 ? 'interpersonal strengths' : 'professional focus'}.
+              {parsedData.technical_skills.length +
+                parsedData.analytical_skills.length +
+                parsedData.soft_skills.length}{" "}
+              total skills identified. Your profile shows a strong balance of{" "}
+              {parsedData.technical_skills.length > 5
+                ? "technical expertise"
+                : "diverse capabilities"}{" "}
+              and{" "}
+              {parsedData.soft_skills.length > 3 ? "interpersonal strengths" : "professional focus"}
+              .
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

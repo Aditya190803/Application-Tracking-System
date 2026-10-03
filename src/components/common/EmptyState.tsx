@@ -1,15 +1,15 @@
-import { LucideIcon } from "lucide-react"
-import * as React from "react"
+import { LucideIcon } from "lucide-react";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  icon?: LucideIcon
-  title: string
-  description: string
-  actionLabel?: string
-  onAction?: () => void
+  icon?: LucideIcon;
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
@@ -19,7 +19,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         ref={ref}
         className={cn(
           "flex flex-col items-center justify-center py-16 px-4 text-center",
-          className
+          className,
         )}
         {...props}
       >
@@ -30,14 +30,12 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         )}
         <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
         <p className="text-neutral-500 mb-6 max-w-md">{description}</p>
-        {actionLabel && onAction && (
-          <Button onClick={onAction}>{actionLabel}</Button>
-        )}
+        {actionLabel && onAction && <Button onClick={onAction}>{actionLabel}</Button>}
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-EmptyState.displayName = "EmptyState"
+EmptyState.displayName = "EmptyState";
 
-export { EmptyState }
+export { EmptyState };
