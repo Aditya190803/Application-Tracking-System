@@ -13,19 +13,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
-          bun-version: latest
+          node-version: "24"
+          cache: true
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: vp install --frozen-lockfile
+
+      - name: Format and lint
+        run: vp check
 
       - name: Lint
-        run: bun run lint
+        run: vp run lint
 
       - name: Typecheck
-        run: bun run typecheck
+        run: vp run typecheck
 
       - name: Test (Coverage)
-        run: bun run test:coverage
+        run: vp run test:coverage --maxWorkers=2 --testTimeout=15000
