@@ -3,13 +3,14 @@ import {
   Bell,
   BriefcaseBusiness,
   CheckCircle2,
-  Compass,
   FileCode2,
   MessageSquare,
   Sparkles,
   Target,
 } from "lucide-react";
 import Link from "next/link";
+
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const workflowSteps = [
   {
@@ -78,59 +79,42 @@ const checklist = [
 
 export default function DashboardHowItWorksPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-120px] top-8 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-0 top-2/3 h-96 w-96 rounded-full bg-chart-3/20 blur-3xl" />
-      </div>
-
+    <div className="workspace-page">
       <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-3xl border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                <Compass className="h-3.5 w-3.5" />
-                Workflow Guide
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                How ATS works in practice
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-                Find roles, prepare your documents, track applications, and practice for interviews.
-                Start at the step that matches where you are today.
-              </p>
-            </div>
+        <PageHeader
+          eyebrow="Your guide to the workspace"
+          title="One search. A few thoughtful steps."
+          description="Find roles, prepare your documents, and stay ready for the next conversation. Start at the step that matches where you are today."
+          actions={
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-background px-3 py-2 text-xs font-semibold text-foreground"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
             >
-              Open Dashboard
+              Open your workspace ↗
             </Link>
-          </div>
-        </section>
+          }
+        />
 
-        <section className="rounded-3xl border border-border/70 bg-card/85 p-4 shadow-xl shadow-border/15 sm:p-6">
-          <div className="grid gap-4 lg:grid-cols-3">
+        <section className="">
+          <div className="grid gap-0">
             {workflowSteps.map((step) => (
               <article
                 key={step.id}
-                className="relative rounded-2xl border border-border/70 bg-background/70 p-5"
+                className="grid gap-4 border-t border-border py-8 sm:grid-cols-[16rem_1fr] sm:gap-x-10"
               >
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                    Step {step.id}
-                  </span>
+                <div className="col-span-full mb-2 flex items-center justify-between">
+                  <span className="eyebrow">Step {step.id}</span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
                     <step.icon className="h-4 w-4" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-foreground">{step.title}</h2>
+                <h2 className="font-serif text-2xl font-normal text-foreground">{step.title}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {step.description}
                 </p>
                 <Link
                   href={step.href}
-                  className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                  className="sm:col-start-2 mt-1 inline-flex min-h-11 items-center gap-2 justify-self-start text-sm font-medium text-primary hover:underline"
                 >
                   {step.cta}
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -142,7 +126,9 @@ export default function DashboardHowItWorksPage() {
 
         <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
           <article className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-lg shadow-border/10 sm:p-6">
-            <h2 className="text-lg font-semibold text-foreground">Before you apply or interview</h2>
+            <h2 className="font-serif text-2xl font-normal text-foreground">
+              Before you apply or interview
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Keep your documents current and your next steps recorded.
             </p>
@@ -150,7 +136,7 @@ export default function DashboardHowItWorksPage() {
               {checklist.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-2 rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm text-foreground/90"
+                  className="flex items-start gap-2 rounded-lg border border-border/60 bg-background px-3 py-2 text-sm text-foreground/90"
                 >
                   <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
                   <span>{item}</span>
@@ -160,7 +146,7 @@ export default function DashboardHowItWorksPage() {
           </article>
 
           <article className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-lg shadow-border/10 sm:p-6">
-            <h2 className="text-lg font-semibold text-foreground">Quick launch</h2>
+            <h2 className="font-serif text-2xl font-normal text-foreground">Quick launch</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Jump straight into the next action.
             </p>

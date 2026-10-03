@@ -23,8 +23,8 @@ const LoadingSpinner = React.forwardRef<HTMLOutputElement, LoadingSpinnerProps>(
           className,
         )}
         style={{
-          borderTopColor: "#10b981",
-          borderRightColor: "#10b981",
+          borderTopColor: "var(--primary)",
+          borderRightColor: "var(--primary)",
           borderBottomColor: "transparent",
           borderLeftColor: "transparent",
         }}

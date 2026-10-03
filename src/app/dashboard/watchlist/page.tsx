@@ -2,7 +2,6 @@
 
 import {
   AlertCircle,
-  Bell,
   BriefcaseBusiness,
   Building2,
   CheckCircle,
@@ -25,6 +24,7 @@ import {
   watchPreferencesPayload,
 } from "@/components/dashboard/WatchPreferencesFields";
 import { WatchSettingsDialog } from "@/components/dashboard/WatchSettingsDialog";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -258,29 +258,15 @@ export default function WatchlistPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-chart-3/20 blur-3xl" />
-      </div>
+    <div className="workspace-page">
+      <div className="workspace-container space-y-6">
+        <PageHeader
+          eyebrow="Discover your next chapter"
+          title="Keep good opportunities in sight."
+          description="Follow company career pages, choose your role and location preferences, and find new jobs as they appear."
+        />
 
-      <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8 lg:p-10">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <Bell className="h-3.5 w-3.5" />
-            Job Alerts
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Career page watchlist
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Choose the career pages you want to keep an eye on. We check for new jobs daily, filter
-            them to your preferences, and can email matching roles with a link to tailor your
-            resume.
-          </p>
-        </section>
-
-        <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur sm:p-8">
+        <section className="editorial-panel sm:p-8">
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -295,7 +281,7 @@ export default function WatchlistPage() {
                 type="url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://boards.greenhouse.io/acme"
+                placeholder="https://boards.greenhouse.io/your-company"
                 className="rounded-xl"
                 required
               />
@@ -306,7 +292,7 @@ export default function WatchlistPage() {
                 id="watch-company"
                 value={companyName}
                 onChange={(event) => setCompanyName(event.target.value)}
-                placeholder="Acme"
+                placeholder="Company name"
                 className="rounded-xl"
               />
             </div>
@@ -357,12 +343,12 @@ export default function WatchlistPage() {
                 </Button>
               </div>
             ) : isLoading ? (
-              <div className="flex items-center gap-2 rounded-3xl border border-border/70 bg-card/90 p-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-card p-6 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading your watchlist...
               </div>
             ) : watches.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-border/70 bg-card/60 p-10 text-center">
+              <div className="rounded-xl border border-dashed border-border/70 bg-card/60 p-10 text-center">
                 <Building2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
                 <p className="font-medium text-foreground">No pages watched yet</p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -373,7 +359,7 @@ export default function WatchlistPage() {
               watches.map((watch) => (
                 <article
                   key={watch._id}
-                  className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-xl shadow-border/20 backdrop-blur"
+                  className="rounded-xl border border-border/70 bg-card p-5 shadow-none backdrop-blur"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -381,7 +367,7 @@ export default function WatchlistPage() {
                         <h3 className="truncate text-base font-semibold text-foreground">
                           {watch.companyName}
                         </h3>
-                        <span className="rounded-full border border-border/70 bg-background/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <span className="rounded-full border border-border/70 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           {SOURCE_LABELS[watch.source] ?? watch.source}
                         </span>
                         {!watch.active && (
@@ -496,7 +482,7 @@ export default function WatchlistPage() {
           </section>
 
           <aside className="lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
-            <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="editorial-panel">
               <h2 className="mb-4 text-lg font-semibold text-foreground">Recently spotted</h2>
               <label className="mb-4 flex min-h-11 items-center gap-2 text-sm">
                 <input

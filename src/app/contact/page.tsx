@@ -1,175 +1,92 @@
-"use client";
-
-import { ArrowLeft, Clock, Mail, MessageSquare } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Clock, Mail } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
+
+const questions = [
+  {
+    question: "Can I build a resume without a PDF?",
+    answer:
+      "Yes. Start with career notes, a saved resume, or a previous analysis in Resume Builder. Choose a format, edit the result, and download a PDF.",
+  },
+  {
+    question: "How do career-site trackers work?",
+    answer:
+      "Add a career page in Job Alerts and choose your filters. The first scan records a baseline. Later scans find new roles; email alerts are optional when delivery is configured.",
+  },
+  {
+    question: "Where can I prepare for an interview?",
+    answer:
+      "Open a tracked role in Applications and select Prepare for interview. Generate questions and STAR guidance, then save answer notes with that application.",
+  },
+  {
+    question: "Can I export my application tracker?",
+    answer:
+      "Search or filter your applications, then select Export CSV. The export includes the matching stages, contacts, notes, and follow-up dates.",
+  },
+  {
+    question: "Can I export cover letters?",
+    answer:
+      "You can copy a generated letter or download it as a document from the cover-letter screen. Saved letters are available in History.",
+  },
+  {
+    question: "Should I review AI suggestions?",
+    answer:
+      "Always review generated documents and analysis. Keep only experience and achievements you can support, and make sure the result reflects your own story.",
+  },
+];
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-card selection:bg-primary/10">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-8 py-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <Image
-              src="/icon.png"
-              alt="ATS logo"
-              width={30}
-              height={30}
-              className="rounded-lg object-contain shadow-sm group-hover:scale-105 transition-transform"
-            />
-            <span className="text-xl font-bold text-foreground tracking-tight">ATS</span>
-          </Link>
-          <Link href="/">
-            <Button
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground font-bold"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="max-w-5xl mx-auto px-8 py-24">
-        <div className="mb-20 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-foreground font-bold text-xs uppercase tracking-wider mb-8">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>We&apos;re Here to Help</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold text-foreground tracking-tight mb-6">
-            Contact <span className="text-muted-foreground">Support</span>
-          </h1>
-          <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-            Need help with a career-site tracker, your resume, an application, or interview
-            preparation? Check the guide below or get in touch.
-          </p>
-        </div>
-
-        {/* Contact Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-24">
-          <div className="p-10 rounded-[2.5rem] bg-card border border-border shadow-xl shadow-border/10 group hover:border-border transition-all">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-              <Mail className="h-8 w-8 text-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">Email Support</h3>
-            <p className="text-muted-foreground font-medium mb-6 leading-relaxed">
-              For general inquiries, technical support, or partnership requests.
+    <div className="workspace-page">
+      <div className="mx-auto max-w-5xl">
+        <PageHeader
+          eyebrow="A little help along the way"
+          title="Let’s keep you moving."
+          description="Questions about a tracker, document, application, or interview? Find a quick answer below, or get in touch."
+        />
+        <section className="grid gap-5 sm:grid-cols-2" aria-label="Contact support">
+          <div className="editorial-panel">
+            <Mail className="size-5 text-primary" strokeWidth={1.5} />
+            <h2 className="mt-5 font-serif text-2xl">Write to us.</h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              For questions, technical support, and feedback.
             </p>
             <a
               href="mailto:adityamer.work@gmail.com"
-              className="text-foreground font-bold hover:text-foreground/80 text-xl tracking-tight transition-colors"
+              className="mt-5 inline-flex min-h-11 break-all items-center text-sm font-medium text-primary hover:underline"
             >
-              adityamer.work@gmail.com
+              adityamer.work@gmail.com ↗
             </a>
           </div>
-
-          <div className="p-10 rounded-[2.5rem] bg-card border border-border shadow-xl shadow-border/10 group hover:border-border transition-all">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-              <Clock className="h-8 w-8 text-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">Response Time</h3>
-            <p className="text-muted-foreground font-medium mb-6 leading-relaxed">
-              We typically respond to all inquiries within
-            </p>
-            <p className="text-4xl font-bold text-foreground tracking-tight">
-              24-48 <span className="text-muted-foreground">Hours</span>
+          <div className="editorial-panel">
+            <Clock className="size-5 text-primary" strokeWidth={1.5} />
+            <h2 className="mt-5 font-serif text-2xl">We’ll get back to you.</h2>
+            <p className="mt-3 text-sm text-muted-foreground">We typically respond within</p>
+            <p className="mt-5 font-serif text-3xl">
+              24–48 <span className="text-lg text-muted-foreground">hours</span>
             </p>
           </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="p-12 md:p-16 rounded-[2.5rem] bg-primary text-white relative overflow-hidden shadow-2xl shadow-border/10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-card/5 rounded-full blur-3xl -mr-48 -mt-48" />
-          <h2 className="text-3xl font-bold mb-12 tracking-tight">Frequently Asked Questions</h2>
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold">Can I create a resume without uploading a PDF?</h4>
-              <p className="font-medium leading-relaxed">
-                Yes. In Resume Builder, paste your career details or use a saved resume. Choose one
-                of seven LaTeX formats, review and edit the result, and download a PDF. Add a job
-                description if you want to tailor it to a role.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold">How do career-site trackers work?</h4>
-              <p className="font-medium leading-relaxed">
-                In Job Alerts, add a career-page URL and choose role, location, and exclusion
-                filters. The first scan sets a baseline; later scans find new roles. You can scan
-                manually and choose email alerts when email delivery is available.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold">Where do I prepare for an interview?</h4>
-              <p className="font-medium leading-relaxed">
-                Open Applications and select Prepare for interview on a tracked role. Generate
-                questions from your resume and the job description, then save your answer notes.
-                They stay with the application; regenerating replaces the questions and clears the
-                answers after confirmation.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold">Can I export my application tracker?</h4>
-              <p className="font-medium leading-relaxed">
-                Yes. Search or filter your applications, then select Export CSV to download the
-                matching records, including stages, contacts, notes, and follow-up dates.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-muted-foreground">
-                How do I delete my account?
-              </h4>
-              <p className="text-muted-foreground font-medium leading-relaxed">
-                You can delete your account from the settings page. This will permanently remove all
-                your data.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-muted-foreground">Is my resume data secure?</h4>
-              <p className="text-muted-foreground font-medium leading-relaxed">
-                Yes, we use industry-standard encryption and security practices to protect your
-                data.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-muted-foreground">
-                Can I export my cover letters?
-              </h4>
-              <p className="text-muted-foreground font-medium leading-relaxed">
-                Yes, you can copy or download any generated cover letter directly from the app.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-muted-foreground">
-                How accurate is the AI analysis?
-              </h4>
-              <p className="text-muted-foreground font-medium leading-relaxed">
-                Our AI uses advanced models to provide insights, but we recommend human review for
-                important decisions.
-              </p>
-            </div>
+        </section>
+        <section className="mt-14">
+          <p className="eyebrow mb-3">A few quick answers</p>
+          <h2 className="mb-8 font-serif text-3xl">Good questions. Clear next steps.</h2>
+          <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
+            {questions.map((item) => (
+              <article key={item.question} className="border-t border-border pt-5">
+                <h3 className="text-base font-medium">{item.question}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
+              </article>
+            ))}
           </div>
-        </div>
-        <Link
-          href="/how-it-works"
-          className="mt-6 inline-flex min-h-11 items-center text-primary font-semibold hover:underline"
-        >
-          Read the full workflow guide →
-        </Link>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-muted-foreground text-sm font-bold">
-            © 2026 ATS (Application Tracking System). All rights reserved.
-          </p>
-        </div>
-      </footer>
+          <Link
+            href="/how-it-works"
+            className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            Read the full workspace guide <ArrowRight className="size-4" />
+          </Link>
+        </section>
+      </div>
     </div>
   );
 }

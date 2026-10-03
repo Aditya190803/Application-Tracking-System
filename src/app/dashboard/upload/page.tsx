@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { ResumeList } from "@/components/dashboard/upload/ResumeList";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useResumes } from "@/hooks/useResumes";
 import { formatApiErrorMessage } from "@/lib/api-client-error";
@@ -110,7 +111,7 @@ export default function UploadPage() {
 
       const data = await response.json();
       setResumes((prev) => [data.resume, ...prev]);
-      setSuccess("Resume saved to cloud successfully!");
+      setSuccess("Resume saved to your library.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save resume");
     } finally {
@@ -145,15 +146,14 @@ export default function UploadPage() {
   );
 
   return (
-    <div className="min-h-screen bg-transparent p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="workspace-page">
+      <div className="workspace-container">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Upload Resume</h1>
-          <p className="text-muted-foreground font-medium">
-            Upload your resume in PDF format for AI-powered analysis.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Resume library"
+          title="Your experience, together."
+          description="Upload your resume as a PDF, keep your versions organized, and use them across your applications."
+        />
 
         {/* Upload Area */}
         {!file ? (
@@ -168,11 +168,11 @@ export default function UploadPage() {
               setIsDragging(false);
             }}
             className={`
-              relative cursor-pointer rounded-3xl border-2 border-dashed p-16 text-center transition-all duration-300
+              relative cursor-pointer rounded-xl border border-dashed px-5 py-12 sm:p-14 text-center transition-all duration-300
               ${
                 isDragging
-                  ? "border-border bg-background"
-                  : "border-border hover:border-border bg-card shadow-xl shadow-border/10"
+                  ? "border-primary bg-secondary"
+                  : "border-border hover:border-primary/60 bg-card"
               }
             `}
           >
@@ -198,10 +198,12 @@ export default function UploadPage() {
               </div>
             ) : (
               <>
-                <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <div className="w-14 h-14 rounded-xl bg-secondary text-primary flex items-center justify-center mx-auto mb-6 shadow-xl">
                   <Upload className="w-8 h-8" />
                 </div>
-                <p className="text-xl font-bold text-foreground mb-2">Drop your resume here</p>
+                <p className="text-xl font-bold text-foreground mb-2">
+                  Bring your resume into the workspace
+                </p>
                 <Button
                   type="button"
                   variant="outline"

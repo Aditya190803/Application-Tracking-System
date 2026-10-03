@@ -40,7 +40,7 @@ const SelectTrigger = React.forwardRef<
         ref={ref}
         type="button"
         className={cn(
-          "flex h-12 w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/5 focus:border-border disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 shadow-sm",
+          "flex h-12 w-full items-center justify-between rounded-lg border border-input bg-card px-4 py-3 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 shadow-sm",
           className,
         )}
         onClick={() => setIsOpen(!isOpen)}
@@ -88,7 +88,7 @@ const SelectContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-95 p-1",
+        "absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-lg border border-input bg-card shadow-2xl animate-in fade-in-0 zoom-in-95 p-1",
         className,
       )}
       {...props}
