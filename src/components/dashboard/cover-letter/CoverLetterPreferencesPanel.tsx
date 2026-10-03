@@ -23,7 +23,7 @@ export function CoverLetterPreferencesPanel({
   onDraftTouch,
 }: CoverLetterPreferencesPanelProps) {
   return (
-    <section className="relative z-10 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-lg shadow-border/20 backdrop-blur sm:p-8">
+    <section className="relative z-10 rounded-xl border border-border/70 bg-card p-6 shadow-none sm:p-8">
       <h2 className="mb-6 text-lg font-bold text-foreground">Preferences</h2>
 
       <div className="space-y-6">

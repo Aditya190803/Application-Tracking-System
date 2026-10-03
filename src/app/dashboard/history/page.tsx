@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  Clock,
   FileEdit,
   FileText,
   Inbox,
@@ -15,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { HistoryFilterTabs } from "@/components/dashboard/history/HistoryFilterTabs";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useHistory } from "@/hooks/useHistory";
 import type { HistoryAnalysisItem, HistoryItem, HistoryType } from "@/types/domain";
@@ -105,7 +105,7 @@ export default function HistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-transparent p-8 flex items-center justify-center">
+      <div className="workspace-page flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           <p className="text-muted-foreground font-medium">Loading history...</p>
@@ -115,19 +115,13 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-primary text-white shadow-lg shadow-border/10">
-              <Clock className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">History</h1>
-          </div>
-          <p className="text-muted-foreground font-medium ml-12">
-            Your past analyses, generated cover letters, and resumes.
-          </p>
-        </div>
+    <div className="workspace-page">
+      <div className="workspace-container">
+        <PageHeader
+          eyebrow="Your saved work"
+          title="Pick up where you left off."
+          description="Revisit your analyses, cover letters, and resume versions. Everything you have prepared, in one place."
+        />
 
         <HistoryFilterTabs filter={filter} onChange={setFilter} />
 

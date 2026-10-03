@@ -34,10 +34,10 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           )}
         </div>
         <div>
-          <div className="text-3xl font-bold mb-1 text-foreground tracking-tight">{value}</div>
-          <div className="text-sm text-muted-foreground font-bold uppercase tracking-wider">
-            {label}
+          <div className="font-serif text-4xl font-normal tabular-nums mb-1 text-foreground tracking-tight">
+            {value}
           </div>
+          <div className="text-sm text-muted-foreground font-medium">{label}</div>
         </div>
       </div>
     );

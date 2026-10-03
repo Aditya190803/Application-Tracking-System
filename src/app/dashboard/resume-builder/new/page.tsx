@@ -218,7 +218,7 @@ export default function ResumeBuilderNewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="workspace-page">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-center py-28 space-y-8">
           <div className="relative">

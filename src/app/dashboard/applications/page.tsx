@@ -7,6 +7,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { ApplicationCard } from "@/components/dashboard/applications/ApplicationCard";
 import { ApplicationForm } from "@/components/dashboard/applications/ApplicationForm";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
@@ -210,29 +211,23 @@ function ApplicationsTracker() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 sm:px-6 lg:pl-28 lg:pr-8">
+    <div className="workspace-page">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-primary">
-              <BriefcaseBusiness className="h-4 w-4" />
-              Application tracker
-            </p>
-            <h1 className="text-3xl font-bold sm:text-4xl">Your next role, in progress</h1>
-            <p className="mt-2 text-muted-foreground">
-              Track each opportunity and follow-up. Open “Prepare for interview” on a role to
-              generate questions and save answer notes.
-            </p>
-          </div>
-          <Button
-            className="h-11"
-            onClick={() => setForm({ fields: { ...EMPTY_APPLICATION } })}
-            disabled={importing || loading}
-          >
-            <Plus />
-            Add application
-          </Button>
-        </header>
+        <PageHeader
+          eyebrow="Application tracker"
+          title="Your next role, in progress."
+          description="Keep every opportunity and follow-up in view. Prepare for interviews and save your answer notes with each role."
+          actions={
+            <Button
+              className="h-11"
+              onClick={() => setForm({ fields: { ...EMPTY_APPLICATION } })}
+              disabled={importing || loading}
+            >
+              <Plus />
+              Add application
+            </Button>
+          }
+        />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Application summary">
           {[
             { label: "Active opportunities", value: summary.active },
@@ -240,9 +235,14 @@ function ApplicationsTracker() {
             { label: "Offers received", value: summary.offers },
             { label: "Follow-ups due", value: summary.followUpsDue },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-border bg-card p-5">
+            <div
+              key={stat.label}
+              className="border-l border-border py-2 px-5 first:border-l-0 max-lg:odd:border-l-0"
+            >
               <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="mt-2 text-3xl font-bold">{loading ? "…" : error ? "—" : stat.value}</p>
+              <p className="mt-2 font-serif text-4xl font-normal tabular-nums">
+                {loading ? "…" : error ? "—" : stat.value}
+              </p>
             </div>
           ))}
         </div>

@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Bell,
   CheckCircle,
-  Compass,
   ExternalLink,
   FileText,
   Sparkles,
@@ -16,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { DraftRestoreBanner } from "@/components/dashboard/analysis/DraftRestoreBanner";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ResumeSelect } from "@/components/resume/ResumeSelect";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -235,38 +235,24 @@ export default function AnalysisPage() {
   }, [jobDescription]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-chart-3/20 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8 lg:p-10">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <Target className="h-3.5 w-3.5" />
-            Match Studio
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Resume analysis
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Paste a role description, compare against your resume, and generate focused
-            improvements.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+    <div className="workspace-page">
+      <div className="workspace-container space-y-6">
+        <PageHeader
+          eyebrow="Understand the fit"
+          title="Find your strengths."
+          description="Compare your resume with a role. Understand the match, close the skills gaps, and make your next revision count."
+          actions={
             <Link
               href="/how-it-works"
-              className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
+              className="inline-flex min-h-11 items-center text-xs font-semibold text-primary hover:underline"
             >
-              <Compass className="h-4 w-4" />
-              How it works
+              Read the guide ↗
             </Link>
-          </div>
-        </section>
+          }
+        />
 
         {listing && (
-          <section className="rounded-3xl border border-primary/40 bg-primary/5 p-5 backdrop-blur">
+          <section className="rounded-xl border border-primary/40 bg-primary/5 p-5 backdrop-blur">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
@@ -302,7 +288,7 @@ export default function AnalysisPage() {
         {showDraftRestoreHint && !listing && <DraftRestoreBanner onRestore={restoreDraft} />}
 
         <div className="grid gap-6 lg:grid-cols-5">
-          <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur lg:col-span-3 sm:p-8">
+          <section className="editorial-panel lg:col-span-3 sm:p-8">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
                 <FileText className="h-5 w-5" />
@@ -381,7 +367,7 @@ export default function AnalysisPage() {
           </section>
 
           <aside className="space-y-5 lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
-            <section className="relative z-30 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="relative z-30 editorial-panel">
               <div className="mb-4 flex items-center gap-3">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${resumeText ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}
@@ -398,13 +384,13 @@ export default function AnalysisPage() {
               </div>
               <ResumeSelect onSelect={handleResumeSelect} selectedName={resumeName ?? undefined} />
               {resumeText && (
-                <div className="mt-4 rounded-xl border border-border/60 bg-background/70 px-3 py-2 text-sm text-foreground/85">
+                <div className="mt-4 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm text-foreground/85">
                   {resumeText.substring(0, 100)}...
                 </div>
               )}
             </section>
 
-            <section className="relative z-10 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="relative z-10 editorial-panel">
               <h2 className="mb-4 text-lg font-semibold text-foreground">Input checklist</h2>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
@@ -422,7 +408,7 @@ export default function AnalysisPage() {
               </ul>
             </section>
 
-            <section className="relative z-10 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="relative z-10 editorial-panel">
               <h2 className="mb-2 text-lg font-semibold text-foreground">Next step</h2>
               <p className="text-sm text-muted-foreground">
                 After analysis, generate a tailored cover letter for this role.

@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertCircle, Check, ChevronLeft, Eye, FileCode2, Loader2, Upload } from "lucide-react";
+import { AlertCircle, Check, ChevronLeft, Eye, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   buildLatexResume,
@@ -307,28 +308,15 @@ export default function ResumeBuilderStep2Page() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-chart-2/20 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-      </div>
+    <div className="workspace-page">
+      <div className="workspace-container space-y-6">
+        <PageHeader
+          eyebrow="Your story / Step 2 of 3"
+          title="Choose your format."
+          description="Explore seven resume templates or bring your own LaTeX format. Preview your choice before generating your resume."
+        />
 
-      <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8 lg:p-10">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <FileCode2 className="h-3.5 w-3.5" />
-            Resume Builder • Step 2/3
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Choose and preview template
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-            Pick from seven built-in formats or upload custom `.tex`. Every template can be opened
-            in a larger live preview before generation.
-          </p>
-        </section>
-
-        <div className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur sm:p-8">
+        <div className="editorial-panel sm:p-8">
           <div className="mb-6 flex items-center justify-between gap-3">
             <Button
               type="button"
@@ -352,7 +340,7 @@ export default function ResumeBuilderStep2Page() {
             {RESUME_TEMPLATE_OPTIONS.map((template) => (
               <article
                 key={template.id}
-                className={`rounded-2xl border p-4 ${templateId === template.id ? "border-primary bg-primary/5" : "border-border/70 bg-background/70"}`}
+                className={`rounded-2xl border p-4 ${templateId === template.id ? "border-primary bg-primary/5" : "border-border/70 bg-background"}`}
               >
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
@@ -408,7 +396,7 @@ export default function ResumeBuilderStep2Page() {
           </div>
 
           <section
-            className={`mt-6 rounded-2xl border p-4 ${templateId === "custom" ? "border-primary bg-primary/5" : "border-border/70 bg-background/70"}`}
+            className={`mt-6 rounded-2xl border p-4 ${templateId === "custom" ? "border-primary bg-primary/5" : "border-border/70 bg-background"}`}
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
@@ -420,7 +408,7 @@ export default function ResumeBuilderStep2Page() {
               {templateId === "custom" && <Check className="h-4 w-4 text-primary" />}
             </div>
 
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border/80 bg-background/70 px-4 py-3 text-sm font-semibold text-foreground hover:bg-background">
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border/80 bg-background px-4 py-3 text-sm font-semibold text-foreground hover:bg-background">
               <Upload className="h-4 w-4" />
               {customTemplateName ? `Replace ${customTemplateName}` : "Upload .tex file"}
               <input

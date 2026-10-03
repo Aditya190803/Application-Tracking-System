@@ -259,9 +259,9 @@ export default function CoverLetterSlugPage() {
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen bg-background p-8">
+      <div className="workspace-page">
         <div className="max-w-6xl mx-auto">
-          <div className="mt-8 p-12 rounded-[2.5rem] bg-card border border-border shadow-xl flex flex-col items-center justify-center space-y-8 min-h-[400px]">
+          <div className="mt-8 p-12 rounded-xl bg-card border border-border shadow-xl flex flex-col items-center justify-center space-y-8 min-h-[400px]">
             <div className="relative">
               <div className="absolute -inset-4 bg-primary/20 rounded-full blur-xl animate-pulse" />
               <div className="relative bg-background p-4 rounded-full border border-primary/30">
@@ -357,7 +357,7 @@ export default function CoverLetterSlugPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="workspace-page">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <Link
@@ -367,7 +367,7 @@ export default function CoverLetterSlugPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Cover Letter
           </Link>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Cover Letter</h1>
+          <h1 className="editorial-title">Your cover letter</h1>
           {item?.companyName && (
             <p className="text-muted-foreground">
               {item.companyName}
@@ -376,7 +376,7 @@ export default function CoverLetterSlugPage() {
           )}
         </div>
 
-        <div className="p-10 rounded-[2.5rem] bg-card border border-border shadow-2xl shadow-border/10">
+        <div className="p-5 sm:p-10 rounded-xl bg-card border border-border shadow-none">
           <div className="mb-8 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-border/10">
@@ -460,8 +460,8 @@ export default function CoverLetterSlugPage() {
             </div>
           </div>
 
-          <div className="p-8 rounded-3xl bg-background border border-border/50 min-h-[400px]">
-            <pre className="text-foreground/90 text-lg whitespace-pre-wrap font-sans leading-relaxed selection:bg-primary selection:text-white">
+          <div className="p-8 rounded-xl bg-background border border-border/50 min-h-[400px]">
+            <pre className="text-foreground/90 text-lg whitespace-pre-wrap font-sans leading-relaxed selection:bg-primary selection:text-primary-foreground">
               {coverLetter}
             </pre>
           </div>

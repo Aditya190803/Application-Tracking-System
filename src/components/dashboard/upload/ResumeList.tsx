@@ -21,7 +21,7 @@ export function ResumeList({ resumes, onDelete }: ResumeListProps) {
 
   return (
     <div className="mt-12">
-      <h2 className="text-xl font-bold text-foreground mb-6">Your Saved Resumes</h2>
+      <h2 className="text-lg font-medium text-foreground mb-6">Your saved resumes</h2>
       <div className="grid gap-3">
         {resumes.map((resume) => (
           <div

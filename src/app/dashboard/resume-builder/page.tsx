@@ -1,10 +1,11 @@
 "use client";
 
 import { useUser } from "@stackframe/stack";
-import { AlertCircle, CheckCircle, Clock, FileCode2, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ResumeSelect } from "@/components/resume/ResumeSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,30 +199,17 @@ export default function ResumeBuilderStep1Page() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-96 w-96 rounded-full bg-chart-3/20 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8 lg:p-10">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <FileCode2 className="h-3.5 w-3.5" />
-            Resume Builder • Step 1/3
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Choose your source
-          </h1>
-          <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-            Start from a saved resume, paste your career details, or reuse a previous analysis. Add
-            a job description to tailor the result, or leave it blank for a general resume.
-          </p>
-        </section>
+    <div className="workspace-page">
+      <div className="workspace-container space-y-6">
+        <PageHeader
+          eyebrow="Your story / Step 1 of 3"
+          title="A resume that feels like you."
+          description="Start from a saved resume, career notes, or a previous analysis. Add a job description to tailor your resume, or keep it general."
+        />
 
         <div className="grid gap-6 lg:grid-cols-5">
-          <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur lg:col-span-3 sm:p-8">
-            <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-border/70 bg-background/70 p-1">
+          <section className="editorial-panel lg:col-span-3 sm:p-8">
+            <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-border/70 bg-background p-1">
               <button
                 type="button"
                 onClick={() => setInputMode("manual")}
@@ -326,7 +314,7 @@ export default function ResumeBuilderStep1Page() {
                     return (
                       <div
                         key={analysis.id}
-                        className="rounded-xl border border-border/70 bg-background/70 p-4"
+                        className="rounded-xl border border-border/70 bg-background p-4"
                       >
                         <p className="text-sm font-semibold text-foreground">
                           {analysis.jobTitle || "Saved analysis"}
@@ -372,22 +360,22 @@ export default function ResumeBuilderStep1Page() {
           </section>
 
           <aside className="space-y-5 lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
-            <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="editorial-panel">
               <h2 className="text-lg font-semibold text-foreground">Flow</h2>
               <div className="mt-3 space-y-2 text-sm">
                 <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 font-semibold text-foreground">
                   1. Choose source
                 </p>
-                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">
+                <p className="rounded-lg border border-border/70 bg-background px-3 py-2 text-muted-foreground">
                   2. Pick template / upload .tex
                 </p>
-                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">
+                <p className="rounded-lg border border-border/70 bg-background px-3 py-2 text-muted-foreground">
                   3. Build and open editor
                 </p>
               </div>
             </section>
 
-            <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
+            <section className="editorial-panel">
               <div className="mb-3 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <h2 className="text-lg font-semibold text-foreground">Tips</h2>

@@ -1,15 +1,7 @@
 "use client";
 
 import { useUser } from "@stackframe/stack";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Compass,
-  FileText,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, FileText, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -23,6 +15,7 @@ import type {
   RecentCoverLetter,
   SearchHistoryItem,
 } from "@/components/dashboard/cover-letter/types";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ResumeSelect } from "@/components/resume/ResumeSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -314,41 +307,21 @@ export default function CoverLetterPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-110px] top-12 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-[-80px] top-1/4 h-96 w-96 rounded-full bg-chart-3/20 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/85 p-6 shadow-2xl shadow-border/20 backdrop-blur sm:p-8 lg:p-10">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5" />
-            Letter Studio
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Cover letter generator
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Generate role-specific letters from your resume, job details, and style preferences.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
-            >
-              <Compass className="h-4 w-4" />
-              How it works
-            </Link>
+    <div className="workspace-page">
+      <div className="workspace-container space-y-6">
+        <PageHeader
+          eyebrow="Start a conversation"
+          title="Put it into words."
+          description="Write a cover letter shaped by your experience and the opportunity ahead. Choose your tone, review your draft, and make it yours."
+          actions={
             <Link
               href="/dashboard/history"
-              className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
+              className="inline-flex min-h-11 items-center text-xs font-semibold text-primary hover:underline"
             >
-              <Clock className="h-4 w-4" />
-              Review history
+              Your saved letters ↗
             </Link>
-          </div>
-        </section>
+          }
+        />
 
         {showDraftRestoreHint && <CoverLetterDraftRestoreBanner onRestore={restoreDraft} />}
 
@@ -360,7 +333,7 @@ export default function CoverLetterPage() {
         ) : (
           <div className="grid gap-6 lg:grid-cols-5">
             <section className="space-y-6 lg:col-span-3">
-              <div className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur sm:p-8">
+              <div className="editorial-panel sm:p-8">
                 <div className="mb-6 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
                     <FileText className="h-5 w-5" />
@@ -498,7 +471,7 @@ export default function CoverLetterPage() {
             </section>
 
             <aside className="space-y-6 lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
-              <section className="relative z-30 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-lg shadow-border/20 backdrop-blur sm:p-8">
+              <section className="relative z-30 rounded-xl border border-border/70 bg-card p-6 shadow-none sm:p-8">
                 <div className="mb-6 flex items-center gap-3">
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${resumeText ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}

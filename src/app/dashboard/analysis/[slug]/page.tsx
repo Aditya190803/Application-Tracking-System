@@ -269,12 +269,6 @@ export default function AnalysisSlugPage() {
     fetchAnalysis();
   }, [generateAnalysis, slug]);
 
-  const getScoreGradient = (score: number) => {
-    if (score >= 80) return "from-emerald-500 to-emerald-400";
-    if (score >= 60) return "from-amber-500 to-orange-400";
-    return "from-red-500 to-rose-400";
-  };
-
   const matchedSkills = Array.from(new Set(result?.skillsMatch?.matched || [])).sort((a, b) =>
     a.localeCompare(b),
   );
@@ -295,7 +289,7 @@ export default function AnalysisSlugPage() {
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen bg-background p-8">
+      <div className="workspace-page">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col items-center justify-center py-32 space-y-8">
             <div className="relative">
@@ -386,7 +380,7 @@ export default function AnalysisSlugPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="workspace-page">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <Link
@@ -396,7 +390,7 @@ export default function AnalysisSlugPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Analysis
           </Link>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Resume Analysis</h1>
+          <h1 className="editorial-title">Your resume analysis</h1>
           {item?.resumeName && <p className="text-muted-foreground">Resume: {item.resumeName}</p>}
           {generationMeta && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -413,9 +407,7 @@ export default function AnalysisSlugPage() {
               <div>
                 <p className="text-muted-foreground mb-2 font-medium">Match Score</p>
                 <div className="flex items-baseline gap-2">
-                  <span
-                    className={`text-6xl font-bold bg-gradient-to-r ${getScoreGradient(result.matchScore)} bg-clip-text text-transparent tracking-tighter`}
-                  >
+                  <span className="font-serif text-6xl font-normal text-primary tabular-nums tracking-tight">
                     {result.matchScore}%
                   </span>
                   <span className="text-muted-foreground font-medium">match</span>
@@ -485,7 +477,7 @@ export default function AnalysisSlugPage() {
                       matchedSkills.map((skill, i) => (
                         <div
                           key={skill}
-                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2"
+                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card px-3 py-2"
                         >
                           <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded bg-primary/15 px-1 text-[10px] font-bold text-primary">
                             {i + 1}
@@ -511,7 +503,7 @@ export default function AnalysisSlugPage() {
                       missingSkills.map((skill, i) => (
                         <div
                           key={skill}
-                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2"
+                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card px-3 py-2"
                         >
                           <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded bg-muted px-1 text-[10px] font-bold text-foreground/70">
                             {i + 1}

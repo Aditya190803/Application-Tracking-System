@@ -29,7 +29,7 @@ export function CoverLetterResultPanel({
   onNewLetter,
 }: CoverLetterResultPanelProps) {
   return (
-    <section className="rounded-[2rem] border border-border/70 bg-card/90 p-6 shadow-2xl shadow-border/15 backdrop-blur sm:p-10">
+    <section className="rounded-xl border border-border/70 bg-card p-6 shadow-none sm:p-10">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-lg shadow-primary/20">
@@ -111,8 +111,8 @@ export function CoverLetterResultPanel({
         </div>
       </div>
 
-      <div className="min-h-[400px] rounded-3xl border border-border/60 bg-background/80 p-6 sm:p-8">
-        <pre className="whitespace-pre-wrap font-sans text-lg leading-relaxed text-foreground/90 selection:bg-primary selection:text-white">
+      <div className="min-h-[400px] rounded-xl border border-border/60 bg-background/80 p-6 sm:p-8">
+        <pre className="whitespace-pre-wrap font-sans text-lg leading-relaxed text-foreground/90 selection:bg-primary selection:text-primary-foreground">
           {coverLetter}
         </pre>
       </div>

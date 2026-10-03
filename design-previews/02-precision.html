@@ -1,0 +1,965 @@
+<!doctype html>
+<!-- Throwaway UI prototype: three standalone dashboard directions, using sample data. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ATS redesign concept 2: Precision workspace. Interactive visual prototype with sample data."
+    />
+    <title>ATS — Precision workspace</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      button,
+      input,
+      a {
+        font: inherit;
+      }
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button {
+        cursor: pointer;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        border: 0;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+      h2 {
+        letter-spacing: -0.025em;
+      }
+      small,
+      .muted {
+        color: var(--muted);
+      }
+      button,
+      a,
+      input {
+        outline-offset: 5px;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+      button,
+      a {
+        transition:
+          background 0.18s,
+          color 0.18s,
+          transform 0.18s;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .logo {
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -1px;
+      }
+      .mark {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-size: 18px;
+        margin-right: 9px;
+        letter-spacing: -2px;
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--soft);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .primary {
+        background: var(--accent);
+        color: var(--on-accent);
+        padding: 12px 18px;
+        border-radius: 7px;
+        font-weight: 600;
+      }
+      .primary:hover {
+        filter: brightness(1.1);
+      }
+      .secondary {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 10px 15px;
+        border-radius: 7px;
+      }
+      .secondary:hover {
+        background: var(--soft);
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .badge {
+        font-size: 11px;
+        border-radius: 5px;
+        padding: 4px 8px;
+        white-space: nowrap;
+        background: var(--soft);
+        color: var(--accent);
+      }
+      .company {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--soft);
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .switcher {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px;
+        background: #202824;
+        color: #fff;
+        border: 1px solid #647269;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px #0002;
+        z-index: 10;
+        white-space: nowrap;
+      }
+      .switcher span {
+        padding: 0 9px;
+        font-size: 11px;
+        color: #b8c8bd;
+      }
+      .switcher a {
+        padding: 7px 10px;
+        border-radius: 7px;
+        font-size: 12px;
+      }
+      .switcher a[aria-current="page"] {
+        background: #e9eee9;
+        color: #17241b;
+      }
+      .switcher a:hover {
+        background: #4b5c50;
+        color: white;
+      }
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 88px;
+        background: var(--ink);
+        color: var(--bg);
+        padding: 14px 20px;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px #0003;
+        max-width: calc(100vw - 48px);
+        z-index: 20;
+      }
+      .skip {
+        position: absolute;
+        top: -100px;
+        left: 16px;
+        padding: 12px;
+        background: var(--accent);
+        color: var(--on-accent);
+        z-index: 30;
+      }
+      .skip:focus {
+        top: 12px;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 28px;
+        background: var(--panel);
+        color: var(--ink);
+        max-width: 430px;
+        width: calc(100% - 32px);
+      }
+      dialog::backdrop {
+        background: #0007;
+      }
+      dialog p {
+        margin: 12px 0 24px;
+        color: var(--muted);
+      }
+      dialog h2 {
+        font-size: 25px;
+      }
+      input[type="search"] {
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px 14px;
+        min-width: 0;
+      }
+      .number {
+        font-variant-numeric: tabular-nums;
+      }
+      .hidden {
+        display: none !important;
+      }
+      @media (max-width: 640px) {
+        .switcher span {
+          display: none;
+        }
+        .switcher {
+          bottom: 10px;
+        }
+        .switcher a {
+          font-size: 11px;
+          padding: 7px 8px;
+        }
+        h1 {
+          font-size: 34px !important;
+        }
+        .desktop-only {
+          display: none !important;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+      :root {
+        --bg: #f5f7fa;
+        --panel: #fff;
+        --ink: #202b3c;
+        --muted: #657186;
+        --accent: #2858a1;
+        --on-accent: #fff;
+        --soft: #eaf0f9;
+        --line: #e1e6ee;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        min-height: 100dvh;
+      }
+      .sidebar {
+        background: var(--panel);
+        padding: 28px 18px;
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar .logo {
+        padding: 0 9px;
+        margin-bottom: 36px;
+      }
+      .sidebar button {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 11px 13px;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        text-align: left;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      .sidebar button:hover {
+        background: var(--bg);
+        color: var(--ink);
+      }
+      .sidebar button.current {
+        background: var(--soft);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .sidebar .eyebrow {
+        margin: 26px 13px 12px;
+        font-size: 10px;
+      }
+      .sidebar span {
+        font-size: 11px;
+      }
+      .sidebar .account {
+        margin-top: auto;
+        padding-top: 40px;
+      }
+      .topbar {
+        height: 76px;
+        background: var(--panel);
+        padding: 0 36px;
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .topbar input {
+        width: 230px;
+        background: var(--bg);
+      }
+      main {
+        padding: 30px 36px 110px;
+        max-width: 1450px;
+        margin: auto;
+      }
+      .heading h1 {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+      .heading p {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin: 28px 0;
+      }
+      .stat {
+        padding: 20px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+      }
+      .stat strong {
+        display: block;
+        font-size: 30px;
+        font-weight: 600;
+        margin: 10px 0 4px;
+        letter-spacing: -1px;
+      }
+      .stat small {
+        font-size: 11px;
+      }
+      .stat .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stat .delta {
+        color: var(--accent);
+      }
+      .workgrid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 20px;
+      }
+      .table-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        overflow: hidden;
+      }
+      .panel-head {
+        padding: 19px 22px;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-head h2 {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .filters {
+        padding: 13px 20px;
+        display: flex;
+        gap: 6px;
+        border-bottom: 1px solid var(--line);
+      }
+      .filters button {
+        padding: 6px 10px;
+        border-radius: 5px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .filters button.selected {
+        background: var(--soft);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .table-scroll {
+        overflow: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        min-width: 540px;
+      }
+      th {
+        text-align: left;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+        padding: 12px 20px;
+        background: #fafbfd;
+      }
+      td {
+        padding: 17px 20px;
+        border-top: 1px solid var(--line);
+      }
+      td strong {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      td small {
+        display: block;
+        font-size: 11px;
+        margin-top: 3px;
+      }
+      td .company {
+        width: 31px;
+        height: 31px;
+        font-size: 11px;
+      }
+      .score {
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .score-bar {
+        display: block;
+        width: 42px;
+        height: 3px;
+        background: var(--line);
+        margin-top: 5px;
+      }
+      .score-bar i {
+        display: block;
+        background: var(--accent);
+        height: 100%;
+        width: var(--score);
+      }
+      .panel-foot {
+        padding: 14px 20px;
+        font-size: 11px;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+      }
+      .side-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .side-panel h2 {
+        font-size: 15px;
+      }
+      .side-panel .task {
+        padding: 17px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .task:last-child {
+        border: 0;
+        padding-bottom: 0;
+      }
+      .task h3 {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .task p {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .task button {
+        background: var(--soft);
+        color: var(--accent);
+        font-size: 11px;
+        padding: 5px 8px;
+        margin-top: 9px;
+        border-radius: 4px;
+      }
+      .task.completed {
+        opacity: 0.5;
+      }
+      .task.completed h3 {
+        text-decoration: line-through;
+      }
+      .documents {
+        margin-top: 24px;
+      }
+      .documents h2 {
+        font-size: 16px;
+        margin-bottom: 14px;
+      }
+      .doc-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .doc {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        text-align: left;
+        color: var(--ink);
+      }
+      .doc:hover {
+        border-color: var(--accent);
+      }
+      .doc h3 {
+        font-size: 13px;
+        margin: 14px 0 4px;
+      }
+      .doc small {
+        font-size: 11px;
+      }
+      .doc .file-tag {
+        font-family: monospace;
+        color: var(--accent);
+        font-size: 10px;
+        background: var(--soft);
+        display: inline-block;
+        padding: 5px 7px;
+      }
+      .empty {
+        padding: 35px;
+        text-align: center;
+        color: var(--muted);
+      }
+      @media (max-width: 1150px) {
+        .workgrid {
+          grid-template-columns: 1fr;
+        }
+        .aside {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .sidebar {
+          width: 190px;
+        }
+        .shell {
+          grid-template-columns: 190px 1fr;
+        }
+      }
+      @media (max-width: 760px) {
+        .shell {
+          display: block;
+        }
+        .sidebar {
+          width: auto;
+          padding: 14px 20px;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .sidebar .logo {
+          margin: 0;
+          padding: 0;
+        }
+        .sidebar > button,
+        .sidebar > .eyebrow,
+        .sidebar > .account {
+          display: none;
+        }
+        .topbar {
+          padding: 0 20px;
+          height: 65px;
+        }
+        .topbar input {
+          width: 170px;
+        }
+        main {
+          padding: 25px 20px 100px;
+        }
+        .heading {
+          align-items: start;
+          gap: 20px;
+          flex-direction: column;
+        }
+        .stats {
+          grid-template-columns: 1fr 1fr;
+        }
+        .aside {
+          grid-template-columns: 1fr;
+        }
+        .doc-grid {
+          grid-template-columns: 1fr;
+        }
+        .stat {
+          padding: 16px;
+        }
+        .filters {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="logo" href="02-precision.html"><span class="mark">a.</span>ats</a
+        ><button class="current" data-demo="Workspace overview">Overview <span>⌘ 1</span></button
+        ><button data-demo="Application tracker">Applications <span>12</span></button>
+        <div class="eyebrow">Preparation</div>
+        <button data-demo="Resume library">Resume library <span>03</span></button
+        ><button data-demo="Resume analysis">Match analysis <span>08</span></button
+        ><button data-demo="Cover letters">Cover letters <span>05</span></button
+        ><button data-demo="Resume builder">Resume builder <span>↗</span></button
+        ><button data-demo="Job alerts">Job alerts <span>04</span></button
+        ><button data-demo="Interview preparation">Interview prep <span>↗</span></button
+        ><button data-demo="History">History <span>↗</span></button>
+        <div class="account">
+          <div class="row">
+            <span class="avatar">AD</span>
+            <div>
+              <strong style="font-size: 12px">Adi's workspace</strong
+              ><small style="display: block; font-size: 11px">Personal account</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div>
+        <header class="topbar row between">
+          <p>
+            Workspace <span style="margin: 0 10px">/</span
+            ><strong style="color: var(--ink)">Overview</strong>
+          </p>
+          <div class="row">
+            <input
+              type="search"
+              data-search
+              placeholder="Search applications..."
+              aria-label="Search applications"
+            /><span class="avatar desktop-only">AD</span>
+          </div>
+        </header>
+        <main id="main">
+          <div class="heading row between">
+            <div>
+              <h1>Your search, organized.</h1>
+              <p>Manage your applications and keep your next steps in view.</p>
+            </div>
+            <div class="row">
+              <button class="secondary" data-demo="Import a role">Import role</button
+              ><button class="primary" data-demo="Add an application">+ Add application</button>
+            </div>
+          </div>
+          <section class="stats" aria-label="Your statistics">
+            <div class="stat">
+              <span class="label">Active applications</span><strong class="number">12</strong
+              ><small class="delta">3 added this week</small>
+            </div>
+            <div class="stat">
+              <span class="label">Upcoming interviews</span><strong class="number">03</strong
+              ><small class="delta">Next: Monday, 10:30</small>
+            </div>
+            <div class="stat">
+              <span class="label">Average resume match</span><strong class="number">82%</strong
+              ><small class="delta">Across 8 analyses</small>
+            </div>
+            <div class="stat">
+              <span class="label">Career sites watched</span><strong class="number">04</strong
+              ><small class="delta">2 new roles found</small>
+            </div>
+          </section>
+          <div class="workgrid">
+            <section class="table-panel">
+              <div class="panel-head row between">
+                <h2>Application pipeline <span class="badge" style="margin-left: 6px">12</span></h2>
+                <button
+                  class="secondary"
+                  style="padding: 5px 10px; font-size: 11px"
+                  data-demo="Export applications"
+                >
+                  Export CSV ↗
+                </button>
+              </div>
+              <div class="filters" aria-label="Filter applications">
+                <button class="selected" data-filter="all" aria-pressed="true">
+                  All applications</button
+                ><button data-filter="applied" aria-pressed="false">Applied</button
+                ><button data-filter="interview" aria-pressed="false">Interviews</button
+                ><button data-filter="preparing" aria-pressed="false">Preparing</button>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Company / role</th>
+                      <th>Stage</th>
+                      <th>Match</th>
+                      <th>Next step</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-role data-stage="interview">
+                      <td>
+                        <div class="row">
+                          <span class="company">LN</span>
+                          <div><strong>Linear</strong><small>Product engineer</small></div>
+                        </div>
+                      </td>
+                      <td><span class="badge">Interview</span></td>
+                      <td>
+                        <span class="score">86%</span
+                        ><span class="score-bar" style="--score: 86%"><i></i></span>
+                      </td>
+                      <td>Oct 5</td>
+                    </tr>
+                    <tr data-role data-stage="applied">
+                      <td>
+                        <div class="row">
+                          <span class="company">NT</span>
+                          <div><strong>Notion</strong><small>Frontend engineer</small></div>
+                        </div>
+                      </td>
+                      <td><span class="badge">Applied</span></td>
+                      <td>
+                        <span class="score">78%</span
+                        ><span class="score-bar" style="--score: 78%"><i></i></span>
+                      </td>
+                      <td>Follow up</td>
+                    </tr>
+                    <tr data-role data-stage="preparing">
+                      <td>
+                        <div class="row">
+                          <span class="company">FG</span>
+                          <div><strong>Figma</strong><small>Software engineer</small></div>
+                        </div>
+                      </td>
+                      <td><span class="badge">Preparing</span></td>
+                      <td>
+                        <span class="score">89%</span
+                        ><span class="score-bar" style="--score: 89%"><i></i></span>
+                      </td>
+                      <td>Tailor resume</td>
+                    </tr>
+                    <tr data-role data-stage="applied">
+                      <td>
+                        <div class="row">
+                          <span class="company">VR</span>
+                          <div><strong>Vercel</strong><small>Frontend engineer</small></div>
+                        </div>
+                      </td>
+                      <td><span class="badge">Applied</span></td>
+                      <td>
+                        <span class="score">84%</span
+                        ><span class="score-bar" style="--score: 84%"><i></i></span>
+                      </td>
+                      <td>Oct 8</td>
+                    </tr>
+                    <tr data-role data-stage="interview">
+                      <td>
+                        <div class="row">
+                          <span class="company">RP</span>
+                          <div><strong>Razorpay</strong><small>Product engineer</small></div>
+                        </div>
+                      </td>
+                      <td><span class="badge">Interview</span></td>
+                      <td>
+                        <span class="score">73%</span
+                        ><span class="score-bar" style="--score: 73%"><i></i></span>
+                      </td>
+                      <td>Oct 9</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="empty hidden" data-empty>No applications match your search.</p>
+              </div>
+              <div class="panel-foot row between">
+                <span>Showing 5 of 12 applications · sample data</span
+                ><button
+                  style="background: transparent; color: var(--accent); font-size: 11px"
+                  data-demo="Application tracker"
+                >
+                  View all →
+                </button>
+              </div>
+            </section>
+            <aside class="aside">
+              <section class="side-panel">
+                <div class="row between">
+                  <h2>Action queue</h2>
+                  <span class="badge">3</span>
+                </div>
+                <div class="task">
+                  <h3>Follow up with Notion</h3>
+                  <p>Last contact was 5 days ago</p>
+                  <button data-done aria-pressed="false">Mark done →</button>
+                </div>
+                <div class="task">
+                  <h3>Prepare for Linear</h3>
+                  <p>Interview · Oct 5, 10:30 AM</p>
+                  <button data-demo="Start practice">Start practice →</button>
+                </div>
+                <div class="task">
+                  <h3>Review job alerts</h3>
+                  <p>2 new matching roles</p>
+                  <button data-demo="View roles">View roles →</button>
+                </div>
+              </section>
+              <section class="side-panel">
+                <span class="eyebrow">Resume library</span>
+                <h2 style="margin-top: 10px">Ready for your next role?</h2>
+                <p class="muted" style="font-size: 12px; margin: 9px 0 17px">
+                  Keep your latest resume handy and tailor it for each application.
+                </p>
+                <button
+                  class="secondary"
+                  style="width: 100%; font-size: 12px"
+                  data-demo="Upload a resume"
+                >
+                  ↑ Upload resume
+                </button>
+              </section>
+            </aside>
+          </div>
+          <section class="documents">
+            <div class="row between">
+              <h2>Recently worked on</h2>
+              <button
+                style="background: transparent; color: var(--accent); font-size: 12px"
+                data-demo="History"
+              >
+                Open history →
+              </button>
+            </div>
+            <div class="doc-grid">
+              <button class="doc" data-demo="Frontend resume — v3">
+                <span class="file-tag">PDF</span>
+                <h3>Frontend resume — v3</h3>
+                <small>Resume · Updated yesterday</small></button
+              ><button class="doc" data-demo="Figma · Software engineer">
+                <span class="file-tag">ANALYSIS</span>
+                <h3>Figma · Software engineer</h3>
+                <small>89% match · 2 days ago</small></button
+              ><button class="doc" data-demo="Notion · Frontend engineer">
+                <span class="file-tag">LETTER</span>
+                <h3>Notion · Frontend engineer</h3>
+                <small>Cover letter · 3 days ago</small>
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <nav class="switcher" aria-label="Design concepts">
+      <span>DESIGN PREVIEW</span><a href="01-editorial.html">01 Editorial</a
+      ><a href="02-precision.html" aria-current="page">02 Precision</a
+      ><a href="03-dark-studio.html">03 Dark studio</a>
+    </nav>
+    <dialog>
+      <h2></h2>
+      <p></p>
+      <button class="primary" data-close>Back to preview</button>
+    </dialog>
+    <script>
+      const dialog = document.querySelector("dialog");
+      document.querySelectorAll("[data-demo]").forEach((el) =>
+        el.addEventListener("click", () => {
+          dialog.querySelector("h2").textContent = el.dataset.demo;
+          dialog.querySelector("p").textContent =
+            "This is a visual preview of the " +
+            el.dataset.demo.toLowerCase() +
+            " flow. The chosen design will connect to your existing app, saved documents, and application data.";
+          dialog.showModal();
+        }),
+      );
+      document.querySelector("[data-close]").onclick = () => dialog.close();
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+      document.querySelectorAll("[data-done]").forEach((el) =>
+        el.addEventListener("click", () => {
+          el.closest(".task").classList.toggle("completed");
+          el.setAttribute("aria-pressed", el.closest(".task").classList.contains("completed"));
+        }),
+      );
+      document.querySelectorAll("[data-filter]").forEach((el) =>
+        el.addEventListener("click", () => {
+          document.querySelectorAll("[data-filter]").forEach((b) => {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+          });
+          el.classList.add("selected");
+          el.setAttribute("aria-pressed", "true");
+          filterRows();
+        }),
+      );
+      function filterRows() {
+        const q = (document.querySelector("[data-search]")?.value || "").toLowerCase();
+        const f = document.querySelector("[data-filter].selected")?.dataset.filter || "all";
+        document
+          .querySelectorAll("[data-role]")
+          .forEach((r) =>
+            r.classList.toggle(
+              "hidden",
+              !r.textContent.toLowerCase().includes(q) || (f !== "all" && r.dataset.stage !== f),
+            ),
+          );
+        const empty = document.querySelector("[data-empty]");
+        if (empty)
+          empty.classList.toggle(
+            "hidden",
+            Array.from(document.querySelectorAll("[data-role]")).some(
+              (r) => !r.classList.contains("hidden"),
+            ),
+          );
+      }
+      document.querySelector("[data-search]")?.addEventListener("input", filterRows);
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+        const files = ["01-editorial.html", "02-precision.html", "03-dark-studio.html"];
+        const current = files.indexOf(location.pathname.split("/").pop());
+        if (e.key === "ArrowRight") location.href = files[(current + 1) % 3];
+        if (e.key === "ArrowLeft") location.href = files[(current + 2) % 3];
+      });
+    </script>
+  </body>
+</html>

@@ -46,15 +46,15 @@ export function ResumeSelect({ onSelect, selectedName }: ResumeSelectProps) {
 
   if (resumes.length === 0) {
     return (
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100">
-        <FileText className="w-5 h-5 text-amber-600" />
+      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary border border-border">
+        <FileText className="w-5 h-5 text-primary" />
         <div className="flex-1">
-          <span className="text-sm font-semibold text-amber-900">No saved resumes</span>
-          <p className="text-xs text-amber-700/70">Upload a resume first</p>
+          <span className="text-sm font-semibold text-foreground">No saved resumes</span>
+          <p className="text-xs text-muted-foreground">Upload a resume first</p>
         </div>
         <Link
           href="/dashboard/upload"
-          className="text-xs px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors font-semibold"
+          className="text-xs min-h-11 inline-flex items-center px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold"
         >
           Upload
         </Link>

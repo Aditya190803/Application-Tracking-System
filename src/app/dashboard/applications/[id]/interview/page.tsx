@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ResumeSelect } from "@/components/resume/ResumeSelect";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -109,7 +110,7 @@ export default function InterviewPage() {
   };
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 lg:pl-28 lg:pr-8">
+    <div className="workspace-page">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link
           href="/dashboard/applications"
@@ -121,14 +122,15 @@ export default function InterviewPage() {
         >
           ← Back to applications
         </Link>
-        <header>
-          <h1 className="text-3xl font-bold">Interview preparation</h1>
-          <p className="mt-2 text-muted-foreground">
-            {application
-              ? `${application.jobTitle} at ${application.companyName}`
-              : "Prepare for your next conversation."}
-          </p>
-        </header>
+        <PageHeader
+          eyebrow="Your next conversation"
+          title="Walk in prepared."
+          description={
+            application
+              ? application.jobTitle + " at " + application.companyName
+              : "Practice your answers and bring your experience into focus."
+          }
+        />
         {loading ? (
           <output>Loading preparation…</output>
         ) : !application ? (
@@ -289,6 +291,6 @@ export default function InterviewPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }
