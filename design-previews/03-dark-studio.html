@@ -1,0 +1,948 @@
+<!doctype html>
+<!-- Throwaway UI prototype: three standalone dashboard directions, using sample data. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ATS redesign concept 3: Dark studio. Interactive visual prototype with sample data."
+    />
+    <title>ATS — Dark studio</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      button,
+      input,
+      a {
+        font: inherit;
+      }
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button {
+        cursor: pointer;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        border: 0;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+      h2 {
+        letter-spacing: -0.025em;
+      }
+      small,
+      .muted {
+        color: var(--muted);
+      }
+      button,
+      a,
+      input {
+        outline-offset: 5px;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+      button,
+      a {
+        transition:
+          background 0.18s,
+          color 0.18s,
+          transform 0.18s;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .logo {
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -1px;
+      }
+      .mark {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-size: 18px;
+        margin-right: 9px;
+        letter-spacing: -2px;
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--soft);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .primary {
+        background: var(--accent);
+        color: var(--on-accent);
+        padding: 12px 18px;
+        border-radius: 7px;
+        font-weight: 600;
+      }
+      .primary:hover {
+        filter: brightness(1.1);
+      }
+      .secondary {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 10px 15px;
+        border-radius: 7px;
+      }
+      .secondary:hover {
+        background: var(--soft);
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .badge {
+        font-size: 11px;
+        border-radius: 5px;
+        padding: 4px 8px;
+        white-space: nowrap;
+        background: var(--soft);
+        color: var(--accent);
+      }
+      .company {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--soft);
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .switcher {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px;
+        background: #202824;
+        color: #fff;
+        border: 1px solid #647269;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px #0002;
+        z-index: 10;
+        white-space: nowrap;
+      }
+      .switcher span {
+        padding: 0 9px;
+        font-size: 11px;
+        color: #b8c8bd;
+      }
+      .switcher a {
+        padding: 7px 10px;
+        border-radius: 7px;
+        font-size: 12px;
+      }
+      .switcher a[aria-current="page"] {
+        background: #e9eee9;
+        color: #17241b;
+      }
+      .switcher a:hover {
+        background: #4b5c50;
+        color: white;
+      }
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 88px;
+        background: var(--ink);
+        color: var(--bg);
+        padding: 14px 20px;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px #0003;
+        max-width: calc(100vw - 48px);
+        z-index: 20;
+      }
+      .skip {
+        position: absolute;
+        top: -100px;
+        left: 16px;
+        padding: 12px;
+        background: var(--accent);
+        color: var(--on-accent);
+        z-index: 30;
+      }
+      .skip:focus {
+        top: 12px;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 28px;
+        background: var(--panel);
+        color: var(--ink);
+        max-width: 430px;
+        width: calc(100% - 32px);
+      }
+      dialog::backdrop {
+        background: #0007;
+      }
+      dialog p {
+        margin: 12px 0 24px;
+        color: var(--muted);
+      }
+      dialog h2 {
+        font-size: 25px;
+      }
+      input[type="search"] {
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px 14px;
+        min-width: 0;
+      }
+      .number {
+        font-variant-numeric: tabular-nums;
+      }
+      .hidden {
+        display: none !important;
+      }
+      @media (max-width: 640px) {
+        .switcher span {
+          display: none;
+        }
+        .switcher {
+          bottom: 10px;
+        }
+        .switcher a {
+          font-size: 11px;
+          padding: 7px 8px;
+        }
+        h1 {
+          font-size: 34px !important;
+        }
+        .desktop-only {
+          display: none !important;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+      :root {
+        --bg: #15191c;
+        --panel: #1c2226;
+        --ink: #ecf0e9;
+        --muted: #9da8aa;
+        --accent: #c1dd8b;
+        --on-accent: #202c18;
+        --soft: #2d3830;
+        --line: #333c40;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+      }
+      header {
+        padding: 23px 36px;
+        border-bottom: 1px solid var(--line);
+      }
+      header nav {
+        display: flex;
+        gap: 7px;
+      }
+      header nav button {
+        background: transparent;
+        color: var(--muted);
+        padding: 9px 15px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      header nav button.active {
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+      header nav button:hover {
+        color: var(--accent);
+      }
+      main {
+        max-width: 1500px;
+        padding: 35px 36px 110px;
+        margin: auto;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 60px;
+        padding: 12px 0 34px;
+      }
+      .hero h1 {
+        font-size: 48px;
+        font-weight: 500;
+        margin: 18px 0;
+      }
+      .hero h1 em {
+        color: var(--accent);
+        font-style: normal;
+      }
+      .hero p {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .hero .primary {
+        margin-top: 25px;
+      }
+      .metric-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-content: center;
+      }
+      .metric {
+        border-left: 1px solid var(--line);
+        padding-left: 25px;
+      }
+      .metric strong {
+        font-size: 36px;
+        letter-spacing: -0.04em;
+        display: block;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      .metric small {
+        display: block;
+        font-size: 11px;
+        margin-top: 6px;
+      }
+      .metric span {
+        font-size: 11px;
+        color: var(--accent);
+        display: block;
+        margin-top: 6px;
+      }
+      .board-head {
+        padding: 22px 0;
+        border-top: 1px solid var(--line);
+      }
+      .board-head h2 {
+        font-size: 20px;
+        font-weight: 500;
+      }
+      .board-head .row button {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+      .board {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .column {
+        background: #191f22;
+        border: 1px solid #2a3236;
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .column-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        padding: 3px 2px 15px;
+        color: #c3ceca;
+      }
+      .column-head span {
+        color: var(--muted);
+        background: #272f33;
+        border-radius: 4px;
+        padding: 1px 7px;
+        font-size: 10px;
+      }
+      .job {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 17px;
+        margin-bottom: 10px;
+        transition: border-color 0.2s;
+      }
+      .job:hover {
+        border-color: #839570;
+      }
+      .job .company {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+        background: #30383a;
+        color: #dde3df;
+      }
+      .job .company-name {
+        font-size: 11px;
+        color: #c1cac5;
+      }
+      .job h3 {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 16px 0 5px;
+      }
+      .job p {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .job .job-footer {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        margin-top: 20px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .job .match {
+        color: var(--accent);
+        font-size: 10px;
+      }
+      .job.highlight {
+        border-color: #6c8552;
+      }
+      .interview-time {
+        background: var(--soft);
+        color: var(--accent);
+        font-size: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 14px;
+      }
+      .add-role {
+        border: 1px dashed var(--line);
+        background: transparent;
+        color: var(--muted);
+        padding: 11px;
+        width: 100%;
+        border-radius: 6px;
+        font-size: 11px;
+      }
+      .add-role:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .bottom-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 24px;
+        margin-top: 30px;
+      }
+      .toolbox {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 22px;
+      }
+      .toolbox h2,
+      .activity h2 {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+      .tool-links {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .tool-links button {
+        background: transparent;
+        text-align: left;
+        color: var(--ink);
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .tool-links button:hover {
+        background: var(--soft);
+      }
+      .tool-links b {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        margin: 12px 0 5px;
+      }
+      .tool-links small {
+        display: block;
+        font-size: 10px;
+      }
+      .tool-links span {
+        color: var(--accent);
+        font-size: 17px;
+      }
+      .activity {
+        padding: 22px 10px;
+      }
+      .activity-row {
+        display: grid;
+        grid-template-columns: 7px 1fr auto;
+        gap: 12px;
+        padding: 10px 0;
+        font-size: 11px;
+      }
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
+        margin-top: 6px;
+      }
+      .activity-row time {
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .sub-nav {
+        margin-top: 24px;
+        display: flex;
+        gap: 20px;
+      }
+      .sub-nav button {
+        background: transparent;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .sub-nav button:hover {
+        color: var(--accent);
+      }
+      .sample {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 24px;
+      }
+      @media (max-width: 1100px) {
+        .board {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .hero {
+          gap: 30px;
+        }
+        .bottom-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 700px) {
+        header {
+          padding: 18px 20px;
+        }
+        header nav {
+          display: none;
+        }
+        main {
+          padding: 25px 20px 100px;
+        }
+        .hero {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+        .metric-strip {
+          gap: 22px;
+        }
+        .board {
+          grid-template-columns: 1fr;
+        }
+        .board-head {
+          align-items: start;
+          gap: 15px;
+          flex-direction: column;
+        }
+        .tool-links {
+          grid-template-columns: 1fr;
+        }
+        .tool-links b {
+          margin-top: 7px;
+        }
+        .sub-nav {
+          flex-wrap: wrap;
+        }
+        .metric {
+          padding-left: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="row between">
+      <a class="logo" href="03-dark-studio.html"
+        ><span class="mark">a.</span>ats<span
+          style="
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 400;
+            letter-spacing: 0;
+            margin-left: 16px;
+          "
+          >Career studio</span
+        ></a
+      >
+      <nav aria-label="Main navigation">
+        <button class="active" data-demo="Workspace overview">Workspace</button
+        ><button data-demo="Resume library">Documents</button
+        ><button data-demo="Job alerts">Discover</button
+        ><button data-demo="History">Activity</button>
+      </nav>
+      <div class="row">
+        <span class="eyebrow desktop-only" style="font-size: 10px">Personal workspace</span
+        ><span class="avatar">AD</span>
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Your next chapter starts here</span>
+          <h1>Good work.<br /><em>Great possibilities.</em></h1>
+          <p>12 opportunities in play. One place to move them forward.</p>
+          <button class="primary" data-demo="Add an application">+ Add an opportunity</button>
+        </div>
+        <div class="metric-strip">
+          <div class="metric">
+            <strong class="number">12</strong><small>Active applications</small
+            ><span>3 added this week ↗</span>
+          </div>
+          <div class="metric">
+            <strong class="number">82%</strong><small>Average resume match</small
+            ><span>Across 8 saved analyses</span>
+          </div>
+          <div class="metric">
+            <strong class="number">03</strong><small>Upcoming interviews</small
+            ><span>Next up: Linear</span>
+          </div>
+          <div class="metric">
+            <strong class="number">04</strong><small>Career sites watched</small
+            ><span>2 new matching roles</span>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="board-head row between">
+          <div class="row">
+            <h2>Your opportunity board</h2>
+            <span class="badge">12 active</span>
+          </div>
+          <div class="row">
+            <button class="secondary" data-demo="Filter applications">Filter ↓</button
+            ><button class="secondary" data-demo="Application list">List view ↗</button>
+          </div>
+        </div>
+        <div class="board">
+          <section class="column">
+            <div class="column-head">Preparing <span>3</span></div>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">FG</span><span class="company-name">Figma</span>
+                </div>
+                <span class="match">89% fit</span>
+              </div>
+              <h3>Software engineer</h3>
+              <p>Remote · Full time</p>
+              <div class="row between job-footer">
+                <span>Tailor resume</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Figma application"
+                  aria-label="Open Figma application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">ST</span><span class="company-name">Stripe</span>
+                </div>
+                <span class="match">81% fit</span>
+              </div>
+              <h3>Frontend engineer</h3>
+              <p>Bengaluru · Full time</p>
+              <div class="row between job-footer">
+                <span>Draft cover letter</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Stripe application"
+                  aria-label="Open Stripe application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <button class="add-role" data-demo="Add a preparing role">+ Add a role</button>
+          </section>
+          <section class="column">
+            <div class="column-head">Applied <span>5</span></div>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">NT</span><span class="company-name">Notion</span>
+                </div>
+                <span class="match">78% fit</span>
+              </div>
+              <h3>Frontend engineer</h3>
+              <p>Bengaluru · Hybrid · Full time</p>
+              <div class="row between job-footer">
+                <span>Follow-up due</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Notion application"
+                  aria-label="Open Notion application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">VR</span><span class="company-name">Vercel</span>
+                </div>
+                <span class="match">84% fit</span>
+              </div>
+              <h3>Frontend engineer</h3>
+              <p>Remote · Full time</p>
+              <div class="row between job-footer">
+                <span>Applied 2 days ago</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Vercel application"
+                  aria-label="Open Vercel application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <button class="add-role" data-demo="Add an applied role">+ Add a role</button>
+          </section>
+          <section class="column">
+            <div class="column-head">Interviewing <span>3</span></div>
+            <article class="job highlight" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">LN</span><span class="company-name">Linear</span>
+                </div>
+                <span class="match">86% fit</span>
+              </div>
+              <h3>Product engineer</h3>
+              <p>Remote · Full time</p>
+              <div class="interview-time">↗ Monday, Oct 5 · 10:30 AM</div>
+              <div class="row between job-footer">
+                <span>Practice questions</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Linear application"
+                  aria-label="Open Linear application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">RP</span><span class="company-name">Razorpay</span>
+                </div>
+                <span class="match">73% fit</span>
+              </div>
+              <h3>Product engineer</h3>
+              <p>Bengaluru · Full time</p>
+              <div class="row between job-footer">
+                <span>Friday, Oct 9</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="Razorpay application"
+                  aria-label="Open Razorpay application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <button class="add-role" data-demo="Add an interview">+ Add a role</button>
+          </section>
+          <section class="column">
+            <div class="column-head">Offer <span>1</span></div>
+            <article class="job" data-role>
+              <div class="row between">
+                <div class="row">
+                  <span class="company">PH</span><span class="company-name">PostHog</span>
+                </div>
+                <span class="match">91% fit</span>
+              </div>
+              <h3>Software engineer</h3>
+              <p>Remote · Full time</p>
+              <div class="row between job-footer">
+                <span>Review offer</span
+                ><button
+                  style="color: var(--accent); background: transparent; font-size: 12px"
+                  data-demo="PostHog application"
+                  aria-label="Open PostHog application"
+                >
+                  ↗
+                </button>
+              </div>
+            </article>
+            <div style="padding: 15px 8px; color: var(--muted); font-size: 11px; line-height: 1.8">
+              A new chapter is taking shape.<br />Keep your notes and next steps together.
+            </div>
+            <button class="add-role" data-demo="Add an offer">+ Add a role</button>
+          </section>
+        </div>
+      </section>
+      <div class="bottom-grid">
+        <section class="toolbox">
+          <div class="row between">
+            <h2>Built for your next move</h2>
+            <span class="eyebrow" style="font-size: 9px">Preparation studio</span>
+          </div>
+          <div class="tool-links">
+            <button data-demo="Resume analysis">
+              <span>↗</span><b>Match analysis</b
+              ><small>Find the fit. Close the gaps.</small></button
+            ><button data-demo="Resume builder">
+              <span>≡</span><b>Resume builder</b><small>Your story, well presented.</small></button
+            ><button data-demo="Cover letters">
+              <span>✎</span><b>Cover letters</b><small>Make the first words count.</small>
+            </button>
+          </div>
+          <div class="sub-nav">
+            <button data-demo="Resume library">Resume library ↗</button
+            ><button data-demo="Job alerts">Job alerts ↗</button
+            ><button data-demo="Interview preparation">Interview prep ↗</button
+            ><button data-demo="History">History ↗</button>
+          </div>
+        </section>
+        <section class="activity">
+          <h2>Recently in your workspace</h2>
+          <div class="activity-row">
+            <span class="dot"></span><span>Resume analysis saved for Figma</span><time>2h ago</time>
+          </div>
+          <div class="activity-row">
+            <span class="dot"></span><span>2 new roles found on your watchlist</span
+            ><time>4h ago</time>
+          </div>
+          <div class="activity-row">
+            <span class="dot"></span><span>Frontend resume — v3 uploaded</span
+            ><time>Yesterday</time>
+          </div>
+          <p class="sample">Sample workspace · design concept 03</p>
+        </section>
+      </div>
+    </main>
+    <nav class="switcher" aria-label="Design concepts">
+      <span>DESIGN PREVIEW</span><a href="01-editorial.html">01 Editorial</a
+      ><a href="02-precision.html">02 Precision</a
+      ><a href="03-dark-studio.html" aria-current="page">03 Dark studio</a>
+    </nav>
+    <dialog>
+      <h2></h2>
+      <p></p>
+      <button class="primary" data-close>Back to preview</button>
+    </dialog>
+    <script>
+      const dialog = document.querySelector("dialog");
+      document.querySelectorAll("[data-demo]").forEach((el) =>
+        el.addEventListener("click", () => {
+          dialog.querySelector("h2").textContent = el.dataset.demo;
+          dialog.querySelector("p").textContent =
+            "This is a visual preview of the " +
+            el.dataset.demo.toLowerCase() +
+            " flow. The chosen design will connect to your existing app, saved documents, and application data.";
+          dialog.showModal();
+        }),
+      );
+      document.querySelector("[data-close]").onclick = () => dialog.close();
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+      document.querySelectorAll("[data-done]").forEach((el) =>
+        el.addEventListener("click", () => {
+          el.closest(".task").classList.toggle("completed");
+          el.setAttribute("aria-pressed", el.closest(".task").classList.contains("completed"));
+        }),
+      );
+      document.querySelectorAll("[data-filter]").forEach((el) =>
+        el.addEventListener("click", () => {
+          document.querySelectorAll("[data-filter]").forEach((b) => {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+          });
+          el.classList.add("selected");
+          el.setAttribute("aria-pressed", "true");
+          filterRows();
+        }),
+      );
+      function filterRows() {
+        const q = (document.querySelector("[data-search]")?.value || "").toLowerCase();
+        const f = document.querySelector("[data-filter].selected")?.dataset.filter || "all";
+        document
+          .querySelectorAll("[data-role]")
+          .forEach((r) =>
+            r.classList.toggle(
+              "hidden",
+              !r.textContent.toLowerCase().includes(q) || (f !== "all" && r.dataset.stage !== f),
+            ),
+          );
+        const empty = document.querySelector("[data-empty]");
+        if (empty)
+          empty.classList.toggle(
+            "hidden",
+            Array.from(document.querySelectorAll("[data-role]")).some(
+              (r) => !r.classList.contains("hidden"),
+            ),
+          );
+      }
+      document.querySelector("[data-search]")?.addEventListener("input", filterRows);
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+        const files = ["01-editorial.html", "02-precision.html", "03-dark-studio.html"];
+        const current = files.indexOf(location.pathname.split("/").pop());
+        if (e.key === "ArrowRight") location.href = files[(current + 1) % 3];
+        if (e.key === "ArrowLeft") location.href = files[(current + 2) % 3];
+      });
+    </script>
+  </body>
+</html>
