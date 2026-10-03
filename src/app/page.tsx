@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { useUser } from '@stackframe/stack'
-import { motion } from 'framer-motion'
+import { useUser } from "@stackframe/stack";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
-  BarChart3,
+  Bell,
+  BriefcaseBusiness,
   CheckCircle2,
+  FileCode2,
   FileSearch,
   FileText,
+  MessageSquare,
   Sparkles,
-  Target,
-  TrendingUp,
-  Zap,
-} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 const MotionLink = motion(Link);
 
 export default function HomePage() {
-  const user = useUser()
-  const router = useRouter()
+  const user = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
-      router.replace('/dashboard')
+      router.replace("/dashboard");
     }
-  }, [user, router])
+  }, [user, router]);
 
   // Animation variants
   const containerVariants = {
@@ -41,7 +41,7 @@ export default function HomePage() {
         staggerChildren: 0.15,
       },
     },
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -50,10 +50,10 @@ export default function HomePage() {
       y: 0,
       transition: {
         stiffness: 100,
-        damping: 15
-      }
+        damping: 15,
+      },
     },
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,7 +85,7 @@ export default function HomePage() {
           <motion.div variants={itemVariants} className="flex justify-center mb-8">
             <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-semibold">AI-Powered Career Tools</span>
+              <span className="text-sm font-semibold">Discover. Prepare. Apply.</span>
             </div>
           </motion.div>
 
@@ -94,10 +94,10 @@ export default function HomePage() {
             variants={itemVariants}
             className="text-center text-5xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground mb-6 leading-[1.1]"
           >
-            Land Your Dream Job
+            Your job search,
             <br />
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              10x Faster
+              in one place.
             </span>
           </motion.h1>
 
@@ -106,22 +106,22 @@ export default function HomePage() {
             variants={itemVariants}
             className="text-center text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
           >
-            AI-powered resume analysis, ATS optimization, and instant cover letter generation. 
-            Get hired faster with intelligent career tools.
+            Watch career sites, build a resume in seven LaTeX formats, and tailor your applications
+            with AI. Track each role and prepare for interviews with questions and saved answer
+            notes.
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <MotionLink
-              href="/dashboard"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          >
+            <MotionLink href="/dashboard" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 size="lg"
                 className="h-14 px-8 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
-                Start Free Analysis
+                Start your job search
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </MotionLink>
@@ -130,25 +130,32 @@ export default function HomePage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Button variant="outline" size="lg" className="h-14 px-8 text-base font-semibold rounded-xl">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 px-8 text-base font-semibold rounded-xl"
+              >
                 See How It Works
               </Button>
             </MotionLink>
           </motion.div>
 
           {/* Trust Indicators */}
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
+          >
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span>No credit card required</span>
+              <span>7 LaTeX resume formats</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span>Free forever plan</span>
+              <span>Career-site monitoring</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span>Instant results</span>
+              <span>Saved interview preparation</span>
             </div>
           </motion.div>
         </motion.div>
@@ -165,24 +172,61 @@ export default function HomePage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Everything You Need to <span className="text-primary">Stand Out</span>
+              From finding a role to <span className="text-primary">the interview</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Powerful AI tools designed to give you an edge in today&apos;s competitive job market
+              Keep job discovery, application documents, follow-ups, and interview practice
+              together.
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { title: 'Smart Resume Analysis', icon: FileSearch, desc: 'AI-powered evaluation identifies strengths, gaps, and improvement areas instantly.' },
-              { title: 'ATS Optimization', icon: Target, desc: 'See how Applicant Tracking Systems parse your resume before you submit.' },
-              { title: 'Keyword Matching', icon: Zap, desc: 'Extract key qualifications from job postings and tailor your resume perfectly.' },
-              { title: 'Cover Letter AI', icon: FileText, desc: 'Generate personalized, compelling cover letters tailored to each role.' },
-              { title: 'Skills Analytics', icon: BarChart3, desc: 'Comprehensive breakdown of your technical and soft skills matrix.' },
-              { title: 'Match Scoring', icon: TrendingUp, desc: 'Precise score showing how well your profile aligns with requirements.' }
+              {
+                title: "Career-site trackers",
+                icon: Bell,
+                desc: "Monitor career pages with role, location, and exclusion filters. Check new jobs in your watchlist and choose optional email alerts.",
+                href: "/dashboard/watchlist",
+                cta: "Set up a tracker",
+              },
+              {
+                title: "AI resume maker",
+                icon: FileCode2,
+                desc: "Start from career notes or a saved resume. Choose one of seven LaTeX formats, edit the result, and download a PDF.",
+                href: "/dashboard/resume-builder",
+                cta: "Build a resume",
+              },
+              {
+                title: "Resume match analysis",
+                icon: FileSearch,
+                desc: "Compare your resume with a job description for a match score, skills gaps, and suggestions before you apply.",
+                href: "/dashboard/analysis",
+                cta: "Analyze a role",
+              },
+              {
+                title: "Cover letters",
+                icon: FileText,
+                desc: "Generate a letter for the role, adjust its tone and length, then edit, save, and export it.",
+                href: "/dashboard/cover-letter",
+                cta: "Write a cover letter",
+              },
+              {
+                title: "Application pipeline",
+                icon: BriefcaseBusiness,
+                desc: "Move roles from saved to applied, interviews, and offers. Keep recruiter contacts, notes, and follow-up dates, or export your list as CSV.",
+                href: "/dashboard/applications",
+                cta: "Track applications",
+              },
+              {
+                title: "Interview preparation",
+                icon: MessageSquare,
+                desc: "Open a tracked application to generate practice questions from your resume and the job. Use STAR guidance and save your own answer notes.",
+                href: "/dashboard/applications",
+                cta: "Choose a role to prepare",
+              },
             ].map((f, i) => (
               <motion.div
-                key={i}
+                key={f.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -193,9 +237,14 @@ export default function HomePage() {
                   <f.icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-foreground mb-3">{f.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {f.desc}
-                </p>
+                <p className="text-muted-foreground leading-relaxed">{f.desc}</p>
+                <Link
+                  href={f.href}
+                  className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                >
+                  {f.cta}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -207,10 +256,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: 'AI-Powered', sub: 'Analysis' },
-              { label: '93%', sub: 'ATS Score Boost' },
-              { label: '2.5x', sub: 'Faster Applications' },
-              { label: '10K+', sub: 'Happy Users' }
+              { label: "7", sub: "LaTeX resume formats" },
+              { label: "PDF", sub: "Resume downloads" },
+              { label: "CSV", sub: "Application exports" },
+              { label: "STAR", sub: "Interview answer guidance" },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -238,18 +287,15 @@ export default function HomePage() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Ready to Accelerate Your Career?
+              Start with your next opportunity
             </h2>
             <p className="text-muted-foreground text-lg mb-10 max-w-2xl mx-auto">
-              Join thousands of professionals who landed their dream jobs faster with AI-powered tools
+              Add a career-site tracker, create your resume, or save a role you want to apply for.
+              Your dashboard keeps the next steps together.
             </p>
-            <MotionLink
-              href="/dashboard"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <MotionLink href="/dashboard" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button size="lg" className="h-14 px-10 text-base font-semibold rounded-xl shadow-lg">
-                Get Started Free
+                Open your dashboard
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </MotionLink>
@@ -267,9 +313,15 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+              <Link href="/contact" className="hover:text-foreground transition-colors">
+                Contact
+              </Link>
             </div>
 
             <div className="text-sm text-muted-foreground">
@@ -279,5 +331,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
