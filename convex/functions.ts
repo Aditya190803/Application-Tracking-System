@@ -8,16 +8,24 @@ export {
   getAnalysisById,
   getUserAnalyses,
   saveAnalysis,
-} from './analyses';
+} from "./analyses";
+export {
+  createApplication,
+  deleteApplication,
+  getApplication,
+  getUserApplications,
+  saveInterviewPreparation,
+  updateApplication,
+} from "./applications";
 export {
   deleteCoverLetter,
   getCoverLetter,
   getCoverLetterById,
   getUserCoverLetters,
   saveCoverLetter,
-} from './coverLetters';
-export { deleteResume, getResumeById, getUserResumes, saveResume } from './resumes';
-export { getSearchHistory } from './searchHistory';
+} from "./coverLetters";
+export { deleteResume, getResumeById, getUserResumes, saveResume } from "./resumes";
+export { getSearchHistory } from "./searchHistory";
 export {
   deleteTailoredResume,
   getTailoredResume,
@@ -25,5 +33,19 @@ export {
   getTailoredResumeVersionsBySlug,
   getUserTailoredResumes,
   saveTailoredResume,
-} from './tailoredResumes';
-export { getUserStats } from './userStats';
+} from "./tailoredResumes";
+export { getUserStats } from "./userStats";
+export {
+  addWatch,
+  deleteWatch,
+  getListingById,
+  getRecentListings,
+  getUserWatches,
+  getWatchById,
+  getWatchesDueForScan,
+  markListingsNotified,
+  recordScanFailure,
+  recordScanResult,
+  setWatchActive,
+  updateWatchPreferences,
+} from "./watchlist";

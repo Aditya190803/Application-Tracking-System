@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { historyResponseSchema, resumesResponseSchema } from '@/lib/contracts/api';
+import { historyResponseSchema, resumesResponseSchema } from "@/lib/contracts/api";
 
 export type ApiError = {
   code: string;

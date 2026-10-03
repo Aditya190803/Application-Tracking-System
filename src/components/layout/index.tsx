@@ -1,52 +1,61 @@
-"use client"
+"use client";
 
-import { UserButton,useUser } from '@stackframe/stack'
+import { UserButton, useUser } from "@stackframe/stack";
 import {
   BarChart3,
+  Bell,
+  BriefcaseBusiness,
   Clock,
   FileCode2,
   FileEdit,
   LayoutDashboard,
   Menu,
   Upload,
-  X} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Upload', href: '/dashboard/upload', icon: Upload },
-  { name: 'Analysis', href: '/dashboard/analysis', icon: BarChart3 },
-  { name: 'Cover Letter', href: '/dashboard/cover-letter', icon: FileEdit },
-  { name: 'Resume Builder', href: '/dashboard/resume-builder', icon: FileCode2 },
-  { name: 'History', href: '/dashboard/history', icon: Clock },
-]
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Applications", href: "/dashboard/applications", icon: BriefcaseBusiness },
+  { name: "Upload", href: "/dashboard/upload", icon: Upload },
+  { name: "Analysis", href: "/dashboard/analysis", icon: BarChart3 },
+  { name: "Cover Letter", href: "/dashboard/cover-letter", icon: FileEdit },
+  { name: "Resume Builder", href: "/dashboard/resume-builder", icon: FileCode2 },
+  { name: "Job Alerts", href: "/dashboard/watchlist", icon: Bell },
+  { name: "History", href: "/dashboard/history", icon: Clock },
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const user = useUser()
+  const pathname = usePathname();
+  const user = useUser();
 
-  if (!user || pathname === '/') return null
+  if (!user || pathname === "/") return null;
 
   return (
     <aside className="fixed left-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-2 p-3 rounded-xl border border-border bg-card shadow-lg">
       {navigation.map((item) => {
-        const Icon = item.icon
-        const isActive = pathname === item.href
+        const Icon = item.icon;
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
 
         return (
           <Link
             key={item.name}
             href={item.href}
+            aria-label={item.name}
             className={`
               group relative flex items-center justify-center w-12 h-12 rounded-lg transition-all
-              ${isActive
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }
             `}
           >
@@ -57,16 +66,16 @@ export function Sidebar() {
               {item.name}
             </div>
           </Link>
-        )
+        );
       })}
     </aside>
-  )
+  );
 }
 
 export function TopNav() {
-  const user = useUser()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const user = useUser();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -80,7 +89,7 @@ export function TopNav() {
           {user ? (
             <>
               <div className="hidden sm:block text-sm font-medium text-foreground">
-                {user.displayName || 'User'}
+                {user.displayName || "User"}
               </div>
               <UserButton />
               <Button
@@ -94,6 +103,12 @@ export function TopNav() {
             </>
           ) : (
             <div className="flex items-center gap-3">
+              <Link
+                href="/how-it-works"
+                className="hidden min-h-11 items-center text-sm text-muted-foreground hover:text-foreground sm:inline-flex"
+              >
+                How it works
+              </Link>
               <Link href="/handler/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
@@ -110,8 +125,10 @@ export function TopNav() {
         <div className="lg:hidden border-t border-border bg-background">
           <nav className="p-4 space-y-2">
             {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
 
               return (
                 <Link
@@ -120,20 +137,21 @@ export function TopNav() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-                    ${isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }
                   `}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.name}</span>
                 </Link>
-              )
+              );
             })}
           </nav>
         </div>
       )}
     </header>
-  )
+  );
 }

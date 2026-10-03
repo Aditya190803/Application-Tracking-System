@@ -1,28 +1,118 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const toneSchema = z.enum(['professional', 'friendly', 'enthusiastic']);
-export const lengthSchema = z.enum(['concise', 'standard', 'detailed']);
-export const analysisTypeSchema = z.enum(['overview', 'keywords', 'match', 'coverLetter']);
-export const resumeTemplateIdSchema = z.enum(['jake-classic', 'deedy-modern', 'sb2nov-ats', 'custom']);
+import { APPLICATION_STATUSES } from "@/types/applications";
+import { RESUME_TEMPLATE_IDS } from "@/types/resume-templates";
+
+const applicationDateSchema = z.string().refine((value) => {
+  if (value === "") return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}, "Use a valid date in YYYY-MM-DD format");
+
+const applicationFieldsSchema = z
+  .object({
+    companyName: z.string().trim().min(1, "Company name is required").max(200),
+    jobTitle: z.string().trim().min(1, "Job title is required").max(200),
+    status: z.enum(APPLICATION_STATUSES),
+    jobUrl: z
+      .string()
+      .trim()
+      .max(2000)
+      .refine((value) => {
+        if (!value) return true;
+        try {
+          const url = new URL(value);
+          return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password;
+        } catch {
+          return false;
+        }
+      }, "Use an HTTP or HTTPS job URL without credentials"),
+    location: z.string().trim().max(200),
+    appliedDate: applicationDateSchema,
+    followUpDate: applicationDateSchema,
+    contactName: z.string().trim().max(200),
+    contactEmail: z.union([z.string().trim().email().max(320), z.literal("")]),
+    notes: z.string().trim().max(10000),
+  })
+  .strict();
+
+export const applicationCreateSchema = applicationFieldsSchema
+  .extend({
+    sourceListingId: z.string().min(1).max(100).optional(),
+  })
+  .strict();
+
+export const applicationUpdateSchema = applicationFieldsSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, "Provide at least one field to update");
+
+export const interviewQuestionSchema = z.object({
+  category: z.enum(["behavioral", "technical", "role"]),
+  question: z.string().trim().min(1).max(1000),
+  guidance: z.string().trim().min(1).max(2000),
+});
+export const interviewResultSchema = z.object({
+  questions: z.array(interviewQuestionSchema).min(3).max(12),
+});
+export const interviewGenerateSchema = z
+  .object({
+    resumeText: z.string().trim().min(1).max(50000),
+    jobDescription: z.string().trim().min(1).max(15000),
+    expectedRevision: z.string().max(100),
+    forceRegenerate: z.boolean().default(false),
+  })
+  .strict();
+export const interviewAnswersSchema = z
+  .object({
+    expectedRevision: z.string().min(1).max(100),
+    answers: z
+      .array(z.object({ id: z.string().min(1).max(100), answer: z.string().max(5000) }).strict())
+      .min(3)
+      .max(12),
+  })
+  .strict();
+
+export const toneSchema = z.enum(["professional", "friendly", "enthusiastic"]);
+export const lengthSchema = z.enum(["concise", "standard", "detailed"]);
+export const analysisTypeSchema = z.enum(["overview", "keywords", "match", "coverLetter"]);
+export const resumeTemplateIdSchema = z.enum(RESUME_TEMPLATE_IDS);
 
 const freeTextSchema = z
   .string()
   .trim()
   .max(500)
-  .transform((value) => value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim());
+  .transform((value) =>
+    value
+      // oxlint-disable-next-line no-control-regex -- Strip non-printable input characters.
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
 
-const optionalFreeTextSchema = z.union([freeTextSchema, z.literal('')]).optional().transform((value) => {
-  if (typeof value !== 'string') {
-    return undefined;
-  }
+const optionalFreeTextSchema = z
+  .union([freeTextSchema, z.literal("")])
+  .optional()
+  .transform((value) => {
+    if (typeof value !== "string") {
+      return undefined;
+    }
 
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-});
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : undefined;
+  });
 
 export const analyzeRequestSchema = z.object({
-  resumeText: z.string().trim().min(1, 'Resume text is required').max(50000, 'Resume text is too long (max 50,000 characters)'),
-  jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
+  resumeText: z
+    .string()
+    .trim()
+    .min(1, "Resume text is required")
+    .max(50000, "Resume text is too long (max 50,000 characters)"),
+  jobDescription: z
+    .string()
+    .trim()
+    .min(1, "Job description is required")
+    .max(15000, "Job description is too long (max 15,000 characters)"),
   analysisType: analysisTypeSchema,
   tone: toneSchema.optional(),
   length: lengthSchema.optional(),
@@ -49,22 +139,63 @@ export const coverLetterRequestSchema = analyzeRequestSchema
     idempotencyKey: true,
   })
   .extend({
-    tone: toneSchema.default('professional'),
-    length: lengthSchema.default('standard'),
+    tone: toneSchema.default("professional"),
+    length: lengthSchema.default("standard"),
   });
 
 export const tailoredResumeRequestSchema = z.object({
-  resumeText: z.string().trim().min(1, 'Resume text is required').max(50000, 'Resume text is too long (max 50,000 characters)'),
-  jobDescription: z.string().trim().min(1, 'Job description is required').max(15000, 'Job description is too long (max 15,000 characters)'),
-  templateId: resumeTemplateIdSchema.default('jake-classic'),
+  resumeText: z
+    .string()
+    .trim()
+    .min(1, "Resume text is required")
+    .max(50000, "Resume text is too long (max 50,000 characters)"),
+  jobDescription: z
+    .string()
+    .trim()
+    .max(15000, "Job description is too long (max 15,000 characters)")
+    .default(""),
+  templateId: resumeTemplateIdSchema.default("jake-classic"),
   resumeName: optionalFreeTextSchema,
-  builderSlug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid builder slug format').min(4).max(120).optional(),
+  builderSlug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid builder slug format")
+    .min(4)
+    .max(120)
+    .optional(),
   sourceAnalysisId: z.string().trim().min(1).max(128).optional(),
   customTemplateName: optionalFreeTextSchema,
   customTemplateLatex: z.string().trim().min(1).max(180000).optional(),
   forceRegenerate: z.boolean().optional(),
   idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });
+
+const watchTermsSchema = z.array(z.string().trim().min(1).max(80)).max(10);
+const watchPreferenceFields = {
+  roleKeywords: watchTermsSchema.optional(),
+  locations: watchTermsSchema.optional(),
+  excludeKeywords: watchTermsSchema.optional(),
+  emailAlerts: z.boolean().optional(),
+};
+
+export const watchlistCreateSchema = z.object({
+  url: z
+    .string()
+    .trim()
+    .min(1, "Career page URL is required")
+    .max(2000, "URL is too long")
+    .url("Enter a full URL, including https://"),
+  companyName: optionalFreeTextSchema,
+  ...watchPreferenceFields,
+});
+
+export const watchlistUpdateSchema = z
+  .object({
+    active: z.boolean().optional(),
+    ...watchPreferenceFields,
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, "Provide settings to update");
 
 export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -80,7 +211,7 @@ export const apiErrorSchema = z.object({
 
 export const historyItemSchema = z.object({
   id: z.string(),
-  type: z.enum(['analysis', 'cover-letter', 'resume']),
+  type: z.enum(["analysis", "cover-letter", "resume"]),
   analysisType: z.string().optional(),
   companyName: z.string().optional(),
   resumeName: z.string().optional(),
@@ -102,7 +233,7 @@ export const historyResponseSchema = z.object({
 export const analysisResponseSchema = z.object({
   result: z.union([z.string(), z.record(z.string(), z.unknown())]),
   cached: z.boolean(),
-  source: z.enum(['memory', 'database']).optional(),
+  source: z.enum(["memory", "database"]).optional(),
   documentId: z.string().optional(),
   requestId: z.string(),
 });
@@ -113,7 +244,7 @@ export const coverLetterResponseSchema = z.object({
   tone: toneSchema,
   length: lengthSchema,
   cached: z.boolean().optional(),
-  source: z.enum(['memory', 'database']).optional(),
+  source: z.enum(["memory", "database"]).optional(),
   documentId: z.string().optional(),
   requestId: z.string(),
 });
@@ -123,7 +254,7 @@ export const tailoredResumeResponseSchema = z.object({
   structuredData: z.record(z.string(), z.unknown()),
   templateId: resumeTemplateIdSchema,
   cached: z.boolean(),
-  source: z.enum(['database']).optional(),
+  source: z.enum(["database"]).optional(),
   documentId: z.string().optional(),
   builderSlug: z.string().optional(),
   version: z.number().optional(),
@@ -154,7 +285,7 @@ export const userStatsResponseSchema = z.object({
   requestId: z.string(),
 });
 
-export const draftKindSchema = z.enum(['analysis', 'cover-letter']);
+export const draftKindSchema = z.enum(["analysis", "cover-letter"]);
 export const draftPayloadSchema = z.record(z.string(), z.unknown());
 export const draftResponseSchema = z.object({
   kind: draftKindSchema,
@@ -167,4 +298,5 @@ export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
 export type CoverLetterRequest = z.infer<typeof coverLetterRequestSchema>;
 export type TailoredResumeRequest = z.infer<typeof tailoredResumeRequestSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+export type WatchlistCreateInput = z.infer<typeof watchlistCreateSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;

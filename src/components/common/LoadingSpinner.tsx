@@ -1,26 +1,26 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-interface LoadingSpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
-  size?: "sm" | "md" | "lg"
+interface LoadingSpinnerProps extends React.HTMLAttributes<HTMLOutputElement> {
+  size?: "sm" | "md" | "lg";
 }
 
-const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(
+const LoadingSpinner = React.forwardRef<HTMLOutputElement, LoadingSpinnerProps>(
   ({ className, size = "md", ...props }, ref) => {
     const sizeClasses = {
       sm: "h-4 w-4 border-2",
       md: "h-8 w-8 border-3",
       lg: "h-12 w-12 border-4",
-    }
+    };
 
     return (
-      <div
+      <output
         ref={ref}
         className={cn(
           "inline-block rounded-full border-transparent animate-spin",
           sizeClasses[size],
-          className
+          className,
         )}
         style={{
           borderTopColor: "#10b981",
@@ -28,14 +28,13 @@ const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(
           borderBottomColor: "transparent",
           borderLeftColor: "transparent",
         }}
-        role="status"
         aria-label="Loading"
         {...props}
       />
-    )
-  }
-)
+    );
+  },
+);
 
-LoadingSpinner.displayName = "LoadingSpinner"
+LoadingSpinner.displayName = "LoadingSpinner";
 
-export { LoadingSpinner }
+export { LoadingSpinner };

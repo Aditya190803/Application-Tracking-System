@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import {
   COVER_LETTER_LENGTH_UI_OPTIONS,
   COVER_LETTER_TONE_UI_OPTIONS,
   type CoverLetterLength,
   type CoverLetterTone,
-} from '@/lib/cover-letter-options';
+} from "@/lib/cover-letter-options";
 
 interface CoverLetterPreferencesPanelProps {
   tone: CoverLetterTone;
@@ -28,7 +28,9 @@ export function CoverLetterPreferencesPanel({
 
       <div className="space-y-6">
         <div>
-          <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Tone</label>
+          <p className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Tone
+          </p>
           <div className="grid grid-cols-1 gap-2">
             {COVER_LETTER_TONE_UI_OPTIONS.map((option) => (
               <button
@@ -41,14 +43,14 @@ export function CoverLetterPreferencesPanel({
                 }}
                 className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition-all ${
                   tone === option.value
-                    ? 'border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                    : 'border-border/60 bg-background/80 text-foreground/85 hover:border-border'
+                    ? "border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    : "border-border/60 bg-background/80 text-foreground/85 hover:border-border"
                 }`}
               >
                 {option.label}
                 <span
                   className={`mt-0.5 block text-[10px] font-medium opacity-75 ${
-                    tone === option.value ? 'text-primary-foreground' : 'text-muted-foreground'
+                    tone === option.value ? "text-primary-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {option.description}
@@ -59,7 +61,9 @@ export function CoverLetterPreferencesPanel({
         </div>
 
         <div>
-          <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Length</label>
+          <p className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Length
+          </p>
           <div className="grid grid-cols-1 gap-2">
             {COVER_LETTER_LENGTH_UI_OPTIONS.map((option) => (
               <button
@@ -72,14 +76,14 @@ export function CoverLetterPreferencesPanel({
                 }}
                 className={`rounded-xl border px-4 py-3 text-left text-sm font-bold transition-all ${
                   length === option.value
-                    ? 'border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                    : 'border-border/60 bg-background/80 text-foreground/85 hover:border-border'
+                    ? "border-primary/40 bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    : "border-border/60 bg-background/80 text-foreground/85 hover:border-border"
                 }`}
               >
                 {option.label}
                 <span
                   className={`mt-0.5 block text-[10px] font-medium opacity-75 ${
-                    length === option.value ? 'text-primary-foreground' : 'text-muted-foreground'
+                    length === option.value ? "text-primary-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {option.description}

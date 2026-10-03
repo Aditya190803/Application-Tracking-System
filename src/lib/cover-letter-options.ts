@@ -1,18 +1,18 @@
-import { LENGTH_OPTIONS, TONE_OPTIONS } from '@/lib/gemini';
+import { LENGTH_OPTIONS, TONE_OPTIONS } from "@/lib/gemini";
 
 export type CoverLetterTone = keyof typeof TONE_OPTIONS;
 export type CoverLetterLength = keyof typeof LENGTH_OPTIONS;
 
 const TONE_DESCRIPTIONS: Record<CoverLetterTone, string> = {
-  professional: 'Formal and business-like',
-  friendly: 'Warm and approachable',
-  enthusiastic: 'Energetic and passionate',
+  professional: "Formal and business-like",
+  friendly: "Warm and approachable",
+  enthusiastic: "Energetic and passionate",
 };
 
 const LENGTH_DESCRIPTIONS: Record<CoverLetterLength, string> = {
-  concise: '~200 words',
-  standard: '~300 words',
-  detailed: '~400 words',
+  concise: "~200 words",
+  standard: "~300 words",
+  detailed: "~400 words",
 };
 
 export const COVER_LETTER_TONE_UI_OPTIONS = (Object.keys(TONE_OPTIONS) as CoverLetterTone[]).map(
@@ -23,13 +23,13 @@ export const COVER_LETTER_TONE_UI_OPTIONS = (Object.keys(TONE_OPTIONS) as CoverL
   }),
 );
 
-export const COVER_LETTER_LENGTH_UI_OPTIONS = (Object.keys(LENGTH_OPTIONS) as CoverLetterLength[]).map(
-  (value) => ({
-    value,
-    label: LENGTH_OPTIONS[value].label,
-    description: LENGTH_DESCRIPTIONS[value],
-  }),
-);
+export const COVER_LETTER_LENGTH_UI_OPTIONS = (
+  Object.keys(LENGTH_OPTIONS) as CoverLetterLength[]
+).map((value) => ({
+  value,
+  label: LENGTH_OPTIONS[value].label,
+  description: LENGTH_DESCRIPTIONS[value],
+}));
 
 export function isValidCoverLetterTone(tone: string): tone is CoverLetterTone {
   return Object.hasOwn(TONE_OPTIONS, tone);

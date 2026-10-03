@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   AlertCircle,
@@ -13,291 +13,296 @@ import {
   RefreshCw,
   Save,
   Sparkles,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ResumeVersion {
-  id: string
-  version: number
-  latexSource: string
-  templateId: string
-  resumeName?: string
-  jobDescription?: string
-  sourceAnalysisId?: string
-  customTemplateName?: string
-  createdAt: string
+  id: string;
+  version: number;
+  latexSource: string;
+  templateId: string;
+  resumeName?: string;
+  jobDescription?: string;
+  sourceAnalysisId?: string;
+  customTemplateName?: string;
+  createdAt: string;
 }
 
 interface SessionResponse {
-  slug: string
-  latestVersion: number
-  versions: ResumeVersion[]
-  requestId: string
+  slug: string;
+  latestVersion: number;
+  versions: ResumeVersion[];
+  requestId: string;
 }
 
 function downloadText(content: string, fileName: string) {
-  const blob = new Blob([content], { type: 'application/x-tex;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
+  const blob = new Blob([content], { type: "application/x-tex;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function ResumeBuilderSlugPage() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug } = useParams<{ slug: string }>();
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [versions, setVersions] = useState<ResumeVersion[]>([])
-  const [activeVersionId, setActiveVersionId] = useState<string | null>(null)
-  const [historyOpen, setHistoryOpen] = useState(false)
-  const [fullViewerOpen, setFullViewerOpen] = useState(false)
+  const [versions, setVersions] = useState<ResumeVersion[]>([]);
+  const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [fullViewerOpen, setFullViewerOpen] = useState(false);
 
-  const [latexSource, setLatexSource] = useState('')
-  const [isSavingVersion, setIsSavingVersion] = useState(false)
+  const [latexSource, setLatexSource] = useState("");
+  const [isSavingVersion, setIsSavingVersion] = useState(false);
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
-  const [isRendering, setIsRendering] = useState(false)
-  const [renderError, setRenderError] = useState<string | null>(null)
-  const [lastCompileLog, setLastCompileLog] = useState<string | null>(null)
-  const [isAiFixing, setIsAiFixing] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const [lastCompileLog, setLastCompileLog] = useState<string | null>(null);
+  const [isAiFixing, setIsAiFixing] = useState(false);
 
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
-  const debounceRef = useRef<number | null>(null)
-  const objectUrlsRef = useRef<Set<string>>(new Set())
+  const debounceRef = useRef<number | null>(null);
+  const objectUrlsRef = useRef<Set<string>>(new Set());
 
   const trackUrl = useCallback((url: string) => {
-    objectUrlsRef.current.add(url)
-    return url
-  }, [])
+    objectUrlsRef.current.add(url);
+    return url;
+  }, []);
 
   const revokeUrl = useCallback((url?: string | null) => {
-    if (!url) return
+    if (!url) return;
     if (objectUrlsRef.current.has(url)) {
-      URL.revokeObjectURL(url)
-      objectUrlsRef.current.delete(url)
+      URL.revokeObjectURL(url);
+      objectUrlsRef.current.delete(url);
     }
-  }, [])
+  }, []);
 
-  const renderLatex = useCallback(async (source: string) => {
-    setIsRendering(true)
-    setRenderError(null)
+  const renderLatex = useCallback(
+    async (source: string) => {
+      setIsRendering(true);
+      setRenderError(null);
 
-    try {
-      const response = await fetch('/api/render-latex', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latexSource: source }),
-      })
+      try {
+        const response = await fetch("/api/render-latex", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ latexSource: source }),
+        });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        const compileLog = typeof data?.details?.log === 'string' ? data.details.log : ''
-        setLastCompileLog(compileLog || null)
-        const logLine = compileLog.split('\n').find((line: string) => line.trim().length > 0)
-        const reason = logLine ? ` ${logLine.slice(0, 220)}` : ''
-        throw new Error(`${data.message || data.error || 'Failed to render LaTeX'}${reason}`)
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const compileLog = typeof data?.details?.log === "string" ? data.details.log : "";
+          setLastCompileLog(compileLog || null);
+          const logLine = compileLog.split("\n").find((line: string) => line.trim().length > 0);
+          const reason = logLine ? ` ${logLine.slice(0, 220)}` : "";
+          throw new Error(`${data.message || data.error || "Failed to render LaTeX"}${reason}`);
+        }
+
+        const blob = await response.blob();
+        setLastCompileLog(null);
+        setPreviewBlob(blob);
+        const url = trackUrl(URL.createObjectURL(blob));
+        setPreviewUrl((current) => {
+          revokeUrl(current);
+          return url;
+        });
+      } catch (err) {
+        setRenderError(err instanceof Error ? err.message : "Failed to render PDF preview");
+      } finally {
+        setIsRendering(false);
       }
-
-      const blob = await response.blob()
-      setLastCompileLog(null)
-      setPreviewBlob(blob)
-      const url = trackUrl(URL.createObjectURL(blob))
-      setPreviewUrl((current) => {
-        revokeUrl(current)
-        return url
-      })
-    } catch (err) {
-      setRenderError(err instanceof Error ? err.message : 'Failed to render PDF preview')
-    } finally {
-      setIsRendering(false)
-    }
-  }, [revokeUrl, trackUrl])
+    },
+    [revokeUrl, trackUrl],
+  );
 
   useEffect(() => {
     if (!slug) {
-      return
+      return;
     }
 
     async function loadSession() {
       try {
-        const response = await fetch(`/api/resume-builder/${slug}`)
+        const response = await fetch(`/api/resume-builder/${slug}`);
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Resume builder session not found')
-            return
+            setError("Resume builder session not found");
+            return;
           }
           if (response.status === 403) {
-            setError('You do not have access to this session')
-            return
+            setError("You do not have access to this session");
+            return;
           }
           if (response.status === 401) {
-            setError('Please sign in to view this session')
-            return
+            setError("Please sign in to view this session");
+            return;
           }
-          throw new Error('Failed to load session')
+          throw new Error("Failed to load session");
         }
 
-        const data = await response.json() as SessionResponse
-        setVersions(data.versions)
+        const data = (await response.json()) as SessionResponse;
+        setVersions(data.versions);
 
-        const latest = data.versions[0]
+        const latest = data.versions[0];
         if (latest) {
-          setActiveVersionId(latest.id)
-          setLatexSource(latest.latexSource)
-          await renderLatex(latest.latexSource)
+          setActiveVersionId(latest.id);
+          setLatexSource(latest.latexSource);
+          await renderLatex(latest.latexSource);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load session')
+        setError(err instanceof Error ? err.message : "Failed to load session");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    void loadSession()
-  }, [renderLatex, slug])
+    void loadSession();
+  }, [renderLatex, slug]);
 
   useEffect(() => {
     if (!latexSource.trim()) {
-      return
+      return;
     }
 
     if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current)
+      window.clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = window.setTimeout(() => {
-      void renderLatex(latexSource)
-    }, 650)
+      void renderLatex(latexSource);
+    }, 650);
 
     return () => {
       if (debounceRef.current) {
-        window.clearTimeout(debounceRef.current)
+        window.clearTimeout(debounceRef.current);
       }
-    }
-  }, [latexSource, renderLatex])
+    };
+  }, [latexSource, renderLatex]);
 
   useEffect(() => {
-    const trackedUrls = objectUrlsRef.current
+    const trackedUrls = objectUrlsRef.current;
     return () => {
       if (debounceRef.current) {
-        window.clearTimeout(debounceRef.current)
+        window.clearTimeout(debounceRef.current);
       }
 
       for (const url of trackedUrls) {
-        URL.revokeObjectURL(url)
+        URL.revokeObjectURL(url);
       }
-      trackedUrls.clear()
-    }
-  }, [])
+      trackedUrls.clear();
+    };
+  }, []);
 
   const saveVersion = async () => {
     if (!slug || !latexSource.trim()) {
-      return
+      return;
     }
 
-    setIsSavingVersion(true)
+    setIsSavingVersion(true);
     try {
       const response = await fetch(`/api/resume-builder/${slug}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ latexSource }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to save version')
+        throw new Error(data.message || data.error || "Failed to save version");
       }
 
       const createdVersion: ResumeVersion = {
         id: data.id,
         version: data.version,
         latexSource,
-        templateId: versions[0]?.templateId || 'custom',
+        templateId: versions[0]?.templateId || "custom",
         resumeName: versions[0]?.resumeName,
         jobDescription: versions[0]?.jobDescription,
         sourceAnalysisId: versions[0]?.sourceAnalysisId,
         customTemplateName: versions[0]?.customTemplateName,
         createdAt: data.createdAt,
-      }
+      };
 
-      setVersions((current) => [createdVersion, ...current])
-      setActiveVersionId(createdVersion.id)
+      setVersions((current) => [createdVersion, ...current]);
+      setActiveVersionId(createdVersion.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save version')
+      setError(err instanceof Error ? err.message : "Failed to save version");
     } finally {
-      setIsSavingVersion(false)
+      setIsSavingVersion(false);
     }
-  }
+  };
 
   const handleCopyLatex = async () => {
-    await navigator.clipboard.writeText(latexSource)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
+    await navigator.clipboard.writeText(latexSource);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   const handleAiFixLatex = async () => {
     if (!latexSource.trim()) {
-      return
+      return;
     }
 
-    setIsAiFixing(true)
+    setIsAiFixing(true);
     try {
-      const response = await fetch('/api/fix-latex', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/fix-latex", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           latexSource,
           compileLog: lastCompileLog || renderError || undefined,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Failed to apply AI LaTeX fix')
+        throw new Error(data.message || data.error || "Failed to apply AI LaTeX fix");
       }
 
-      const fixedLatex = typeof data.fixedLatex === 'string' ? data.fixedLatex : ''
+      const fixedLatex = typeof data.fixedLatex === "string" ? data.fixedLatex : "";
       if (!fixedLatex.trim()) {
-        throw new Error('AI did not return any fixed LaTeX source')
+        throw new Error("AI did not return any fixed LaTeX source");
       }
 
-      setLatexSource(fixedLatex)
-      setRenderError(null)
-      setLastCompileLog(null)
-      await renderLatex(fixedLatex)
+      setLatexSource(fixedLatex);
+      setRenderError(null);
+      setLastCompileLog(null);
+      await renderLatex(fixedLatex);
     } catch (err) {
-      setRenderError(err instanceof Error ? err.message : 'Failed to auto-fix LaTeX')
+      setRenderError(err instanceof Error ? err.message : "Failed to auto-fix LaTeX");
     } finally {
-      setIsAiFixing(false)
+      setIsAiFixing(false);
     }
-  }
+  };
 
-  const activeVersion = versions.find((item) => item.id === activeVersionId) || versions[0] || null
-  const previewEmbedSrc = previewUrl ? `${previewUrl}#page=1&view=FitH&zoom=page-fit&navpanes=0&toolbar=0&scrollbar=0` : null
+  const activeVersion = versions.find((item) => item.id === activeVersionId) || versions[0] || null;
+  const previewEmbedSrc = previewUrl
+    ? `${previewUrl}#page=1&view=FitH&zoom=page-fit&navpanes=0&toolbar=0&scrollbar=0`
+    : null;
 
   if (isLoading) {
     return (
@@ -307,7 +312,7 @@ export default function ResumeBuilderSlugPage() {
           <p className="text-muted-foreground font-medium">Loading resume builder session...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -317,12 +322,15 @@ export default function ResumeBuilderSlugPage() {
           <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-600" />
           <h2 className="text-lg font-bold text-red-800">Unable to open session</h2>
           <p className="mt-2 text-sm text-red-700">{error}</p>
-          <Link href="/dashboard/resume-builder" className="mt-4 inline-flex rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            href="/dashboard/resume-builder"
+            className="mt-4 inline-flex rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white"
+          >
             Back to Builder
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -335,10 +343,13 @@ export default function ResumeBuilderSlugPage() {
                 <FileCode2 className="h-3.5 w-3.5" />
                 Resume Builder Session
               </div>
-              <h1 className="text-2xl font-bold text-foreground">/dashboard/resume-builder/{slug}</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                /dashboard/resume-builder/{slug}
+              </h1>
               {activeVersion && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Version {activeVersion.version} • {new Date(activeVersion.createdAt).toLocaleString('en-US')}
+                  Version {activeVersion.version} •{" "}
+                  {new Date(activeVersion.createdAt).toLocaleString("en-US")}
                 </p>
               )}
             </div>
@@ -355,7 +366,11 @@ export default function ResumeBuilderSlugPage() {
               <History className="h-4 w-4" />
               Version History ({versions.length})
             </div>
-            {historyOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            {historyOpen ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
           </button>
 
           {historyOpen && (
@@ -365,14 +380,16 @@ export default function ResumeBuilderSlugPage() {
                   key={version.id}
                   type="button"
                   onClick={() => {
-                    setActiveVersionId(version.id)
-                    setLatexSource(version.latexSource)
-                    void renderLatex(version.latexSource)
+                    setActiveVersionId(version.id);
+                    setLatexSource(version.latexSource);
+                    void renderLatex(version.latexSource);
                   }}
-                  className={`rounded-lg border p-3 text-left text-xs ${activeVersionId === version.id ? 'border-primary bg-primary/10' : 'border-border/70 bg-background/70'}`}
+                  className={`rounded-lg border p-3 text-left text-xs ${activeVersionId === version.id ? "border-primary bg-primary/10" : "border-border/70 bg-background/70"}`}
                 >
                   <p className="font-semibold text-foreground">Version {version.version}</p>
-                  <p className="mt-1 text-muted-foreground">{new Date(version.createdAt).toLocaleString('en-US')}</p>
+                  <p className="mt-1 text-muted-foreground">
+                    {new Date(version.createdAt).toLocaleString("en-US")}
+                  </p>
                 </button>
               ))}
             </div>
@@ -391,19 +408,37 @@ export default function ResumeBuilderSlugPage() {
                   onClick={() => void handleAiFixLatex()}
                   disabled={isAiFixing || isRendering || !latexSource.trim()}
                 >
-                  {isAiFixing ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-2 h-3.5 w-3.5" />}
+                  {isAiFixing ? (
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-3.5 w-3.5" />
+                  )}
                   AI Fix
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={handleCopyLatex}>
                   <Copy className="mr-2 h-3.5 w-3.5" />
-                  {copied ? 'Copied' : 'Copy .tex'}
+                  {copied ? "Copied" : "Copy .tex"}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => downloadText(latexSource, `${slug}.tex`)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => downloadText(latexSource, `${slug}.tex`)}
+                >
                   <Download className="mr-2 h-3.5 w-3.5" />
                   Download .tex
                 </Button>
-                <Button type="button" size="sm" onClick={() => void saveVersion()} disabled={isSavingVersion || !latexSource.trim()}>
-                  {isSavingVersion ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-2 h-3.5 w-3.5" />}
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void saveVersion()}
+                  disabled={isSavingVersion || !latexSource.trim()}
+                >
+                  {isSavingVersion ? (
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-3.5 w-3.5" />
+                  )}
                   Save Version
                 </Button>
               </div>
@@ -425,8 +460,14 @@ export default function ResumeBuilderSlugPage() {
                     Rendering...
                   </span>
                 )}
-                <Button type="button" size="sm" variant="outline" onClick={() => void renderLatex(latexSource)} disabled={isRendering}>
-                  <RefreshCw className={`mr-2 h-3.5 w-3.5 ${isRendering ? 'animate-spin' : ''}`} />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void renderLatex(latexSource)}
+                  disabled={isRendering}
+                >
+                  <RefreshCw className={`mr-2 h-3.5 w-3.5 ${isRendering ? "animate-spin" : ""}`} />
                   Re-render
                 </Button>
                 <Button
@@ -436,7 +477,7 @@ export default function ResumeBuilderSlugPage() {
                   disabled={!previewBlob}
                   onClick={() => {
                     if (previewBlob) {
-                      downloadBlob(previewBlob, `${slug}.pdf`)
+                      downloadBlob(previewBlob, `${slug}.pdf`);
                     }
                   }}
                 >
@@ -488,19 +529,28 @@ export default function ResumeBuilderSlugPage() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => window.open(previewUrl, '_blank', 'noopener,noreferrer')}
+                  onClick={() => window.open(previewUrl, "_blank", "noopener,noreferrer")}
                 >
                   Open in New Tab
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setFullViewerOpen(false)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFullViewerOpen(false)}
+                >
                   Close
                 </Button>
               </div>
             </div>
-            <iframe title="resume-full-viewer" src={previewUrl} className="h-[80vh] w-full rounded-xl border border-border/70 bg-white" />
+            <iframe
+              title="resume-full-viewer"
+              src={previewUrl}
+              className="h-[80vh] w-full rounded-xl border border-border/70 bg-white"
+            />
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

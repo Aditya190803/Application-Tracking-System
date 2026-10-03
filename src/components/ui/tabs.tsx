@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface TabsContextType {
-  value?: string
-  defaultValue?: string
-  onValueChange?: (value: string) => void
-  activeTab: string
-  setActiveTab: (value: string) => void
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  activeTab: string;
+  setActiveTab: (value: string) => void;
 }
 
-const TabsContext = React.createContext<TabsContextType | undefined>(undefined)
+const TabsContext = React.createContext<TabsContextType | undefined>(undefined);
 
 export const Tabs = ({
   children,
@@ -21,26 +21,26 @@ export const Tabs = ({
   onValueChange,
   className,
 }: {
-  children: React.ReactNode
-  value?: string
-  defaultValue?: string
-  onValueChange?: (value: string) => void
-  className?: string
+  children: React.ReactNode;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  className?: string;
 }) => {
-  const [activeTab, setActiveTab] = React.useState(value || defaultValue || "")
+  const [activeTab, setActiveTab] = React.useState(value || defaultValue || "");
 
   React.useEffect(() => {
     if (value !== undefined) {
-      setActiveTab(value)
+      setActiveTab(value);
     }
-  }, [value])
+  }, [value]);
 
   const handleValueChange = (newValue: string) => {
     if (value === undefined) {
-      setActiveTab(newValue)
+      setActiveTab(newValue);
     }
-    onValueChange?.(newValue)
-  }
+    onValueChange?.(newValue);
+  };
 
   return (
     <TabsContext.Provider
@@ -54,39 +54,39 @@ export const Tabs = ({
     >
       <div className={cn("w-full", className)}>{children}</div>
     </TabsContext.Provider>
-  )
-}
+  );
+};
 
 export const TabsList = ({
   children,
   className,
 }: {
-  children: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  className?: string;
 }) => (
   <div
     className={cn(
       "inline-flex h-10 items-center justify-center rounded-xl bg-background border border-border p-1 text-muted-foreground",
-      className
+      className,
     )}
   >
     {children}
   </div>
-)
+);
 
 export const TabsTrigger = ({
   children,
   value,
   className,
 }: {
-  children: React.ReactNode
-  value: string
-  className?: string
+  children: React.ReactNode;
+  value: string;
+  className?: string;
 }) => {
-  const context = React.useContext(TabsContext)
-  if (!context) throw new Error("TabsTrigger must be used within Tabs")
+  const context = React.useContext(TabsContext);
+  if (!context) throw new Error("TabsTrigger must be used within Tabs");
 
-  const isActive = context.activeTab === value
+  const isActive = context.activeTab === value;
 
   return (
     <button
@@ -96,36 +96,36 @@ export const TabsTrigger = ({
         isActive
           ? "bg-primary text-white shadow-sm"
           : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
-        className
+        className,
       )}
     >
       {children}
     </button>
-  )
-}
+  );
+};
 
 export const TabsContent = ({
   children,
   value,
   className,
 }: {
-  children: React.ReactNode
-  value: string
-  className?: string
+  children: React.ReactNode;
+  value: string;
+  className?: string;
 }) => {
-  const context = React.useContext(TabsContext)
-  if (!context) throw new Error("TabsContent must be used within Tabs")
+  const context = React.useContext(TabsContext);
+  if (!context) throw new Error("TabsContent must be used within Tabs");
 
-  if (context.activeTab !== value) return null
+  if (context.activeTab !== value) return null;
 
   return (
     <div
       className={cn(
         "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className
+        className,
       )}
     >
       {children}
     </div>
-  )
-}
+  );
+};

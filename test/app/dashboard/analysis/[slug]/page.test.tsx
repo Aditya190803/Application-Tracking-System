@@ -1,24 +1,26 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-let currentSlug = 'new';
+let currentSlug = "new";
 const mockReplace = vi.fn();
 const mockFetch = vi.fn();
 const mockRouter = { replace: mockReplace };
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useParams: () => ({ slug: currentSlug }),
   useRouter: () => mockRouter,
 }));
 
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
-import AnalysisSlugPage from '@/app/dashboard/analysis/[slug]/page';
+import AnalysisSlugPage from "@/app/dashboard/analysis/[slug]/page";
 
 function createResponse(ok: boolean, status: number, payload: unknown): Response {
   return {
@@ -28,77 +30,94 @@ function createResponse(ok: boolean, status: number, payload: unknown): Response
   } as unknown as Response;
 }
 
-describe('/dashboard/analysis/[slug] flow', () => {
+describe("/dashboard/analysis/[slug] flow", () => {
   beforeEach(() => {
     mockReplace.mockReset();
     mockFetch.mockReset();
-    vi.stubGlobal('fetch', mockFetch);
+    vi.stubGlobal("fetch", mockFetch);
     sessionStorage.clear();
-    currentSlug = 'new';
+    currentSlug = "new";
   });
 
-  it('redirects from /dashboard/analysis/new to generated document slug', async () => {
-    sessionStorage.setItem('pendingAnalysisGeneration', JSON.stringify({
-      resumeText: 'Resume text',
-      jobDescription: 'Job description',
-      analysisType: 'match',
-      resumeName: 'resume.pdf',
-    }));
+  it("redirects from /dashboard/analysis/new to generated document slug", async () => {
+    sessionStorage.setItem(
+      "pendingAnalysisGeneration",
+      JSON.stringify({
+        resumeText: "Resume text",
+        jobDescription: "Job description",
+        analysisType: "match",
+        resumeName: "resume.pdf",
+      }),
+    );
 
-    mockFetch.mockResolvedValue(createResponse(true, 200, {
-      documentId: 'analysis-123',
-      result: { matchScore: 80 },
-      cached: false,
-    }));
+    mockFetch.mockResolvedValue(
+      createResponse(true, 200, {
+        documentId: "analysis-123",
+        result: { matchScore: 80 },
+        cached: false,
+      }),
+    );
 
     render(<AnalysisSlugPage />);
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/dashboard/analysis/analysis-123');
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard/analysis/analysis-123");
     });
   });
 
-  it('shows error when pending session payload is missing', async () => {
+  it("shows error when pending session payload is missing", async () => {
     render(<AnalysisSlugPage />);
 
-    expect(await screen.findByText('No pending analysis request found. Please start a new analysis.')).toBeInTheDocument();
+    expect(
+      await screen.findByText("No pending analysis request found. Please start a new analysis."),
+    ).toBeInTheDocument();
   });
 
-  it('shows API error state when generation request fails', async () => {
-    sessionStorage.setItem('pendingAnalysisGeneration', JSON.stringify({
-      resumeText: 'Resume text',
-      jobDescription: 'Job description',
-      analysisType: 'match',
-    }));
+  it("shows API error state when generation request fails", async () => {
+    sessionStorage.setItem(
+      "pendingAnalysisGeneration",
+      JSON.stringify({
+        resumeText: "Resume text",
+        jobDescription: "Job description",
+        analysisType: "match",
+      }),
+    );
 
-    mockFetch.mockResolvedValue(createResponse(false, 500, {
-      error: 'Generation failed',
-    }));
+    mockFetch.mockResolvedValue(
+      createResponse(false, 500, {
+        error: "Generation failed",
+      }),
+    );
 
     render(<AnalysisSlugPage />);
 
-    expect(await screen.findByText('Generation failed')).toBeInTheDocument();
+    expect(await screen.findByText("Generation failed")).toBeInTheDocument();
   });
 
-  it('retries generation automatically after a transient failure', async () => {
-    sessionStorage.setItem('pendingAnalysisGeneration', JSON.stringify({
-      resumeText: 'Resume text',
-      jobDescription: 'Job description',
-      analysisType: 'match',
-    }));
+  it("retries generation automatically after a transient failure", async () => {
+    sessionStorage.setItem(
+      "pendingAnalysisGeneration",
+      JSON.stringify({
+        resumeText: "Resume text",
+        jobDescription: "Job description",
+        analysisType: "match",
+      }),
+    );
 
     mockFetch
-      .mockResolvedValueOnce(createResponse(false, 500, { error: 'Generation failed' }))
-      .mockResolvedValueOnce(createResponse(true, 200, {
-        documentId: 'analysis-retry-1',
-        result: { matchScore: 88 },
-        cached: false,
-      }));
+      .mockResolvedValueOnce(createResponse(false, 500, { error: "Generation failed" }))
+      .mockResolvedValueOnce(
+        createResponse(true, 200, {
+          documentId: "analysis-retry-1",
+          result: { matchScore: 88 },
+          cached: false,
+        }),
+      );
 
     render(<AnalysisSlugPage />);
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/dashboard/analysis/analysis-retry-1');
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard/analysis/analysis-retry-1");
     });
   });
 });

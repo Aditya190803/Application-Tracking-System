@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useUser } from '@stackframe/stack'
+import { useUser } from "@stackframe/stack";
 import {
   AlertCircle,
   CheckCircle,
@@ -9,91 +9,95 @@ import {
   FileText,
   Loader2,
   Sparkles,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
-import { CoverLetterPreferencesPanel } from '@/components/dashboard/cover-letter/CoverLetterPreferencesPanel'
-import { CoverLetterRecentHistory } from '@/components/dashboard/cover-letter/CoverLetterRecentHistory'
-import { CoverLetterResultPanel } from '@/components/dashboard/cover-letter/CoverLetterResultPanel'
-import { CoverLetterDraftRestoreBanner } from '@/components/dashboard/cover-letter/DraftRestoreBanner'
-import type { RecentAnalysis, RecentCoverLetter, SearchHistoryItem } from '@/components/dashboard/cover-letter/types'
-import { ResumeSelect } from '@/components/resume/ResumeSelect'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/components/ui/toast'
+import { CoverLetterPreferencesPanel } from "@/components/dashboard/cover-letter/CoverLetterPreferencesPanel";
+import { CoverLetterRecentHistory } from "@/components/dashboard/cover-letter/CoverLetterRecentHistory";
+import { CoverLetterResultPanel } from "@/components/dashboard/cover-letter/CoverLetterResultPanel";
+import { CoverLetterDraftRestoreBanner } from "@/components/dashboard/cover-letter/DraftRestoreBanner";
+import type {
+  RecentAnalysis,
+  RecentCoverLetter,
+  SearchHistoryItem,
+} from "@/components/dashboard/cover-letter/types";
+import { ResumeSelect } from "@/components/resume/ResumeSelect";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import {
   buildCoverLetterMarkdown,
   downloadCoverLetterTxt,
   exportCoverLetterDocx,
   exportCoverLetterPdf,
-} from '@/lib/cover-letter-export'
+} from "@/lib/cover-letter-export";
 import {
   type CoverLetterLength,
   type CoverLetterTone,
   isValidCoverLetterLength,
   isValidCoverLetterTone,
-} from '@/lib/cover-letter-options'
+} from "@/lib/cover-letter-options";
 
-const COVER_LETTER_DRAFT_KEY = 'coverLetterDraft'
+const COVER_LETTER_DRAFT_KEY = "coverLetterDraft";
 
 export default function CoverLetterPage() {
-  const { addToast } = useToast()
+  const { addToast } = useToast();
   const [draft] = useState(() => {
-    if (typeof window === 'undefined') {
-      return null
+    if (typeof window === "undefined") {
+      return null;
     }
 
-    const draftRaw = localStorage.getItem(COVER_LETTER_DRAFT_KEY)
+    const draftRaw = localStorage.getItem(COVER_LETTER_DRAFT_KEY);
     if (!draftRaw) {
-      return null
+      return null;
     }
 
     try {
       return JSON.parse(draftRaw) as {
-        jobDescription?: string
-        companyName?: string
-        jobTitle?: string
-        tone?: CoverLetterTone
-        length?: CoverLetterLength
-      }
+        jobDescription?: string;
+        companyName?: string;
+        jobTitle?: string;
+        tone?: CoverLetterTone;
+        length?: CoverLetterLength;
+      };
     } catch {
-      localStorage.removeItem(COVER_LETTER_DRAFT_KEY)
-      return null
+      localStorage.removeItem(COVER_LETTER_DRAFT_KEY);
+      return null;
     }
-  })
-  const [jobDescription, setJobDescription] = useState(draft?.jobDescription ?? '')
-  const [companyName, setCompanyName] = useState(draft?.companyName ?? '')
-  const [jobTitle, setJobTitle] = useState(draft?.jobTitle ?? '')
+  });
+  const [jobDescription, setJobDescription] = useState(draft?.jobDescription ?? "");
+  const [companyName, setCompanyName] = useState(draft?.companyName ?? "");
+  const [jobTitle, setJobTitle] = useState(draft?.jobTitle ?? "");
   const [tone, setTone] = useState<CoverLetterTone>(
-    draft?.tone && isValidCoverLetterTone(draft.tone) ? draft.tone : 'professional',
-  )
+    draft?.tone && isValidCoverLetterTone(draft.tone) ? draft.tone : "professional",
+  );
   const [length, setLength] = useState<CoverLetterLength>(
-    draft?.length && isValidCoverLetterLength(draft.length) ? draft.length : 'standard',
-  )
-  const [resumeText, setResumeText] = useState<string | null>(null)
-  const [resumeName, setResumeName] = useState<string | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [coverLetter, setCoverLetter] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
-  const [showDraftRestoreHint, setShowDraftRestoreHint] = useState(Boolean(draft))
-  const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+    draft?.length && isValidCoverLetterLength(draft.length) ? draft.length : "standard",
+  );
+  const [resumeText, setResumeText] = useState<string | null>(null);
+  const [resumeName, setResumeName] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showDraftRestoreHint, setShowDraftRestoreHint] = useState(Boolean(draft));
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [serverDraft, setServerDraft] = useState<{
-    jobDescription?: string
-    companyName?: string
-    jobTitle?: string
-    tone?: CoverLetterTone
-    length?: CoverLetterLength
-  } | null>(null)
+    jobDescription?: string;
+    companyName?: string;
+    jobTitle?: string;
+    tone?: CoverLetterTone;
+    length?: CoverLetterLength;
+  } | null>(null);
 
-  const router = useRouter()
-  const user = useUser()
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([])
-  const [recentCoverLetters, setRecentCoverLetters] = useState<RecentCoverLetter[]>([])
+  const router = useRouter();
+  const user = useUser();
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([]);
+  const [recentCoverLetters, setRecentCoverLetters] = useState<RecentCoverLetter[]>([]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -103,161 +107,162 @@ export default function CoverLetterPage() {
         jobTitle,
         tone,
         length,
-      }
-      localStorage.setItem(COVER_LETTER_DRAFT_KEY, JSON.stringify(draftPayload))
-      void fetch('/api/drafts', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      };
+      localStorage.setItem(COVER_LETTER_DRAFT_KEY, JSON.stringify(draftPayload));
+      void fetch("/api/drafts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          kind: 'cover-letter',
+          kind: "cover-letter",
           draft: draftPayload,
         }),
-      })
-      setDraftStatus('saved')
-    }, 300)
+      });
+      setDraftStatus("saved");
+    }, 300);
 
-    return () => clearTimeout(timeout)
-  }, [jobDescription, companyName, jobTitle, tone, length])
+    return () => clearTimeout(timeout);
+  }, [jobDescription, companyName, jobTitle, tone, length]);
 
   useEffect(() => {
     if (draft) {
-      return
+      return;
     }
 
-    let isMounted = true
+    let isMounted = true;
     const loadServerDraft = async () => {
       try {
-        const response = await fetch('/api/drafts?kind=cover-letter')
+        const response = await fetch("/api/drafts?kind=cover-letter");
         if (!response.ok) {
-          return
+          return;
         }
 
-        const data = await response.json()
+        const data = await response.json();
         const remote = data?.draft as {
-          jobDescription?: string
-          companyName?: string
-          jobTitle?: string
-          tone?: CoverLetterTone
-          length?: CoverLetterLength
-        } | null
+          jobDescription?: string;
+          companyName?: string;
+          jobTitle?: string;
+          tone?: CoverLetterTone;
+          length?: CoverLetterLength;
+        } | null;
 
         if (!isMounted || !remote || !remote.jobDescription) {
-          return
+          return;
         }
 
-        setServerDraft(remote)
-        setShowDraftRestoreHint(true)
+        setServerDraft(remote);
+        setShowDraftRestoreHint(true);
       } catch {
         // noop
       }
-    }
+    };
 
-    void loadServerDraft()
+    void loadServerDraft();
     return () => {
-      isMounted = false
-    }
-  }, [draft])
+      isMounted = false;
+    };
+  }, [draft]);
 
   useEffect(() => {
     async function loadInitialData() {
       if (user?.id) {
         try {
-          const res = await fetch('/api/search-history?limit=10')
+          const res = await fetch("/api/search-history?limit=10");
           if (res.ok) {
-            const data = await res.json()
-            const allHistory: SearchHistoryItem[] = Array.isArray(data.history) ? data.history : []
+            const data = await res.json();
+            const allHistory: SearchHistoryItem[] = Array.isArray(data.history) ? data.history : [];
 
             const analyses = allHistory
-              .filter((h): h is RecentAnalysis => h.type === 'analysis')
-              .slice(0, 3)
-            setRecentAnalyses(analyses)
+              .filter((h): h is RecentAnalysis => h.type === "analysis")
+              .slice(0, 3);
+            setRecentAnalyses(analyses);
 
             const coverLettersHist = allHistory
-              .filter((h): h is RecentCoverLetter => h.type === 'cover-letter')
-              .slice(0, 3)
-            setRecentCoverLetters(coverLettersHist)
+              .filter((h): h is RecentCoverLetter => h.type === "cover-letter")
+              .slice(0, 3);
+            setRecentCoverLetters(coverLettersHist);
           }
         } catch (e) {
-          console.error('Failed to load recent analyses', e)
+          console.error("Failed to load recent analyses", e);
         }
       }
 
-      setIsInitializing(false)
+      setIsInitializing(false);
     }
 
     if (user?.id) {
-      loadInitialData()
+      loadInitialData();
     } else {
-      const timeout = setTimeout(() => setIsInitializing(false), 2000)
-      return () => clearTimeout(timeout)
+      const timeout = setTimeout(() => setIsInitializing(false), 2000);
+      return () => clearTimeout(timeout);
     }
-  }, [user?.id])
+  }, [user?.id]);
 
   const applyAnalysisData = (analysis: RecentAnalysis) => {
-    if (analysis.jobDescription) setJobDescription(analysis.jobDescription)
-    if (analysis.jobTitle) setJobTitle(analysis.jobTitle)
-    if (analysis.companyName) setCompanyName(analysis.companyName)
-    addToast('Job details loaded from history!', 'success')
-  }
+    if (analysis.jobDescription) setJobDescription(analysis.jobDescription);
+    if (analysis.jobTitle) setJobTitle(analysis.jobTitle);
+    if (analysis.companyName) setCompanyName(analysis.companyName);
+    addToast("Job details loaded from history!", "success");
+  };
 
   const loadPastCoverLetter = (coverLetterHist: RecentCoverLetter) => {
-    if (coverLetterHist.companyName) setCompanyName(coverLetterHist.companyName)
-    if (coverLetterHist.jobDescription) setJobDescription(coverLetterHist.jobDescription)
-    if (coverLetterHist.result) setCoverLetter(coverLetterHist.result)
-    addToast('Cover letter loaded!', 'success')
-  }
+    if (coverLetterHist.companyName) setCompanyName(coverLetterHist.companyName);
+    if (coverLetterHist.jobDescription) setJobDescription(coverLetterHist.jobDescription);
+    if (coverLetterHist.result) setCoverLetter(coverLetterHist.result);
+    addToast("Cover letter loaded!", "success");
+  };
 
   const handleResumeSelect = useCallback((text: string, name: string) => {
-    setResumeText(text)
-    setResumeName(name)
-  }, [])
+    setResumeText(text);
+    setResumeName(name);
+  }, []);
 
   const restoreDraft = () => {
-    const draftRaw = localStorage.getItem(COVER_LETTER_DRAFT_KEY)
+    const draftRaw = localStorage.getItem(COVER_LETTER_DRAFT_KEY);
     if (draftRaw) {
       try {
         const parsed = JSON.parse(draftRaw) as {
-          jobDescription?: string
-          companyName?: string
-          jobTitle?: string
-          tone?: CoverLetterTone
-          length?: CoverLetterLength
-        }
-        if (parsed.jobDescription) setJobDescription(parsed.jobDescription)
-        if (parsed.companyName) setCompanyName(parsed.companyName)
-        if (parsed.jobTitle) setJobTitle(parsed.jobTitle)
-        if (parsed.tone && isValidCoverLetterTone(parsed.tone)) setTone(parsed.tone)
-        if (parsed.length && isValidCoverLetterLength(parsed.length)) setLength(parsed.length)
-        setShowDraftRestoreHint(false)
-        return
+          jobDescription?: string;
+          companyName?: string;
+          jobTitle?: string;
+          tone?: CoverLetterTone;
+          length?: CoverLetterLength;
+        };
+        if (parsed.jobDescription) setJobDescription(parsed.jobDescription);
+        if (parsed.companyName) setCompanyName(parsed.companyName);
+        if (parsed.jobTitle) setJobTitle(parsed.jobTitle);
+        if (parsed.tone && isValidCoverLetterTone(parsed.tone)) setTone(parsed.tone);
+        if (parsed.length && isValidCoverLetterLength(parsed.length)) setLength(parsed.length);
+        setShowDraftRestoreHint(false);
+        return;
       } catch {
-        localStorage.removeItem(COVER_LETTER_DRAFT_KEY)
+        localStorage.removeItem(COVER_LETTER_DRAFT_KEY);
       }
     }
 
     if (serverDraft) {
-      if (serverDraft.jobDescription) setJobDescription(serverDraft.jobDescription)
-      if (serverDraft.companyName) setCompanyName(serverDraft.companyName)
-      if (serverDraft.jobTitle) setJobTitle(serverDraft.jobTitle)
-      if (serverDraft.tone && isValidCoverLetterTone(serverDraft.tone)) setTone(serverDraft.tone)
-      if (serverDraft.length && isValidCoverLetterLength(serverDraft.length)) setLength(serverDraft.length)
-      setShowDraftRestoreHint(false)
+      if (serverDraft.jobDescription) setJobDescription(serverDraft.jobDescription);
+      if (serverDraft.companyName) setCompanyName(serverDraft.companyName);
+      if (serverDraft.jobTitle) setJobTitle(serverDraft.jobTitle);
+      if (serverDraft.tone && isValidCoverLetterTone(serverDraft.tone)) setTone(serverDraft.tone);
+      if (serverDraft.length && isValidCoverLetterLength(serverDraft.length))
+        setLength(serverDraft.length);
+      setShowDraftRestoreHint(false);
     }
-  }
+  };
 
   const handleGenerate = async () => {
     if (!jobDescription.trim()) {
-      setError('Please enter a job description')
-      return
+      setError("Please enter a job description");
+      return;
     }
     if (!resumeText) {
-      setError('Please upload a resume first')
-      return
+      setError("Please upload a resume first");
+      return;
     }
 
-    setError(null)
-    setIsGenerating(true)
-    setCoverLetter(null)
+    setError(null);
+    setIsGenerating(true);
+    setCoverLetter(null);
 
     const payload = {
       resumeText,
@@ -268,45 +273,45 @@ export default function CoverLetterPage() {
       length,
       resumeName: resumeName || undefined,
       idempotencyKey: crypto.randomUUID(),
-    }
+    };
 
-    sessionStorage.setItem('pendingCoverLetterGeneration', JSON.stringify(payload))
-    void fetch('/api/drafts?kind=cover-letter', { method: 'DELETE' })
-    router.push('/dashboard/cover-letter/new')
-  }
+    sessionStorage.setItem("pendingCoverLetterGeneration", JSON.stringify(payload));
+    void fetch("/api/drafts?kind=cover-letter", { method: "DELETE" });
+    router.push("/dashboard/cover-letter/new");
+  };
 
   const handleCopy = async () => {
-    if (!coverLetter) return
-    await navigator.clipboard.writeText(coverLetter)
-    setCopied(true)
-    addToast('Copied to clipboard!', 'success')
-    setTimeout(() => setCopied(false), 2000)
-  }
+    if (!coverLetter) return;
+    await navigator.clipboard.writeText(coverLetter);
+    setCopied(true);
+    addToast("Copied to clipboard!", "success");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDownload = () => {
-    if (!coverLetter) return
-    downloadCoverLetterTxt(coverLetter, companyName)
-    addToast('Cover letter downloaded!', 'success')
-  }
+    if (!coverLetter) return;
+    downloadCoverLetterTxt(coverLetter, companyName);
+    addToast("Cover letter downloaded!", "success");
+  };
 
   const handleCopyMarkdown = async () => {
-    if (!coverLetter) return
-    const markdown = buildCoverLetterMarkdown(coverLetter, companyName, jobTitle)
-    await navigator.clipboard.writeText(markdown)
-    addToast('Markdown copied to clipboard!', 'success')
-  }
+    if (!coverLetter) return;
+    const markdown = buildCoverLetterMarkdown(coverLetter, companyName, jobTitle);
+    await navigator.clipboard.writeText(markdown);
+    addToast("Markdown copied to clipboard!", "success");
+  };
 
   const handleExportPdf = async () => {
-    if (!coverLetter) return
-    await exportCoverLetterPdf(coverLetter, companyName)
-    addToast('PDF exported!', 'success')
-  }
+    if (!coverLetter) return;
+    await exportCoverLetterPdf(coverLetter, companyName);
+    addToast("PDF exported!", "success");
+  };
 
   const handleExportDocx = async () => {
-    if (!coverLetter) return
-    await exportCoverLetterDocx(coverLetter, companyName)
-    addToast('DOCX exported!', 'success')
-  }
+    if (!coverLetter) return;
+    await exportCoverLetterDocx(coverLetter, companyName);
+    addToast("DOCX exported!", "success");
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
@@ -321,16 +326,24 @@ export default function CoverLetterPage() {
             <Sparkles className="h-3.5 w-3.5" />
             Letter Studio
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Cover letter generator</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Cover letter generator
+          </h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
             Generate role-specific letters from your resume, job details, and style preferences.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground">
+            <Link
+              href="/how-it-works"
+              className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
+            >
               <Compass className="h-4 w-4" />
               How it works
             </Link>
-            <Link href="/dashboard/history" className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground">
+            <Link
+              href="/dashboard/history"
+              className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-background px-4 py-2.5 text-sm font-semibold text-foreground"
+            >
               <Clock className="h-4 w-4" />
               Review history
             </Link>
@@ -365,26 +378,38 @@ export default function CoverLetterPage() {
 
                 <div className="mb-6 grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company name</label>
+                    <label
+                      htmlFor="cover-company"
+                      className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Company name
+                    </label>
                     <Input
+                      id="cover-company"
                       aria-label="Company name"
                       value={companyName}
                       onChange={(e) => {
-                        setDraftStatus('saving')
-                        setCompanyName(e.target.value)
+                        setDraftStatus("saving");
+                        setCompanyName(e.target.value);
                       }}
                       placeholder="e.g., Google"
                       className="rounded-xl border-border/80 bg-background/80 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/45"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Job title</label>
+                    <label
+                      htmlFor="cover-title"
+                      className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Job title
+                    </label>
                     <Input
+                      id="cover-title"
                       aria-label="Job title"
                       value={jobTitle}
                       onChange={(e) => {
-                        setDraftStatus('saving')
-                        setJobTitle(e.target.value)
+                        setDraftStatus("saving");
+                        setJobTitle(e.target.value);
                       }}
                       placeholder="e.g., Software Engineer"
                       className="rounded-xl border-border/80 bg-background/80 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/45"
@@ -393,13 +418,19 @@ export default function CoverLetterPage() {
                 </div>
 
                 <div className="mb-6 space-y-2">
-                  <label className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Job description</label>
+                  <label
+                    htmlFor="cover-description"
+                    className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Job description
+                  </label>
                   <Textarea
+                    id="cover-description"
                     aria-label="Job description"
                     value={jobDescription}
                     onChange={(e) => {
-                      setDraftStatus('saving')
-                      setJobDescription(e.target.value)
+                      setDraftStatus("saving");
+                      setJobDescription(e.target.value);
                     }}
                     placeholder="Paste the job description here..."
                     className="min-h-[280px] resize-none rounded-2xl border-border/80 bg-background/80 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/45"
@@ -408,7 +439,12 @@ export default function CoverLetterPage() {
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {jobDescription.length} characters  |  {draftStatus === 'saving' ? 'Saving draft...' : draftStatus === 'saved' ? 'Draft saved' : 'Draft idle'}
+                    {jobDescription.length} characters |{" "}
+                    {draftStatus === "saving"
+                      ? "Saving draft..."
+                      : draftStatus === "saved"
+                        ? "Draft saved"
+                        : "Draft idle"}
                   </span>
                   <Button
                     type="button"
@@ -447,10 +483,14 @@ export default function CoverLetterPage() {
                       Try shorter description
                     </Button>
                     <Link href="/dashboard/analysis">
-                      <Button variant="outline" className="btn-secondary">Use last analysis</Button>
+                      <Button variant="outline" className="btn-secondary">
+                        Use last analysis
+                      </Button>
                     </Link>
                     <Link href="/dashboard/upload">
-                      <Button variant="outline" className="btn-secondary">Re-upload resume</Button>
+                      <Button variant="outline" className="btn-secondary">
+                        Re-upload resume
+                      </Button>
                     </Link>
                   </div>
                 </div>
@@ -460,7 +500,9 @@ export default function CoverLetterPage() {
             <aside className="space-y-6 lg:col-span-2 lg:sticky lg:top-6 lg:self-start">
               <section className="relative z-30 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-lg shadow-border/20 backdrop-blur sm:p-8">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${resumeText ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${resumeText ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}
+                  >
                     {resumeText ? (
                       <CheckCircle className="h-5 w-5" />
                     ) : (
@@ -468,7 +510,7 @@ export default function CoverLetterPage() {
                     )}
                   </div>
                   <h2 className="text-lg font-bold text-foreground">
-                    {resumeText ? 'Resume selected' : 'Select resume'}
+                    {resumeText ? "Resume selected" : "Select resume"}
                   </h2>
                 </div>
                 <ResumeSelect
@@ -482,7 +524,7 @@ export default function CoverLetterPage() {
                 length={length}
                 onToneChange={setTone}
                 onLengthChange={setLength}
-                onDraftTouch={() => setDraftStatus('saving')}
+                onDraftTouch={() => setDraftStatus("saving")}
               />
             </aside>
           </div>
@@ -499,12 +541,12 @@ export default function CoverLetterPage() {
             onExportPdf={handleExportPdf}
             onExportDocx={handleExportDocx}
             onNewLetter={() => {
-              setCoverLetter(null)
-              router.replace('/dashboard/cover-letter')
+              setCoverLetter(null);
+              router.replace("/dashboard/cover-letter");
             }}
           />
         )}
       </div>
     </div>
-  )
+  );
 }

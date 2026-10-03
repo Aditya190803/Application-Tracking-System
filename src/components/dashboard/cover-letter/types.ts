@@ -1,4 +1,4 @@
-export type HistoryType = 'analysis' | 'cover-letter';
+export type HistoryType = "analysis" | "cover-letter";
 
 export interface SearchHistoryItem {
   id: string;
@@ -12,5 +12,5 @@ export interface SearchHistoryItem {
   result: string;
 }
 
-export type RecentAnalysis = SearchHistoryItem & { type: 'analysis' };
-export type RecentCoverLetter = SearchHistoryItem & { type: 'cover-letter' };
+export type RecentAnalysis = SearchHistoryItem & { type: "analysis" };
+export type RecentCoverLetter = SearchHistoryItem & { type: "cover-letter" };

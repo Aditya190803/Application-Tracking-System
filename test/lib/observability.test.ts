@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
   flushObservabilitySafely,
@@ -6,9 +6,9 @@ import {
   logInfo,
   logSafeFileName,
   sanitizeLogErrorMessage,
-} from '@/lib/observability';
+} from "@/lib/observability";
 
-describe('observability', () => {
+describe("observability", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     delete process.env.AXIOM_TOKEN;
@@ -16,45 +16,45 @@ describe('observability', () => {
     delete process.env.AXIOM_EDGE;
   });
 
-  describe('sanitizeLogErrorMessage', () => {
-    it('returns undefined when details disabled', () => {
-      expect(sanitizeLogErrorMessage(new Error('x'), false)).toBeUndefined();
+  describe("sanitizeLogErrorMessage", () => {
+    it("returns undefined when details disabled", () => {
+      expect(sanitizeLogErrorMessage(new Error("x"), false)).toBeUndefined();
     });
 
-    it('returns message slice when details enabled', () => {
-      expect(sanitizeLogErrorMessage(new Error('boom'), true)).toBe('boom');
+    it("returns message slice when details enabled", () => {
+      expect(sanitizeLogErrorMessage(new Error("boom"), true)).toBe("boom");
     });
 
-    it('returns unknown_error for non-Error when details enabled', () => {
-      expect(sanitizeLogErrorMessage('nope', true)).toBe('unknown_error');
-    });
-  });
-
-  describe('logSafeFileName', () => {
-    it('strips path segments', () => {
-      expect(logSafeFileName('C:\\Users\\resume.pdf')).toBe('resume.pdf');
-    });
-
-    it('returns unknown for empty basename', () => {
-      expect(logSafeFileName('')).toBe('unknown');
+    it("returns unknown_error for non-Error when details enabled", () => {
+      expect(sanitizeLogErrorMessage("nope", true)).toBe("unknown_error");
     });
   });
 
-  describe('logInfo / logError without Axiom env', () => {
-    it('writes to stdout without throwing', () => {
-      const info = vi.spyOn(console, 'info').mockImplementation(() => {});
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  describe("logSafeFileName", () => {
+    it("strips path segments", () => {
+      expect(logSafeFileName("C:\\Users\\resume.pdf")).toBe("resume.pdf");
+    });
 
-      logInfo({ event: 'test.info' });
-      logError({ event: 'test.error' });
+    it("returns unknown for empty basename", () => {
+      expect(logSafeFileName("")).toBe("unknown");
+    });
+  });
+
+  describe("logInfo / logError without Axiom env", () => {
+    it("writes to stdout without throwing", () => {
+      const info = vi.spyOn(console, "info").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      logInfo({ event: "test.info" });
+      logError({ event: "test.error" });
 
       expect(info).toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalled();
     });
   });
 
-  describe('flushObservabilitySafely', () => {
-    it('does not throw when Axiom is not configured', () => {
+  describe("flushObservabilitySafely", () => {
+    it("does not throw when Axiom is not configured", () => {
       expect(() => flushObservabilitySafely()).not.toThrow();
     });
   });

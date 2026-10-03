@@ -1,84 +1,93 @@
-'use client'
+"use client";
 
-import { CheckCircle,Upload, X } from 'lucide-react'
-import * as React from "react"
-import { useCallback,useState } from 'react'
+import { CheckCircle, Upload, X } from "lucide-react";
+import * as React from "react";
+import { useCallback, useState } from "react";
 
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import { Button } from '@/components/ui/button'
-import { formatApiErrorMessage } from '@/lib/api-client-error'
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import { formatApiErrorMessage } from "@/lib/api-client-error";
 
 interface ResumeUploadProps {
-  onUpload: (data: { text: string; fileName: string; pages: number }) => void
-  currentFile?: string
-  onClear: () => void
+  onUpload: (data: { text: string; fileName: string; pages: number }) => void;
+  currentFile?: string;
+  onClear: () => void;
 }
 
 export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadProps) {
-  const [isDragging, setIsDragging] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFile = useCallback(async (file: File) => {
-    setError(null)
-    setIsLoading(true)
+  const handleFile = useCallback(
+    async (file: File) => {
+      setError(null);
+      setIsLoading(true);
 
-    try {
-      if (!file.name.toLowerCase().endsWith('.pdf')) {
-        throw new Error('Please upload a PDF file')
+      try {
+        if (!file.name.toLowerCase().endsWith(".pdf")) {
+          throw new Error("Please upload a PDF file");
+        }
+
+        if (file.size > 20 * 1024 * 1024) {
+          throw new Error("File size must be less than 20MB");
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/parse-pdf", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(formatApiErrorMessage(data, "Failed to parse PDF"));
+        }
+
+        const data = await response.json();
+        onUpload({
+          text: data.text,
+          fileName: data.fileName,
+          pages: data.pages,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to upload file");
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [onUpload],
+  );
 
-      if (file.size > 20 * 1024 * 1024) {
-        throw new Error('File size must be less than 20MB')
-      }
-
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/parse-pdf', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(formatApiErrorMessage(data, 'Failed to parse PDF'))
-      }
-
-      const data = await response.json()
-      onUpload({
-        text: data.text,
-        fileName: data.fileName,
-        pages: data.pages,
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload file')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [onUpload])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handleFile(file)
-  }, [handleFile])
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    },
+    [handleFile],
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) handleFile(file)
-  }, [handleFile])
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile],
+  );
 
   if (currentFile) {
     return (
@@ -89,9 +98,7 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
               <CheckCircle className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-foreground block">
-                {currentFile}
-              </span>
+              <span className="font-bold text-foreground block">{currentFile}</span>
               <span className="text-sm text-muted-foreground font-medium">
                 Successfully uploaded and parsed
               </span>
@@ -107,7 +114,7 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -119,12 +126,12 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
         className={`
           relative group cursor-pointer transition-all duration-300
           rounded-3xl border-2 border-dashed min-h-[280px] flex flex-col items-center justify-center
-          ${isDragging 
-            ? 'border-border bg-background scale-[0.99] shadow-inner' 
-            : 'border-border bg-card hover:border-border/80 hover:bg-background shadow-sm'
+          ${
+            isDragging
+              ? "border-border bg-background scale-[0.99] shadow-inner"
+              : "border-border bg-card hover:border-border/80 hover:bg-background shadow-sm"
           }
         `}
-        onClick={() => document.getElementById('resume-upload')?.click()}
       >
         <input
           id="resume-upload"
@@ -140,7 +147,9 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
             <LoadingSpinner size="lg" />
             <div className="text-center">
               <p className="font-bold text-foreground">Analyzing Resume...</p>
-              <p className="text-sm text-muted-foreground font-medium">Extracting text and structure</p>
+              <p className="text-sm text-muted-foreground font-medium">
+                Extracting text and structure
+              </p>
             </div>
           </div>
         ) : (
@@ -156,7 +165,12 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
                 Support PDF files up to 20MB
               </p>
             </div>
-            <Button variant="outline" className="rounded-xl border-border font-bold px-8">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => document.getElementById("resume-upload")?.click()}
+              className="rounded-xl border-border font-bold px-8"
+            >
               Select File
             </Button>
           </div>
@@ -170,5 +184,5 @@ export function ResumeUpload({ onUpload, currentFile, onClear }: ResumeUploadPro
         </div>
       )}
     </div>
-  )
+  );
 }

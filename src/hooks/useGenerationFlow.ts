@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface UseGenerationFlowOptions {
   stepDurationMs?: number;
@@ -55,8 +55,8 @@ export function useGenerationFlow(steps: string[], options: UseGenerationFlowOpt
     try {
       return await executor(controller.signal);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        throw new Error('Generation canceled.');
+      if (err instanceof DOMException && err.name === "AbortError") {
+        throw new Error("Generation canceled.");
       }
       throw err;
     } finally {

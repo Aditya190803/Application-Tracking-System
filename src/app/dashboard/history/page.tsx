@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   ArrowRight,
@@ -10,95 +10,98 @@ import {
   Inbox,
   Loader2,
   Target,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
-import { HistoryFilterTabs } from '@/components/dashboard/history/HistoryFilterTabs'
-import { Button } from '@/components/ui/button'
-import { useHistory } from '@/hooks/useHistory'
-import type { HistoryAnalysisItem, HistoryItem, HistoryType } from '@/types/domain'
+import { HistoryFilterTabs } from "@/components/dashboard/history/HistoryFilterTabs";
+import { Button } from "@/components/ui/button";
+import { useHistory } from "@/hooks/useHistory";
+import type { HistoryAnalysisItem, HistoryItem, HistoryType } from "@/types/domain";
 
 export default function HistoryPage() {
-  const { isLoading, isLoadingMore, error, hasMore, loadMore, filterItems, refresh } = useHistory(20)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | HistoryType>('all')
+  const { isLoading, isLoadingMore, error, hasMore, loadMore, filterItems, refresh } =
+    useHistory(20);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | HistoryType>("all");
 
-  const filteredHistory = filterItems(filter)
+  const filteredHistory = filterItems(filter);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 7) return `${diffDays}d ago`
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    })
-  }
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  };
 
   const getAnalysisLabel = (analysisType: string) => {
     switch (analysisType) {
-      case 'match':
-        return 'Match Score'
-      case 'ats':
-        return 'ATS Check'
-      case 'skills':
-        return 'Skills Analysis'
+      case "match":
+        return "Match Score";
+      case "ats":
+        return "ATS Check";
+      case "skills":
+        return "Skills Analysis";
       default:
-        return analysisType.charAt(0).toUpperCase() + analysisType.slice(1)
+        return analysisType.charAt(0).toUpperCase() + analysisType.slice(1);
     }
-  }
+  };
 
   const parseScoreFromResult = (result: string): number | null => {
     try {
-      const parsed = JSON.parse(result)
-      if (parsed.matchScore) return parsed.matchScore
+      const parsed = JSON.parse(result);
+      if (parsed.matchScore) return parsed.matchScore;
     } catch {
-      const match = result.match(/(\d+)%/)
-      if (match) return parseInt(match[1])
+      const match = result.match(/(\d+)%/);
+      if (match) return parseInt(match[1]);
     }
-    return null
-  }
+    return null;
+  };
 
   const getPreview = (result: string): string => {
-    if (result.trim().startsWith('\\documentclass')) {
-      return 'Generated LaTeX resume source'
+    if (result.trim().startsWith("\\documentclass")) {
+      return "Generated LaTeX resume source";
     }
 
     try {
-      const parsed = JSON.parse(result)
-      if (parsed.overview) return parsed.overview
-      if (typeof parsed === 'string') return parsed.substring(0, 200)
+      const parsed = JSON.parse(result);
+      if (parsed.overview) return parsed.overview;
+      if (typeof parsed === "string") return parsed.substring(0, 200);
     } catch {
       // no-op
     }
-    return result.substring(0, 200)
-  }
+    return result.substring(0, 200);
+  };
 
   const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id)
-  }
+    setExpandedId(expandedId === id ? null : id);
+  };
 
   const getDestinationHref = (item: HistoryItem): string => {
-    if (item.type === 'analysis') {
-      return `/dashboard/analysis/${item.id}`
+    if (item.type === "analysis") {
+      return `/dashboard/analysis/${item.id}`;
     }
 
-    if (item.type === 'cover-letter') {
-      return `/dashboard/cover-letter/${item.id}`
+    if (item.type === "cover-letter") {
+      return `/dashboard/cover-letter/${item.id}`;
     }
 
-    return item.builderSlug ? `/dashboard/resume-builder/${item.builderSlug}` : '/dashboard/resume-builder'
-  }
+    return item.builderSlug
+      ? `/dashboard/resume-builder/${item.builderSlug}`
+      : "/dashboard/resume-builder";
+  };
 
   if (isLoading) {
     return (
@@ -108,7 +111,7 @@ export default function HistoryPage() {
           <p className="text-muted-foreground font-medium">Loading history...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -121,7 +124,9 @@ export default function HistoryPage() {
             </div>
             <h1 className="text-2xl font-bold text-foreground">History</h1>
           </div>
-          <p className="text-muted-foreground font-medium ml-12">Your past analyses, generated cover letters, and resumes.</p>
+          <p className="text-muted-foreground font-medium ml-12">
+            Your past analyses, generated cover letters, and resumes.
+          </p>
         </div>
 
         <HistoryFilterTabs filter={filter} onChange={setFilter} />
@@ -134,7 +139,9 @@ export default function HistoryPage() {
                 Retry
               </Button>
               <Link href="/dashboard/upload">
-                <Button variant="outline" className="btn-secondary">Re-upload Resume</Button>
+                <Button variant="outline" className="btn-secondary">
+                  Re-upload Resume
+                </Button>
               </Link>
             </div>
           </div>
@@ -147,20 +154,22 @@ export default function HistoryPage() {
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">No history yet</h2>
             <p className="text-muted-foreground font-medium mb-6 max-w-sm mx-auto">
-              {filter === 'analysis'
-                ? 'Run your first resume analysis to see it here.'
-                : filter === 'cover-letter'
-                  ? 'Generate your first cover letter to see it here.'
-                  : filter === 'resume'
-                    ? 'Build your first tailored resume to see it here.'
-                    : 'Start by running a resume analysis, generating a cover letter, or building a resume.'}
+              {filter === "analysis"
+                ? "Run your first resume analysis to see it here."
+                : filter === "cover-letter"
+                  ? "Generate your first cover letter to see it here."
+                  : filter === "resume"
+                    ? "Build your first tailored resume to see it here."
+                    : "Start by running a resume analysis, generating a cover letter, or building a resume."}
             </p>
             <div className="flex items-center justify-center gap-3">
               <Link href="/dashboard/analysis">
                 <Button className="btn-primary">Run Analysis</Button>
               </Link>
               <Link href="/dashboard/cover-letter">
-                <Button variant="outline" className="btn-secondary">Use Last Analysis</Button>
+                <Button variant="outline" className="btn-secondary">
+                  Use Last Analysis
+                </Button>
               </Link>
             </div>
           </div>
@@ -168,45 +177,62 @@ export default function HistoryPage() {
           <>
             <div className="space-y-3">
               {filteredHistory.map((item) => {
-                const isExpanded = expandedId === item.id
-                const score = item.type === 'analysis' ? parseScoreFromResult(item.result) : null
+                const isExpanded = expandedId === item.id;
+                const score = item.type === "analysis" ? parseScoreFromResult(item.result) : null;
 
                 return (
                   <div
                     key={item.id}
                     className="group bg-card border border-border rounded-2xl shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-200"
                   >
-                    <button onClick={() => toggleExpand(item.id)} className="w-full flex items-center gap-4 p-5 text-left">
+                    <button
+                      onClick={() => toggleExpand(item.id)}
+                      className="w-full flex items-center gap-4 p-5 text-left"
+                    >
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          item.type === 'analysis' ? 'bg-primary text-white' : item.type === 'resume' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-foreground/80'
+                          item.type === "analysis"
+                            ? "bg-primary text-white"
+                            : item.type === "resume"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-muted text-foreground/80"
                         }`}
                       >
-                        {item.type === 'analysis' ? <Target className="w-5 h-5" /> : item.type === 'resume' ? <FileText className="w-5 h-5" /> : <FileEdit className="w-5 h-5" />}
+                        {item.type === "analysis" ? (
+                          <Target className="w-5 h-5" />
+                        ) : item.type === "resume" ? (
+                          <FileText className="w-5 h-5" />
+                        ) : (
+                          <FileEdit className="w-5 h-5" />
+                        )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${
-                              item.type === 'analysis'
-                                ? 'bg-primary text-white'
-                                : item.type === 'resume'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-muted text-foreground/80'
+                              item.type === "analysis"
+                                ? "bg-primary text-white"
+                                : item.type === "resume"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-muted text-foreground/80"
                             }`}
                           >
-                            {item.type === 'analysis' ? getAnalysisLabel((item as HistoryAnalysisItem).analysisType) : item.type === 'resume' ? 'Resume' : 'Cover Letter'}
+                            {item.type === "analysis"
+                              ? getAnalysisLabel((item as HistoryAnalysisItem).analysisType)
+                              : item.type === "resume"
+                                ? "Resume"
+                                : "Cover Letter"}
                           </span>
 
                           {score !== null && (
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ${
                                 score >= 80
-                                  ? 'bg-emerald-50 text-emerald-700'
+                                  ? "bg-emerald-50 text-emerald-700"
                                   : score >= 60
-                                    ? 'bg-amber-50 text-amber-700'
-                                    : 'bg-red-50 text-red-700'
+                                    ? "bg-amber-50 text-amber-700"
+                                    : "bg-red-50 text-red-700"
                               }`}
                             >
                               {score}% match
@@ -215,37 +241,39 @@ export default function HistoryPage() {
                         </div>
 
                         <p className="text-sm font-semibold text-foreground truncate">
-                          {item.type === 'analysis'
+                          {item.type === "analysis"
                             ? item.jobTitle && item.companyName
                               ? `Analysis — ${item.jobTitle} at ${item.companyName}`
                               : item.jobTitle
                                 ? `Analysis — ${item.jobTitle}`
                                 : item.resumeName
                                   ? `Analysis for ${item.resumeName}`
-                                  : 'Resume Analysis'
-                            : item.type === 'resume'
+                                  : "Resume Analysis"
+                            : item.type === "resume"
                               ? item.jobTitle && item.companyName
                                 ? `Resume — ${item.jobTitle} at ${item.companyName}`
                                 : item.resumeName
                                   ? `Resume — ${item.resumeName}`
-                                  : 'Tailored Resume'
-                            : item.companyName
-                              ? `Cover Letter — ${item.companyName}`
-                              : item.resumeName
-                                ? `Cover Letter — ${item.resumeName}`
-                                : 'Cover Letter'}
+                                  : "Tailored Resume"
+                              : item.companyName
+                                ? `Cover Letter — ${item.companyName}`
+                                : item.resumeName
+                                  ? `Cover Letter — ${item.resumeName}`
+                                  : "Cover Letter"}
                         </p>
 
-                        {(item.type === 'analysis' || item.type === 'resume') && (
+                        {(item.type === "analysis" || item.type === "resume") && (
                           <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">
                             <FileText className="w-3 h-3 inline mr-1" />
-                            {item.resumeName || 'Resume'}
+                            {item.resumeName || "Resume"}
                           </p>
                         )}
                       </div>
 
                       <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className="text-xs font-semibold text-muted-foreground">{formatDate(item.createdAt)}</span>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {formatDate(item.createdAt)}
+                        </span>
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4 text-muted-foreground" />
                         ) : (
@@ -258,28 +286,36 @@ export default function HistoryPage() {
                       <div className="px-5 pb-5 pt-0 border-t border-border/50 mt-0">
                         <div className="pt-4">
                           <p className="text-sm text-muted-foreground font-semibold mb-2 uppercase tracking-wider">
-                            {item.type === 'analysis' ? 'Analysis Result' : item.type === 'resume' ? 'Generated Resume' : 'Generated Letter'}
+                            {item.type === "analysis"
+                              ? "Analysis Result"
+                              : item.type === "resume"
+                                ? "Generated Resume"
+                                : "Generated Letter"}
                           </p>
                           <div className="p-4 rounded-xl bg-background border border-border/50 max-h-72 overflow-y-auto">
                             <p className="text-sm text-foreground/80 font-medium leading-relaxed whitespace-pre-wrap">
                               {getPreview(item.result)}
-                              {item.result.length > 200 && '...'}
+                              {item.result.length > 200 && "..."}
                             </p>
                           </div>
                           <div className="flex items-center justify-between mt-4">
                             <span className="text-xs text-muted-foreground font-medium">
-                              {new Date(item.createdAt).toLocaleString('en-US', {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
+                              {new Date(item.createdAt).toLocaleString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
                               })}
                             </span>
                             <Link href={getDestinationHref(item)}>
                               <Button variant="outline" className="btn-secondary text-xs h-8 px-3">
-                                {item.type === 'analysis' ? 'Open Analysis' : item.type === 'resume' ? 'Open Resume' : 'Open Letter'}
+                                {item.type === "analysis"
+                                  ? "Open Analysis"
+                                  : item.type === "resume"
+                                    ? "Open Resume"
+                                    : "Open Letter"}
                                 <ArrowRight className="w-3 h-3 ml-1" />
                               </Button>
                             </Link>
@@ -288,7 +324,7 @@ export default function HistoryPage() {
                       </div>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -306,7 +342,7 @@ export default function HistoryPage() {
                       Loading...
                     </>
                   ) : (
-                    'Load More'
+                    "Load More"
                   )}
                 </Button>
               </div>
@@ -316,11 +352,11 @@ export default function HistoryPage() {
 
         {filteredHistory.length > 0 && (
           <div className="mt-8 text-center text-sm text-muted-foreground font-medium">
-            Showing {filteredHistory.length} {filteredHistory.length === 1 ? 'item' : 'items'}
-            {filter !== 'all' && ' (filtered)'}
+            Showing {filteredHistory.length} {filteredHistory.length === 1 ? "item" : "items"}
+            {filter !== "all" && " (filtered)"}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

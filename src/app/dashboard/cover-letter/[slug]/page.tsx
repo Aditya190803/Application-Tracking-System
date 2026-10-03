@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   AlertCircle,
@@ -9,13 +9,13 @@ import {
   FileText,
   Loader2,
   Sparkles,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { GenerationProgress } from '@/components/dashboard/GenerationProgress'
-import { Button } from '@/components/ui/button'
+import { GenerationProgress } from "@/components/dashboard/GenerationProgress";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,222 +23,228 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { useGenerationFlow } from '@/hooks/useGenerationFlow'
-import { withHttpRetry } from '@/lib/client-retry'
+} from "@/components/ui/dropdown-menu";
+import { useGenerationFlow } from "@/hooks/useGenerationFlow";
+import { withHttpRetry } from "@/lib/client-retry";
 import {
   buildCoverLetterMarkdown,
   downloadCoverLetterTxt,
   exportCoverLetterDocx,
   exportCoverLetterPdf,
-} from '@/lib/cover-letter-export'
+} from "@/lib/cover-letter-export";
 
 interface HistoryItem {
-  id: string
-  type: string
-  jobDescription?: string
-  resumeName?: string
-  companyName?: string
-  jobTitle?: string
-  result: string
-  createdAt: string
+  id: string;
+  type: string;
+  jobDescription?: string;
+  resumeName?: string;
+  companyName?: string;
+  jobTitle?: string;
+  result: string;
+  createdAt: string;
 }
 
 interface PendingCoverLetterRequest {
-  resumeText: string
-  jobDescription: string
-  companyName?: string
-  jobTitle?: string
-  tone: string
-  length: string
-  resumeName?: string
-  idempotencyKey?: string
+  resumeText: string;
+  jobDescription: string;
+  companyName?: string;
+  jobTitle?: string;
+  tone: string;
+  length: string;
+  resumeName?: string;
+  idempotencyKey?: string;
 }
 
 const LOADING_STEPS = [
-  'Analyzing job requirements...',
-  'Reviewing your resume...',
-  'Determining appropriate tone and length...',
-  'Drafting cover letter...',
-  'Refining personalized details...',
-  'Finalizing letter...',
-]
+  "Analyzing job requirements...",
+  "Reviewing your resume...",
+  "Determining appropriate tone and length...",
+  "Drafting cover letter...",
+  "Refining personalized details...",
+  "Finalizing letter...",
+];
 
 export default function CoverLetterSlugPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [retryMessage, setRetryMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [item, setItem] = useState<HistoryItem | null>(null)
-  const [coverLetter, setCoverLetter] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
-  const [pendingRequest, setPendingRequest] = useState<PendingCoverLetterRequest | null>(null)
-  const hasStartedNewGenerationRef = useRef(false)
-  const {
-    isGenerating,
-    loadingStep,
-    estimatedSecondsRemaining,
-    runGeneration,
-    cancelGeneration,
-  } = useGenerationFlow(LOADING_STEPS, { estimatedTotalSeconds: 20 })
+  const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [item, setItem] = useState<HistoryItem | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<PendingCoverLetterRequest | null>(null);
+  const hasStartedNewGenerationRef = useRef(false);
+  const { isGenerating, loadingStep, estimatedSecondsRemaining, runGeneration, cancelGeneration } =
+    useGenerationFlow(LOADING_STEPS, { estimatedTotalSeconds: 20 });
 
-  const generateCoverLetter = useCallback(async (pending: PendingCoverLetterRequest) => {
-    try {
-      setPendingRequest(pending)
-      setError(null)
-      setRetryMessage(null)
-      setIsLoading(false)
-      setItem({
-        id: 'new',
-        type: 'cover-letter',
-        companyName: pending.companyName,
-        jobTitle: pending.jobTitle,
-        jobDescription: pending.jobDescription,
-        resumeName: pending.resumeName,
-        result: '',
-        createdAt: new Date().toISOString(),
-      })
+  const generateCoverLetter = useCallback(
+    async (pending: PendingCoverLetterRequest) => {
+      try {
+        setPendingRequest(pending);
+        setError(null);
+        setRetryMessage(null);
+        setIsLoading(false);
+        setItem({
+          id: "new",
+          type: "cover-letter",
+          companyName: pending.companyName,
+          jobTitle: pending.jobTitle,
+          jobDescription: pending.jobDescription,
+          resumeName: pending.resumeName,
+          result: "",
+          createdAt: new Date().toISOString(),
+        });
 
-      const response = await runGeneration((signal) => withHttpRetry(() => fetch('/api/generate-cover-letter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pending),
-        signal,
-      }), {
-        maxAttempts: 2,
-        initialDelayMs: 100,
-        onRetry: ({ attempt, maxAttempts, waitMs }) => {
-          setRetryMessage(`Transient issue. Retrying ${attempt + 1}/${maxAttempts} in ${Math.ceil(waitMs / 1000)}s...`)
-        },
-      }))
+        const response = await runGeneration((signal) =>
+          withHttpRetry(
+            () =>
+              fetch("/api/generate-cover-letter", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pending),
+                signal,
+              }),
+            {
+              maxAttempts: 2,
+              initialDelayMs: 100,
+              onRetry: ({ attempt, maxAttempts, waitMs }) => {
+                setRetryMessage(
+                  `Transient issue. Retrying ${attempt + 1}/${maxAttempts} in ${Math.ceil(waitMs / 1000)}s...`,
+                );
+              },
+            },
+          ),
+        );
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(data.message || data.error || 'Failed to generate cover letter')
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || data.error || "Failed to generate cover letter");
+        }
+
+        const data = await response.json();
+        if (data.documentId) {
+          sessionStorage.removeItem("pendingCoverLetterGeneration");
+          router.replace(`/dashboard/cover-letter/${data.documentId}`);
+          return;
+        }
+
+        setCoverLetter(data.result || "");
+        sessionStorage.removeItem("pendingCoverLetterGeneration");
+      } catch (err) {
+        if (err instanceof Error && err.message.includes("canceled")) {
+          setError("Cover letter generation canceled.");
+          return;
+        }
+        console.error("Error generating cover letter:", err);
+        setError(err instanceof Error ? err.message : "Failed to generate cover letter");
+      } finally {
+        setRetryMessage(null);
       }
-
-      const data = await response.json()
-      if (data.documentId) {
-        sessionStorage.removeItem('pendingCoverLetterGeneration')
-        router.replace(`/dashboard/cover-letter/${data.documentId}`)
-        return
-      }
-
-      setCoverLetter(data.result || '')
-      sessionStorage.removeItem('pendingCoverLetterGeneration')
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('canceled')) {
-        setError('Cover letter generation canceled.')
-        return
-      }
-      console.error('Error generating cover letter:', err)
-      setError(err instanceof Error ? err.message : 'Failed to generate cover letter')
-    } finally {
-      setRetryMessage(null)
-    }
-  }, [router, runGeneration])
+    },
+    [router, runGeneration],
+  );
 
   useEffect(() => {
     if (!slug) {
-      return
+      return;
     }
 
-    if (slug === 'new') {
+    if (slug === "new") {
       if (hasStartedNewGenerationRef.current) {
-        return
+        return;
       }
-      hasStartedNewGenerationRef.current = true
+      hasStartedNewGenerationRef.current = true;
 
-      const pendingRaw = sessionStorage.getItem('pendingCoverLetterGeneration')
+      const pendingRaw = sessionStorage.getItem("pendingCoverLetterGeneration");
       if (!pendingRaw) {
-        setError('No pending cover letter request found. Please generate again.')
-        setIsLoading(false)
-        return
+        setError("No pending cover letter request found. Please generate again.");
+        setIsLoading(false);
+        return;
       }
 
       try {
-        const pending = JSON.parse(pendingRaw) as PendingCoverLetterRequest
-        void generateCoverLetter(pending)
+        const pending = JSON.parse(pendingRaw) as PendingCoverLetterRequest;
+        void generateCoverLetter(pending);
       } catch {
-        setError('Invalid pending cover letter payload. Please try again.')
-        setIsLoading(false)
+        setError("Invalid pending cover letter payload. Please try again.");
+        setIsLoading(false);
       }
-      return
+      return;
     }
 
     async function fetchCoverLetter() {
       try {
-        const response = await fetch(`/api/history/${slug}?type=cover-letter`)
+        const response = await fetch(`/api/history/${slug}?type=cover-letter`);
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Cover letter not found')
-            return
+            setError("Cover letter not found");
+            return;
           }
           if (response.status === 403) {
-            setError('You do not have permission to view this cover letter')
-            return
+            setError("You do not have permission to view this cover letter");
+            return;
           }
           if (response.status === 401) {
-            setError('Please sign in to view this cover letter')
-            return
+            setError("Please sign in to view this cover letter");
+            return;
           }
-          throw new Error('Failed to fetch cover letter')
+          throw new Error("Failed to fetch cover letter");
         }
 
-        const data = await response.json()
-        if (!data.item || data.item.type !== 'cover-letter') {
-          setError('Cover letter not found')
-          return
+        const data = await response.json();
+        if (!data.item || data.item.type !== "cover-letter") {
+          setError("Cover letter not found");
+          return;
         }
 
-        setItem(data.item)
-        setCoverLetter(data.item.result || '')
+        setItem(data.item);
+        setCoverLetter(data.item.result || "");
       } catch (err) {
-        console.error('Error fetching cover letter:', err)
-        setError('Failed to load cover letter')
+        console.error("Error fetching cover letter:", err);
+        setError("Failed to load cover letter");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchCoverLetter()
-  }, [generateCoverLetter, slug])
+    fetchCoverLetter();
+  }, [generateCoverLetter, slug]);
 
   const buildMarkdown = () => {
-    if (!coverLetter) return ''
-    return buildCoverLetterMarkdown(coverLetter, item?.companyName, item?.jobTitle)
-  }
+    if (!coverLetter) return "";
+    return buildCoverLetterMarkdown(coverLetter, item?.companyName, item?.jobTitle);
+  };
 
   const handleCopy = async () => {
-    if (!coverLetter) return
-    await navigator.clipboard.writeText(coverLetter)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    if (!coverLetter) return;
+    await navigator.clipboard.writeText(coverLetter);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleCopyMarkdown = async () => {
-    const markdown = buildMarkdown()
-    if (!markdown) return
-    await navigator.clipboard.writeText(markdown)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    const markdown = buildMarkdown();
+    if (!markdown) return;
+    await navigator.clipboard.writeText(markdown);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDownloadTxt = () => {
-    if (!coverLetter || !item) return
-    downloadCoverLetterTxt(coverLetter, item.companyName)
-  }
+    if (!coverLetter || !item) return;
+    downloadCoverLetterTxt(coverLetter, item.companyName);
+  };
 
   const handleExportPdf = async () => {
-    if (!coverLetter) return
-    await exportCoverLetterPdf(coverLetter, item?.companyName)
-  }
+    if (!coverLetter) return;
+    await exportCoverLetterPdf(coverLetter, item?.companyName);
+  };
 
   const handleExportDocx = async () => {
-    if (!coverLetter) return
-    await exportCoverLetterDocx(coverLetter, item?.companyName)
-  }
+    if (!coverLetter) return;
+    await exportCoverLetterDocx(coverLetter, item?.companyName);
+  };
 
   if (isLoading && !isGenerating) {
     return (
@@ -248,7 +254,7 @@ export default function CoverLetterSlugPage() {
           <p className="text-muted-foreground font-medium">Loading cover letter...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (isGenerating) {
@@ -268,7 +274,9 @@ export default function CoverLetterSlugPage() {
               steps={LOADING_STEPS}
               activeStep={loadingStep}
               estimatedSecondsRemaining={estimatedSecondsRemaining}
-              queueLabel={loadingStep < 2 ? 'Queued for AI processing' : 'Generating letter content'}
+              queueLabel={
+                loadingStep < 2 ? "Queued for AI processing" : "Generating letter content"
+              }
               retryMessage={retryMessage}
             />
 
@@ -282,7 +290,7 @@ export default function CoverLetterSlugPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -311,8 +319,8 @@ export default function CoverLetterSlugPage() {
                     ...pendingRequest,
                     jobDescription: pendingRequest.jobDescription.slice(0, 3000),
                     idempotencyKey: crypto.randomUUID(),
-                  }
-                  void generateCoverLetter(shorter)
+                  };
+                  void generateCoverLetter(shorter);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg font-medium hover:bg-muted transition-colors"
               >
@@ -341,11 +349,11 @@ export default function CoverLetterSlugPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!coverLetter) {
-    return null
+    return null;
   }
 
   return (
@@ -376,7 +384,9 @@ export default function CoverLetterSlugPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">Your Cover Letter</h2>
-                <p className="text-muted-foreground text-sm font-medium">AI-generated and tailored to your application</p>
+                <p className="text-muted-foreground text-sm font-medium">
+                  AI-generated and tailored to your application
+                </p>
               </div>
             </div>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -385,7 +395,7 @@ export default function CoverLetterSlugPage() {
                   <Button variant="outline" className="h-11 min-w-[180px] justify-between px-4">
                     <span className="inline-flex items-center gap-2">
                       <Copy className="w-4 h-4" />
-                      {copied ? 'Copied!' : 'Copy'}
+                      {copied ? "Copied!" : "Copy"}
                     </span>
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
                   </Button>
@@ -393,11 +403,19 @@ export default function CoverLetterSlugPage() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel>Copy format</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => { void handleCopy() }}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      void handleCopy();
+                    }}
+                  >
                     <Copy className="w-4 h-4" />
                     Copy as Plain Text
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => { void handleCopyMarkdown() }}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      void handleCopyMarkdown();
+                    }}
+                  >
                     <Copy className="w-4 h-4" />
                     Copy as Markdown
                   </DropdownMenuItem>
@@ -421,11 +439,19 @@ export default function CoverLetterSlugPage() {
                     <Download className="w-4 h-4" />
                     Download .txt
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => { void handleExportPdf() }}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      void handleExportPdf();
+                    }}
+                  >
                     <Download className="w-4 h-4" />
                     Export PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => { void handleExportDocx() }}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      void handleExportDocx();
+                    }}
+                  >
                     <Download className="w-4 h-4" />
                     Export DOCX
                   </DropdownMenuItem>
@@ -442,5 +468,5 @@ export default function CoverLetterSlugPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

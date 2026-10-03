@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   ArrowRight,
@@ -12,129 +12,137 @@ import {
   Trash2,
   Upload,
   X,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
-import { ResumeList } from '@/components/dashboard/upload/ResumeList'
-import { Button } from '@/components/ui/button'
-import { useResumes } from '@/hooks/useResumes'
-import { formatApiErrorMessage } from '@/lib/api-client-error'
+import { ResumeList } from "@/components/dashboard/upload/ResumeList";
+import { Button } from "@/components/ui/button";
+import { useResumes } from "@/hooks/useResumes";
+import { formatApiErrorMessage } from "@/lib/api-client-error";
 
 export default function UploadPage() {
-  const [file, setFile] = useState<{ name: string; text: string; pages: number } | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const { resumes: savedResumes, isLoading: isLoadingResumes, removeResume, setResumes } = useResumes(50)
-  const hasResumeReady = Boolean(file) || savedResumes.length > 0
+  const [file, setFile] = useState<{ name: string; text: string; pages: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const {
+    resumes: savedResumes,
+    isLoading: isLoadingResumes,
+    removeResume,
+    setResumes,
+  } = useResumes(50);
+  const hasResumeReady = Boolean(file) || savedResumes.length > 0;
 
   useEffect(() => {
     if (success) {
-      const timeout = setTimeout(() => setSuccess(null), 3000)
-      return () => clearTimeout(timeout)
+      const timeout = setTimeout(() => setSuccess(null), 3000);
+      return () => clearTimeout(timeout);
     }
-  }, [success])
+  }, [success]);
 
   const handleFile = useCallback(async (uploadedFile: File) => {
-    setError(null)
-    setSuccess(null)
-    setIsLoading(true)
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
 
     try {
-      if (!uploadedFile.name.toLowerCase().endsWith('.pdf')) {
-        throw new Error('Please upload a PDF file')
+      if (!uploadedFile.name.toLowerCase().endsWith(".pdf")) {
+        throw new Error("Please upload a PDF file");
       }
 
       if (uploadedFile.size > 20 * 1024 * 1024) {
-        throw new Error('File size must be less than 20MB')
+        throw new Error("File size must be less than 20MB");
       }
 
-      const formData = new FormData()
-      formData.append('file', uploadedFile)
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
 
-      const response = await fetch('/api/parse-pdf', {
-        method: 'POST',
+      const response = await fetch("/api/parse-pdf", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(formatApiErrorMessage(data, 'Failed to parse PDF'))
+        const data = await response.json().catch(() => ({}));
+        throw new Error(formatApiErrorMessage(data, "Failed to parse PDF"));
       }
 
-      const data = await response.json()
+      const data = await response.json();
       const parsedFile = {
         name: data.fileName,
         text: data.text,
         pages: data.pages,
-      }
-      setFile(parsedFile)
+      };
+      setFile(parsedFile);
 
       // Store parsed result locally only in state
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload file')
+      setError(err instanceof Error ? err.message : "Failed to upload file");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [])
+  }, []);
 
   const handleSaveToCloud = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setIsSaving(true)
-    setError(null)
+    setIsSaving(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/resumes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/resumes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: file.name,
           textContent: file.text,
           pageCount: file.pages,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}))
-        throw new Error(formatApiErrorMessage(errorPayload, 'Failed to save resume'))
+        const errorPayload = await response.json().catch(() => ({}));
+        throw new Error(formatApiErrorMessage(errorPayload, "Failed to save resume"));
       }
 
-      const data = await response.json()
-      setResumes(prev => [data.resume, ...prev])
-      setSuccess('Resume saved to cloud successfully!')
+      const data = await response.json();
+      setResumes((prev) => [data.resume, ...prev]);
+      setSuccess("Resume saved to cloud successfully!");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save resume')
+      setError(err instanceof Error ? err.message : "Failed to save resume");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDeleteResume = async (resumeId: string) => {
     try {
       const response = await fetch(`/api/resumes?resumeId=${resumeId}`, {
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      });
 
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}))
-        throw new Error(payload.message || payload.error || 'Failed to delete resume')
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.message || payload.error || "Failed to delete resume");
       }
-      removeResume(resumeId)
+      removeResume(resumeId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete resume')
+      setError(err instanceof Error ? err.message : "Failed to delete resume");
     }
-  }
+  };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) handleFile(droppedFile)
-  }, [handleFile])
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile) handleFile(droppedFile);
+    },
+    [handleFile],
+  );
 
   return (
     <div className="min-h-screen bg-transparent p-8">
@@ -151,14 +159,20 @@ export default function UploadPage() {
         {!file ? (
           <div
             onDrop={handleDrop}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false) }}
-            onClick={() => document.getElementById('file-input')?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+            }}
             className={`
               relative cursor-pointer rounded-3xl border-2 border-dashed p-16 text-center transition-all duration-300
-              ${isDragging
-                ? 'border-border bg-background'
-                : 'border-border hover:border-border bg-card shadow-xl shadow-border/10'
+              ${
+                isDragging
+                  ? "border-border bg-background"
+                  : "border-border hover:border-border bg-card shadow-xl shadow-border/10"
               }
             `}
           >
@@ -168,8 +182,8 @@ export default function UploadPage() {
               className="hidden"
               accept=".pdf"
               onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) handleFile(f)
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
               }}
               disabled={isLoading}
             />
@@ -178,19 +192,24 @@ export default function UploadPage() {
               <div className="flex flex-col items-center">
                 <Loader2 className="w-12 h-12 text-foreground animate-spin mb-4" />
                 <p className="text-foreground font-bold">Processing your resume...</p>
-                <p className="text-muted-foreground text-sm font-medium mt-1">Extracting text and analyzing structure</p>
+                <p className="text-muted-foreground text-sm font-medium mt-1">
+                  Extracting text and analyzing structure
+                </p>
               </div>
             ) : (
               <>
                 <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center mx-auto mb-6 shadow-xl">
                   <Upload className="w-8 h-8" />
                 </div>
-                <p className="text-xl font-bold text-foreground mb-2">
-                  Drop your resume here
-                </p>
-                <p className="text-muted-foreground font-medium mb-6">
-                  or click to browse
-                </p>
+                <p className="text-xl font-bold text-foreground mb-2">Drop your resume here</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mb-6 h-11"
+                  onClick={() => document.getElementById("file-input")?.click()}
+                >
+                  Choose PDF file
+                </Button>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-foreground/80 font-bold text-sm">
                   <FileText className="w-4 h-4" />
                   PDF files up to 20MB
@@ -208,7 +227,9 @@ export default function UploadPage() {
                   </div>
                   <div>
                     <p className="font-bold text-foreground">{file.name}</p>
-                    <p className="text-sm text-muted-foreground font-medium">{file.pages} page{file.pages !== 1 ? 's' : ''} • Successfully parsed</p>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {file.pages} page{file.pages !== 1 ? "s" : ""} • Successfully parsed
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -264,7 +285,8 @@ export default function UploadPage() {
 
         {!isLoadingResumes && savedResumes.length === 0 && (
           <div className="mt-8 p-4 rounded-xl bg-muted border border-border text-sm text-muted-foreground">
-            No saved resumes found. Upload and save one to reuse it across analyses and cover letters.
+            No saved resumes found. Upload and save one to reuse it across analyses and cover
+            letters.
           </div>
         )}
 
@@ -272,7 +294,9 @@ export default function UploadPage() {
           <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-lg">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Next Step</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Next Step
+                </p>
                 <h2 className="text-lg font-bold text-foreground">Continue your workflow</h2>
               </div>
             </div>
@@ -285,7 +309,9 @@ export default function UploadPage() {
                   <Target className="h-4 w-4" />
                 </div>
                 <p className="font-bold text-foreground">Run Analysis</p>
-                <p className="mt-1 text-sm text-muted-foreground">Match this resume with a job description.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Match this resume with a job description.
+                </p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
                   Go to analysis
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -299,7 +325,9 @@ export default function UploadPage() {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <p className="font-bold text-foreground">Generate Cover Letter</p>
-                <p className="mt-1 text-sm text-muted-foreground">Use this resume to draft a tailored letter.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Use this resume to draft a tailored letter.
+                </p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
                   Go to cover letter
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -336,5 +364,5 @@ export default function UploadPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

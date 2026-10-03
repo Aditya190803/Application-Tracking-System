@@ -1,28 +1,31 @@
-import { randomUUID } from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 
-import { apiError } from '@/lib/api-response';
-import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
-import { analyzeResume } from '@/lib/gemini';
-import { createHash, LRUCache } from '@/lib/utils';
+import { apiError } from "@/lib/api-response";
+import { checkRateLimit, getAuthenticatedUser } from "@/lib/auth";
+import { analyzeResume } from "@/lib/gemini";
+import { createHash, LRUCache } from "@/lib/utils";
 
 const skillsCache = new LRUCache<string>(32, 600);
 
 export async function POST(request: NextRequest) {
-  const requestId = request.headers.get('x-request-id') ?? randomUUID();
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
 
   try {
     const userId = await getAuthenticatedUser();
     if (!userId) {
-      return apiError(requestId, 401, 'AUTH_REQUIRED', 'Authentication required');
+      return apiError(requestId, 401, "AUTH_REQUIRED", "Authentication required");
     }
 
-    const rateLimit = await checkRateLimit(`extract-skills-${userId}`, { windowMs: 60000, maxRequests: 20 });
+    const rateLimit = await checkRateLimit(`extract-skills-${userId}`, {
+      windowMs: 60000,
+      maxRequests: 20,
+    });
     if (!rateLimit.allowed) {
       return apiError(
         requestId,
         429,
-        'RATE_LIMITED',
+        "RATE_LIMITED",
         `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds.`,
       );
     }
@@ -31,10 +34,10 @@ export async function POST(request: NextRequest) {
     const { resumeText, jobDescription } = body;
 
     if (!resumeText) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Resume text is required');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "Resume text is required");
     }
 
-    const cacheKey = `skills_${userId}_${createHash(resumeText)}_${createHash(jobDescription || '')}`;
+    const cacheKey = `skills_${userId}_${createHash(resumeText)}_${createHash(jobDescription || "")}`;
 
     const cached = skillsCache.get(cacheKey);
     if (cached) {
@@ -43,8 +46,8 @@ export async function POST(request: NextRequest) {
 
     const result = await analyzeResume(
       resumeText,
-      jobDescription || 'General job position',
-      'keywords',
+      jobDescription || "General job position",
+      "keywords",
     );
 
     try {
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
     skillsCache.set(cacheKey, result);
     return NextResponse.json({ result });
   } catch (error) {
-    console.error('Skills extraction error:', error);
-    return apiError(requestId, 500, 'SKILLS_EXTRACTION_FAILED', 'Failed to extract skills');
+    console.error("Skills extraction error:", error);
+    return apiError(requestId, 500, "SKILLS_EXTRACTION_FAILED", "Failed to extract skills");
   }
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   AlertCircle,
@@ -11,260 +11,276 @@ import {
   Target,
   TrendingUp,
   Zap,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+} from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { GenerationProgress } from '@/components/dashboard/GenerationProgress'
-import { useGenerationFlow } from '@/hooks/useGenerationFlow'
-import { withHttpRetry } from '@/lib/client-retry'
+import { GenerationProgress } from "@/components/dashboard/GenerationProgress";
+import { useGenerationFlow } from "@/hooks/useGenerationFlow";
+import { withHttpRetry } from "@/lib/client-retry";
 
 interface AnalysisResult {
-  matchScore: number
-  overview: string
-  strengths: string[]
-  weaknesses: string[]
-  recommendations: string[]
+  matchScore: number;
+  overview: string;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
   skillsMatch: {
-    matched: string[]
-    missing: string[]
-  }
+    matched: string[];
+    missing: string[];
+  };
 }
 
 interface HistoryItem {
-  id: string
-  type: string
-  jobDescription?: string
-  resumeName?: string
-  companyName?: string
-  jobTitle?: string
-  result: string | AnalysisResult
-  createdAt: string
+  id: string;
+  type: string;
+  jobDescription?: string;
+  resumeName?: string;
+  companyName?: string;
+  jobTitle?: string;
+  result: string | AnalysisResult;
+  createdAt: string;
 }
 
 interface PendingAnalysisRequest {
-  resumeText: string
-  jobDescription: string
-  analysisType: 'match'
-  resumeName?: string | null
-  forceRegenerate?: boolean
-  idempotencyKey?: string
+  resumeText: string;
+  jobDescription: string;
+  analysisType: "match";
+  resumeName?: string | null;
+  forceRegenerate?: boolean;
+  idempotencyKey?: string;
 }
 
 interface GenerationMeta {
-  cached: boolean
-  source?: string
+  cached: boolean;
+  source?: string;
 }
 
 const LOADING_STEPS = [
-  'Reading job description...',
-  'Extracting resume keywords...',
-  'Calculating match score...',
-  'Analyzing strengths and weaknesses...',
-  'Generating targeted recommendations...',
-  'Finalizing results...',
-]
+  "Reading job description...",
+  "Extracting resume keywords...",
+  "Calculating match score...",
+  "Analyzing strengths and weaknesses...",
+  "Generating targeted recommendations...",
+  "Finalizing results...",
+];
 
 export default function AnalysisSlugPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [retryMessage, setRetryMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [item, setItem] = useState<HistoryItem | null>(null)
-  const [result, setResult] = useState<AnalysisResult | null>(null)
-  const [pendingRequest, setPendingRequest] = useState<PendingAnalysisRequest | null>(null)
-  const [generationMeta, setGenerationMeta] = useState<GenerationMeta | null>(null)
-  const hasStartedNewGenerationRef = useRef(false)
-  const {
-    isGenerating,
-    loadingStep,
-    estimatedSecondsRemaining,
-    runGeneration,
-    cancelGeneration,
-  } = useGenerationFlow(LOADING_STEPS, { estimatedTotalSeconds: 18 })
+  const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [item, setItem] = useState<HistoryItem | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [pendingRequest, setPendingRequest] = useState<PendingAnalysisRequest | null>(null);
+  const [generationMeta, setGenerationMeta] = useState<GenerationMeta | null>(null);
+  const hasStartedNewGenerationRef = useRef(false);
+  const { isGenerating, loadingStep, estimatedSecondsRemaining, runGeneration, cancelGeneration } =
+    useGenerationFlow(LOADING_STEPS, { estimatedTotalSeconds: 18 });
 
-  const generateAnalysis = useCallback(async (pending: PendingAnalysisRequest) => {
-    try {
-      setPendingRequest(pending)
-      setError(null)
-      setRetryMessage(null)
-      setIsLoading(false)
+  const generateAnalysis = useCallback(
+    async (pending: PendingAnalysisRequest) => {
+      try {
+        setPendingRequest(pending);
+        setError(null);
+        setRetryMessage(null);
+        setIsLoading(false);
 
-      const response = await runGeneration((signal) => withHttpRetry(() => fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pending),
-        signal,
-      }), {
-        maxAttempts: 2,
-        initialDelayMs: 100,
-        onRetry: ({ attempt, maxAttempts, waitMs }) => {
-          setRetryMessage(`Transient issue. Retrying ${attempt + 1}/${maxAttempts} in ${Math.ceil(waitMs / 1000)}s...`)
-        },
-      }))
+        const response = await runGeneration((signal) =>
+          withHttpRetry(
+            () =>
+              fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pending),
+                signal,
+              }),
+            {
+              maxAttempts: 2,
+              initialDelayMs: 100,
+              onRetry: ({ attempt, maxAttempts, waitMs }) => {
+                setRetryMessage(
+                  `Transient issue. Retrying ${attempt + 1}/${maxAttempts} in ${Math.ceil(waitMs / 1000)}s...`,
+                );
+              },
+            },
+          ),
+        );
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(data.message || data.error || 'Failed to analyze resume')
-      }
-
-      const data = await response.json()
-      const responseMeta = typeof data.cached === 'boolean'
-        ? { cached: data.cached, source: data.source as string | undefined }
-        : null
-      setGenerationMeta(responseMeta)
-
-      if (data.documentId) {
-        if (responseMeta) {
-          sessionStorage.setItem(`analysisGenerationMeta:${data.documentId}`, JSON.stringify(responseMeta))
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || data.error || "Failed to analyze resume");
         }
-        sessionStorage.removeItem('pendingAnalysisGeneration')
-        router.replace(`/dashboard/analysis/${data.documentId}`)
-        return
-      }
 
-      setItem({
-        id: 'new',
-        type: 'analysis',
-        resumeName: pending.resumeName ?? undefined,
-        jobDescription: pending.jobDescription,
-        result: data.result,
-        createdAt: new Date().toISOString(),
-      })
-      setResult(data.result)
-      sessionStorage.removeItem('pendingAnalysisGeneration')
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('canceled')) {
-        setError('Analysis canceled.')
-        return
+        const data = await response.json();
+        const responseMeta =
+          typeof data.cached === "boolean"
+            ? { cached: data.cached, source: data.source as string | undefined }
+            : null;
+        setGenerationMeta(responseMeta);
+
+        if (data.documentId) {
+          if (responseMeta) {
+            sessionStorage.setItem(
+              `analysisGenerationMeta:${data.documentId}`,
+              JSON.stringify(responseMeta),
+            );
+          }
+          sessionStorage.removeItem("pendingAnalysisGeneration");
+          router.replace(`/dashboard/analysis/${data.documentId}`);
+          return;
+        }
+
+        setItem({
+          id: "new",
+          type: "analysis",
+          resumeName: pending.resumeName ?? undefined,
+          jobDescription: pending.jobDescription,
+          result: data.result,
+          createdAt: new Date().toISOString(),
+        });
+        setResult(data.result);
+        sessionStorage.removeItem("pendingAnalysisGeneration");
+      } catch (err) {
+        if (err instanceof Error && err.message.includes("canceled")) {
+          setError("Analysis canceled.");
+          return;
+        }
+        console.error("Error generating analysis:", err);
+        setError(err instanceof Error ? err.message : "Failed to analyze resume");
+      } finally {
+        setRetryMessage(null);
       }
-      console.error('Error generating analysis:', err)
-      setError(err instanceof Error ? err.message : 'Failed to analyze resume')
-    } finally {
-      setRetryMessage(null)
-    }
-  }, [router, runGeneration])
+    },
+    [router, runGeneration],
+  );
 
   useEffect(() => {
     if (!slug) {
-      return
+      return;
     }
 
-    if (slug === 'new') {
+    if (slug === "new") {
       if (hasStartedNewGenerationRef.current) {
-        return
+        return;
       }
-      hasStartedNewGenerationRef.current = true
+      hasStartedNewGenerationRef.current = true;
 
-      const pendingRaw = sessionStorage.getItem('pendingAnalysisGeneration')
+      const pendingRaw = sessionStorage.getItem("pendingAnalysisGeneration");
       if (!pendingRaw) {
-        setError('No pending analysis request found. Please start a new analysis.')
-        setIsLoading(false)
-        return
+        setError("No pending analysis request found. Please start a new analysis.");
+        setIsLoading(false);
+        return;
       }
 
       try {
-        const pending = JSON.parse(pendingRaw) as PendingAnalysisRequest
-        void generateAnalysis(pending)
+        const pending = JSON.parse(pendingRaw) as PendingAnalysisRequest;
+        void generateAnalysis(pending);
       } catch {
-        setError('Invalid pending analysis payload. Please start a new analysis.')
-        setIsLoading(false)
+        setError("Invalid pending analysis payload. Please start a new analysis.");
+        setIsLoading(false);
       }
-      return
+      return;
     }
 
     async function fetchAnalysis() {
       try {
-        const response = await fetch(`/api/history/${slug}?type=analysis`)
+        const response = await fetch(`/api/history/${slug}?type=analysis`);
         if (!response.ok) {
           if (response.status === 404) {
-            setError('Analysis not found')
-            return
+            setError("Analysis not found");
+            return;
           }
           if (response.status === 403) {
-            setError('You do not have permission to view this analysis')
-            return
+            setError("You do not have permission to view this analysis");
+            return;
           }
           if (response.status === 401) {
-            setError('Please sign in to view this analysis')
-            return
+            setError("Please sign in to view this analysis");
+            return;
           }
-          throw new Error('Failed to fetch analysis')
+          throw new Error("Failed to fetch analysis");
         }
 
-        const data = await response.json()
-        if (!data.item || data.item.type !== 'analysis') {
-          setError('Analysis not found')
-          return
+        const data = await response.json();
+        if (!data.item || data.item.type !== "analysis") {
+          setError("Analysis not found");
+          return;
         }
 
-        setItem(data.item)
+        setItem(data.item);
 
-        const generationMetaRaw = sessionStorage.getItem(`analysisGenerationMeta:${slug}`)
+        const generationMetaRaw = sessionStorage.getItem(`analysisGenerationMeta:${slug}`);
         if (generationMetaRaw) {
           try {
-            setGenerationMeta(JSON.parse(generationMetaRaw) as GenerationMeta)
+            setGenerationMeta(JSON.parse(generationMetaRaw) as GenerationMeta);
           } catch {
-            setGenerationMeta(null)
+            setGenerationMeta(null);
           } finally {
-            sessionStorage.removeItem(`analysisGenerationMeta:${slug}`)
+            sessionStorage.removeItem(`analysisGenerationMeta:${slug}`);
           }
         } else {
-          setGenerationMeta(null)
+          setGenerationMeta(null);
         }
 
-        let parsedResult: AnalysisResult | null = null
+        let parsedResult: AnalysisResult | null = null;
         try {
-          const res = typeof data.item.result === 'string' ? JSON.parse(data.item.result) : data.item.result
+          const res =
+            typeof data.item.result === "string" ? JSON.parse(data.item.result) : data.item.result;
           if (res.matchScore !== undefined) {
             parsedResult = {
               matchScore: res.matchScore || 0,
-              overview: res.overview || '',
+              overview: res.overview || "",
               strengths: res.strengths || [],
               weaknesses: res.weaknesses || [],
               recommendations: res.recommendations || [],
               skillsMatch: res.skillsMatch || { matched: [], missing: [] },
-            }
+            };
           }
         } catch (parseErr) {
-          console.error('Failed to parse analysis result', parseErr)
-          const scoreMatch = String(data.item.result).match(/(\d{1,3})%/)
+          console.error("Failed to parse analysis result", parseErr);
+          const scoreMatch = String(data.item.result).match(/(\d{1,3})%/);
           parsedResult = {
             matchScore: scoreMatch ? parseInt(scoreMatch[1], 10) : 0,
-            overview: typeof data.item.result === 'string'
-              ? data.item.result.substring(0, 300) + '...'
-              : 'Analysis found but format unrecognized.',
+            overview:
+              typeof data.item.result === "string"
+                ? data.item.result.substring(0, 300) + "..."
+                : "Analysis found but format unrecognized.",
             strengths: [],
             weaknesses: [],
             recommendations: [],
             skillsMatch: { matched: [], missing: [] },
-          }
+          };
         }
 
         if (parsedResult) {
-          setResult(parsedResult)
+          setResult(parsedResult);
         }
       } catch (err) {
-        console.error('Error fetching analysis:', err)
-        setError('Failed to load analysis')
+        console.error("Error fetching analysis:", err);
+        setError("Failed to load analysis");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchAnalysis()
-  }, [generateAnalysis, slug])
+    fetchAnalysis();
+  }, [generateAnalysis, slug]);
 
   const getScoreGradient = (score: number) => {
-    if (score >= 80) return 'from-emerald-500 to-emerald-400'
-    if (score >= 60) return 'from-amber-500 to-orange-400'
-    return 'from-red-500 to-rose-400'
-  }
+    if (score >= 80) return "from-emerald-500 to-emerald-400";
+    if (score >= 60) return "from-amber-500 to-orange-400";
+    return "from-red-500 to-rose-400";
+  };
 
-  const matchedSkills = Array.from(new Set(result?.skillsMatch?.matched || [])).sort((a, b) => a.localeCompare(b))
-  const missingSkills = Array.from(new Set(result?.skillsMatch?.missing || [])).sort((a, b) => a.localeCompare(b))
+  const matchedSkills = Array.from(new Set(result?.skillsMatch?.matched || [])).sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const missingSkills = Array.from(new Set(result?.skillsMatch?.missing || [])).sort((a, b) =>
+    a.localeCompare(b),
+  );
 
   if (isLoading && !isGenerating) {
     return (
@@ -274,7 +290,7 @@ export default function AnalysisSlugPage() {
           <p className="text-muted-foreground font-medium">Loading analysis...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (isGenerating) {
@@ -294,7 +310,7 @@ export default function AnalysisSlugPage() {
               steps={LOADING_STEPS}
               activeStep={loadingStep}
               estimatedSecondsRemaining={estimatedSecondsRemaining}
-              queueLabel={loadingStep < 2 ? 'Queued for AI processing' : 'Processing in AI worker'}
+              queueLabel={loadingStep < 2 ? "Queued for AI processing" : "Processing in AI worker"}
               retryMessage={retryMessage}
             />
 
@@ -308,7 +324,7 @@ export default function AnalysisSlugPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -338,8 +354,8 @@ export default function AnalysisSlugPage() {
                     jobDescription: pendingRequest.jobDescription.slice(0, 3000),
                     forceRegenerate: true,
                     idempotencyKey: crypto.randomUUID(),
-                  }
-                  void generateAnalysis(shorter)
+                  };
+                  void generateAnalysis(shorter);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg font-medium hover:bg-muted transition-colors"
               >
@@ -362,11 +378,11 @@ export default function AnalysisSlugPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!result) {
-    return null
+    return null;
   }
 
   return (
@@ -381,14 +397,10 @@ export default function AnalysisSlugPage() {
             Back to Analysis
           </Link>
           <h1 className="text-2xl font-bold text-foreground mb-2">Resume Analysis</h1>
-          {item?.resumeName && (
-            <p className="text-muted-foreground">
-              Resume: {item.resumeName}
-            </p>
-          )}
+          {item?.resumeName && <p className="text-muted-foreground">Resume: {item.resumeName}</p>}
           {generationMeta && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
-              {generationMeta.cached ? 'Loaded from cache' : 'Newly generated'}
+              {generationMeta.cached ? "Loaded from cache" : "Newly generated"}
               {generationMeta.source && <span>({generationMeta.source})</span>}
             </div>
           )}
@@ -401,7 +413,9 @@ export default function AnalysisSlugPage() {
               <div>
                 <p className="text-muted-foreground mb-2 font-medium">Match Score</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-6xl font-bold bg-gradient-to-r ${getScoreGradient(result.matchScore)} bg-clip-text text-transparent tracking-tighter`}>
+                  <span
+                    className={`text-6xl font-bold bg-gradient-to-r ${getScoreGradient(result.matchScore)} bg-clip-text text-transparent tracking-tighter`}
+                  >
                     {result.matchScore}%
                   </span>
                   <span className="text-muted-foreground font-medium">match</span>
@@ -469,7 +483,10 @@ export default function AnalysisSlugPage() {
                   <div className="space-y-2">
                     {matchedSkills.length > 0 ? (
                       matchedSkills.map((skill, i) => (
-                        <div key={skill} className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2">
+                        <div
+                          key={skill}
+                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2"
+                        >
                           <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded bg-primary/15 px-1 text-[10px] font-bold text-primary">
                             {i + 1}
                           </span>
@@ -479,7 +496,9 @@ export default function AnalysisSlugPage() {
                         </div>
                       ))
                     ) : (
-                      <span className="text-sm text-muted-foreground font-medium">No matched skills found.</span>
+                      <span className="text-sm text-muted-foreground font-medium">
+                        No matched skills found.
+                      </span>
                     )}
                   </div>
                 </div>
@@ -490,7 +509,10 @@ export default function AnalysisSlugPage() {
                   <div className="space-y-2">
                     {missingSkills.length > 0 ? (
                       missingSkills.map((skill, i) => (
-                        <div key={skill} className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2">
+                        <div
+                          key={skill}
+                          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/80 px-3 py-2"
+                        >
                           <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded bg-muted px-1 text-[10px] font-bold text-foreground/70">
                             {i + 1}
                           </span>
@@ -500,7 +522,9 @@ export default function AnalysisSlugPage() {
                         </div>
                       ))
                     ) : (
-                      <span className="text-sm text-muted-foreground font-medium">No missing skills.</span>
+                      <span className="text-sm text-muted-foreground font-medium">
+                        No missing skills.
+                      </span>
                     )}
                   </div>
                 </div>
@@ -545,5 +569,5 @@ export default function AnalysisSlugPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

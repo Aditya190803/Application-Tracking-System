@@ -1,13 +1,13 @@
-import { User } from "lucide-react"
-import Image from "next/image"
-import * as React from "react"
+import { User } from "lucide-react";
+import Image from "next/image";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
-  src?: string
-  alt?: string
-  fallback?: string
+  src?: string;
+  alt?: string;
+  fallback?: string;
 }
 
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
@@ -17,7 +17,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         ref={ref}
         className={cn(
           "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border ring-2 ring-border/10",
-          className
+          className,
         )}
         {...props}
       >
@@ -39,9 +39,9 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
           </div>
         )}
       </div>
-    )
-  }
-)
-Avatar.displayName = "Avatar"
+    );
+  },
+);
+Avatar.displayName = "Avatar";
 
-export { Avatar }
+export { Avatar };

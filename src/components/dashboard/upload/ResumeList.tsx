@@ -1,22 +1,22 @@
-import { FileText, Trash2 } from 'lucide-react'
+import { FileText, Trash2 } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 interface ResumeItem {
-  _id: string
-  _creationTime: number
-  name: string
-  pageCount?: number
+  _id: string;
+  _creationTime: number;
+  name: string;
+  pageCount?: number;
 }
 
 interface ResumeListProps {
-  resumes: ResumeItem[]
-  onDelete: (resumeId: string) => void
+  resumes: ResumeItem[];
+  onDelete: (resumeId: string) => void;
 }
 
 export function ResumeList({ resumes, onDelete }: ResumeListProps) {
   if (resumes.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -52,5 +52,5 @@ export function ResumeList({ resumes, onDelete }: ResumeListProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

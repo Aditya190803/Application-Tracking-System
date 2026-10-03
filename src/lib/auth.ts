@@ -1,7 +1,7 @@
-import { Redis } from '@upstash/redis';
-import { NextRequest, NextResponse } from 'next/server';
+import { Redis } from "@upstash/redis";
+import { NextRequest, NextResponse } from "next/server";
 
-import { stackServerApp } from '@/stack/server';
+import { stackServerApp } from "@/stack/server";
 
 export interface AuthenticatedRequest extends NextRequest {
   userId: string;
@@ -16,7 +16,37 @@ export async function getAuthenticatedUser(): Promise<string | null> {
     const user = await stackServerApp.getUser();
     return user?.id || null;
   } catch (error) {
-    console.error('Auth verification failed:', error);
+    console.error("Auth verification failed:", error);
+    return null;
+  }
+}
+
+export interface AuthenticatedProfile {
+  userId: string;
+  email: string | null;
+  displayName: string | null;
+}
+
+/**
+ * Like `getAuthenticatedUser`, but also returns the address to notify.
+ *
+ * The watchlist cron runs without a session, so the email is snapshotted onto
+ * the watch when it is created rather than resolved at send time.
+ */
+export async function getAuthenticatedProfile(): Promise<AuthenticatedProfile | null> {
+  try {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
+      return null;
+    }
+
+    return {
+      userId: user.id,
+      email: user.primaryEmail ?? null,
+      displayName: user.displayName ?? null,
+    };
+  } catch (error) {
+    console.error("Auth verification failed:", error);
     return null;
   }
 }
@@ -26,15 +56,15 @@ export async function getAuthenticatedUser(): Promise<string | null> {
  * Usage: export const POST = withAuth(async (request, userId) => { ... })
  */
 export function withAuth<T>(
-  handler: (request: NextRequest, userId: string) => Promise<NextResponse<T>>
+  handler: (request: NextRequest, userId: string) => Promise<NextResponse<T>>,
 ) {
   return async (request: NextRequest): Promise<NextResponse<T | { error: string }>> => {
     const userId = await getAuthenticatedUser();
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: "Authentication required" },
+        { status: 401 },
       ) as NextResponse<{ error: string }>;
     }
 
@@ -48,18 +78,18 @@ export function withAuth<T>(
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
-const allowMemoryRateLimitInProduction = process.env.ALLOW_IN_MEMORY_RATE_LIMIT === 'true';
+const allowMemoryRateLimitInProduction = process.env.ALLOW_IN_MEMORY_RATE_LIMIT === "true";
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 export interface RateLimitConfig {
-  windowMs: number;  // Time window in milliseconds
-  maxRequests: number;  // Max requests per window
+  windowMs: number; // Time window in milliseconds
+  maxRequests: number; // Max requests per window
 }
 
 export async function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig = { windowMs: 60000, maxRequests: 30 }
+  config: RateLimitConfig = { windowMs: 60000, maxRequests: 30 },
 ): Promise<{ allowed: boolean; remaining: number; resetIn: number }> {
   const now = Date.now();
 
@@ -68,10 +98,7 @@ export async function checkRateLimit(
       const windowSeconds = Math.ceil(config.windowMs / 1000);
       const key = `rate_limit:${identifier}:${Math.floor(now / config.windowMs)}`;
 
-      const [count] = await redis.pipeline()
-        .incr(key)
-        .expire(key, windowSeconds)
-        .exec();
+      const [count] = await redis.pipeline().incr(key).expire(key, windowSeconds).exec();
 
       const currentCount = Number(count);
       return {
@@ -80,12 +107,12 @@ export async function checkRateLimit(
         resetIn: config.windowMs - (now % config.windowMs),
       };
     } catch (error) {
-      console.error('Redis rate limit error, falling back to memory:', error);
+      console.error("Redis rate limit error, falling back to memory:", error);
     }
   }
 
-  if (process.env.NODE_ENV === 'production' && !allowMemoryRateLimitInProduction) {
-    throw new Error('RATE_LIMIT_BACKEND_UNCONFIGURED');
+  if (process.env.NODE_ENV === "production" && !allowMemoryRateLimitInProduction) {
+    throw new Error("RATE_LIMIT_BACKEND_UNCONFIGURED");
   }
 
   // Fallback memory implementation
@@ -134,15 +161,15 @@ export async function checkRateLimit(
  */
 export function withAuthAndRateLimit<T>(
   handler: (request: NextRequest, userId: string) => Promise<NextResponse<T>>,
-  rateLimitConfig?: RateLimitConfig
+  rateLimitConfig?: RateLimitConfig,
 ) {
   return async (request: NextRequest): Promise<NextResponse<T | { error: string }>> => {
     const userId = await getAuthenticatedUser();
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: "Authentication required" },
+        { status: 401 },
       ) as NextResponse<{ error: string }>;
     }
 
@@ -151,10 +178,10 @@ export function withAuthAndRateLimit<T>(
     try {
       rateLimit = await checkRateLimit(userId, rateLimitConfig);
     } catch (error) {
-      if (error instanceof Error && error.message === 'RATE_LIMIT_BACKEND_UNCONFIGURED') {
+      if (error instanceof Error && error.message === "RATE_LIMIT_BACKEND_UNCONFIGURED") {
         return NextResponse.json(
-          { error: 'Rate limiting backend is not configured' },
-          { status: 503 }
+          { error: "Rate limiting backend is not configured" },
+          { status: 503 },
         ) as NextResponse<{ error: string }>;
       }
 
@@ -163,22 +190,24 @@ export function withAuthAndRateLimit<T>(
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds.` },
+        {
+          error: `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds.`,
+        },
         {
           status: 429,
           headers: {
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetIn / 1000)),
-          }
-        }
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetIn / 1000)),
+          },
+        },
       ) as NextResponse<{ error: string }>;
     }
 
     const response = await handler(request, userId);
 
     // Add rate limit headers to response
-    response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining));
-    response.headers.set('X-RateLimit-Reset', String(Math.ceil(rateLimit.resetIn / 1000)));
+    response.headers.set("X-RateLimit-Remaining", String(rateLimit.remaining));
+    response.headers.set("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetIn / 1000)));
 
     return response;
   };

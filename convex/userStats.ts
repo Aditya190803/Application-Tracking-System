@@ -1,24 +1,24 @@
-import { internalQueryGeneric as query } from 'convex/server';
-import { v } from 'convex/values';
+import { internalQueryGeneric as query } from "convex/server";
+import { v } from "convex/values";
 
-import { parseMatchScore } from './lib/parseMatchScore';
+import { parseMatchScore } from "./lib/parseMatchScore";
 
 export const getUserStats = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const analyses = await ctx.db
-      .query('analyses')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
+      .query("analyses")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .collect();
 
     const coverLetters = await ctx.db
-      .query('coverLetters')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
+      .query("coverLetters")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .collect();
 
     const resumes = await ctx.db
-      .query('resumes')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
+      .query("resumes")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .collect();
 
     const analysisCount = analyses.length;
@@ -28,7 +28,7 @@ export const getUserStats = query({
     let matchScoreSum = 0;
     let matchScoreCount = 0;
     for (const doc of analyses) {
-      if (doc.analysisType !== 'match') {
+      if (doc.analysisType !== "match") {
         continue;
       }
       const score = parseMatchScore(doc.result);
@@ -38,7 +38,8 @@ export const getUserStats = query({
       }
     }
 
-    const averageMatchScore = matchScoreCount > 0 ? Math.round(matchScoreSum / matchScoreCount) : null;
+    const averageMatchScore =
+      matchScoreCount > 0 ? Math.round(matchScoreSum / matchScoreCount) : null;
 
     return {
       totalScans: analysisCount,

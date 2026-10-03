@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { ArrowRight, CheckCircle, Copy, Download, RefreshCw, Sparkles } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowRight, CheckCircle, Copy, Download, RefreshCw, Sparkles } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 interface CoverLetterResultPanelProps {
   coverLetter: string;
@@ -37,8 +37,13 @@ export function CoverLetterResultPanel({
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground">Your cover letter</h2>
-            <p className="text-sm font-medium text-muted-foreground">AI-generated and tailored to your application</p>
-            <Link href="/dashboard/history" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+            <p className="text-sm font-medium text-muted-foreground">
+              AI-generated and tailored to your application
+            </p>
+            <Link
+              href="/dashboard/history"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-foreground"
+            >
               Save and review in history
               <ArrowRight className="h-4 w-4" />
             </Link>

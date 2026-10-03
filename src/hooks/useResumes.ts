@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { resumesResponseSchema } from '@/lib/contracts/api';
-import { fetchWithRetry } from '@/lib/fetch-retry';
-import type { ResumeItem } from '@/types/domain';
+import { resumesResponseSchema } from "@/lib/contracts/api";
+import { fetchWithRetry } from "@/lib/fetch-retry";
+import type { ResumeItem } from "@/types/domain";
 
 export function useResumes(limit = 10) {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
@@ -20,17 +20,17 @@ export function useResumes(limit = 10) {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.message || payload.error || 'Failed to load resumes');
+        throw new Error(payload.message || payload.error || "Failed to load resumes");
       }
 
       const parsed = resumesResponseSchema.safeParse(payload);
       if (!parsed.success) {
-        throw new Error('Invalid resumes response');
+        throw new Error("Invalid resumes response");
       }
 
       setResumes(parsed.data.resumes as ResumeItem[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load resumes');
+      setError(err instanceof Error ? err.message : "Failed to load resumes");
     } finally {
       setIsLoading(false);
     }

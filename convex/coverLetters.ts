@@ -1,5 +1,5 @@
-import { internalMutationGeneric as mutation, internalQueryGeneric as query } from 'convex/server';
-import { v } from 'convex/values';
+import { internalMutationGeneric as mutation, internalQueryGeneric as query } from "convex/server";
+import { v } from "convex/values";
 
 export const saveCoverLetter = mutation({
   args: {
@@ -15,7 +15,7 @@ export const saveCoverLetter = mutation({
     jobDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const id = await ctx.db.insert('coverLetters', args);
+    const id = await ctx.db.insert("coverLetters", args);
     const doc = await ctx.db.get(id);
     return doc;
   },
@@ -31,24 +31,24 @@ export const getCoverLetter = query({
   },
   handler: async (ctx, args) => {
     const doc = await ctx.db
-      .query('coverLetters')
-      .withIndex('by_lookup', (q) => q.eq('userId', args.userId))
+      .query("coverLetters")
+      .withIndex("by_lookup", (q) => q.eq("userId", args.userId))
       .filter((q) =>
         q.and(
-          q.eq(q.field('resumeHash'), args.resumeHash),
-          q.eq(q.field('jobDescriptionHash'), args.jobDescriptionHash),
-          q.eq(q.field('tone'), args.tone),
-          q.eq(q.field('length'), args.length),
+          q.eq(q.field("resumeHash"), args.resumeHash),
+          q.eq(q.field("jobDescriptionHash"), args.jobDescriptionHash),
+          q.eq(q.field("tone"), args.tone),
+          q.eq(q.field("length"), args.length),
         ),
       )
-      .order('desc')
+      .order("desc")
       .first();
     return doc;
   },
 });
 
 export const getCoverLetterById = query({
-  args: { coverLetterId: v.id('coverLetters'), userId: v.string() },
+  args: { coverLetterId: v.id("coverLetters"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.coverLetterId);
     if (!doc || doc.userId !== args.userId) {
@@ -59,7 +59,7 @@ export const getCoverLetterById = query({
 });
 
 export const deleteCoverLetter = mutation({
-  args: { coverLetterId: v.id('coverLetters'), userId: v.string() },
+  args: { coverLetterId: v.id("coverLetters"), userId: v.string() },
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.coverLetterId);
     if (!doc || doc.userId !== args.userId) {
@@ -78,9 +78,9 @@ export const getUserCoverLetters = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 20;
     const docs = await ctx.db
-      .query('coverLetters')
-      .withIndex('by_userId', (q) => q.eq('userId', args.userId))
-      .order('desc')
+      .query("coverLetters")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .order("desc")
       .take(limit);
     return docs;
   },

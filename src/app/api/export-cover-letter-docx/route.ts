@@ -1,9 +1,9 @@
-import { randomUUID } from 'crypto';
-import { createRequire } from 'module';
-import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from "crypto";
+import { createRequire } from "module";
+import { NextRequest, NextResponse } from "next/server";
 
-import { apiError } from '@/lib/api-response';
-import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
+import { apiError } from "@/lib/api-response";
+import { checkRateLimit, getAuthenticatedUser } from "@/lib/auth";
 
 const MAX_COVER_LETTER_LENGTH = 25_000;
 const MAX_COMPANY_NAME_LENGTH = 200;
@@ -15,42 +15,45 @@ interface ExportDocxBody {
 }
 
 export async function POST(request: NextRequest) {
-  const requestId = request.headers.get('x-request-id') ?? randomUUID();
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
 
   try {
     const userId = await getAuthenticatedUser();
     if (!userId) {
-      return apiError(requestId, 401, 'AUTH_REQUIRED', 'Authentication required');
+      return apiError(requestId, 401, "AUTH_REQUIRED", "Authentication required");
     }
 
-    const rateLimit = await checkRateLimit(`export-docx-${userId}`, { windowMs: 60000, maxRequests: 30 });
+    const rateLimit = await checkRateLimit(`export-docx-${userId}`, {
+      windowMs: 60000,
+      maxRequests: 30,
+    });
     if (!rateLimit.allowed) {
       return apiError(
         requestId,
         429,
-        'RATE_LIMITED',
+        "RATE_LIMITED",
         `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds.`,
       );
     }
 
     const body = (await request.json()) as ExportDocxBody;
-    const coverLetter = typeof body.coverLetter === 'string' ? body.coverLetter.trim() : '';
-    const companyName = typeof body.companyName === 'string' ? body.companyName.trim() : '';
+    const coverLetter = typeof body.coverLetter === "string" ? body.coverLetter.trim() : "";
+    const companyName = typeof body.companyName === "string" ? body.companyName.trim() : "";
 
     if (!coverLetter) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Cover letter is required');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "Cover letter is required");
     }
 
     if (coverLetter.length > MAX_COVER_LETTER_LENGTH) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Cover letter is too long');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "Cover letter is too long");
     }
 
     if (companyName.length > MAX_COMPANY_NAME_LENGTH) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'Company name is too long');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "Company name is too long");
     }
 
-    const { Document, Packer, Paragraph, TextRun } = require('docx') as typeof import('docx');
-    const title = companyName ? `Cover Letter - ${companyName}` : 'Cover Letter';
+    const { Document, Packer, Paragraph, TextRun } = require("docx") as typeof import("docx");
+    const title = companyName ? `Cover Letter - ${companyName}` : "Cover Letter";
     const doc = new Document({
       sections: [
         {
@@ -58,7 +61,7 @@ export async function POST(request: NextRequest) {
             new Paragraph({
               children: [new TextRun({ text: title, bold: true, size: 32 })],
             }),
-            ...coverLetter.split('\n').map((line) => new Paragraph(line || '')),
+            ...coverLetter.split("\n").map((line) => new Paragraph(line || "")),
           ],
         },
       ],
@@ -70,13 +73,12 @@ export async function POST(request: NextRequest) {
     return new NextResponse(bytes, {
       status: 200,
       headers: {
-        'Content-Type':
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': 'attachment; filename="cover-letter.docx"',
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": 'attachment; filename="cover-letter.docx"',
       },
     });
   } catch (error) {
-    console.error('DOCX export error', { requestId, error });
-    return apiError(requestId, 500, 'DOCX_EXPORT_FAILED', 'Failed to export DOCX');
+    console.error("DOCX export error", { requestId, error });
+    return apiError(requestId, 500, "DOCX_EXPORT_FAILED", "Failed to export DOCX");
   }
 }

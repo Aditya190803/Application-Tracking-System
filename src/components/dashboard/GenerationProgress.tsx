@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { CheckCircle, Loader2 } from 'lucide-react'
+import { CheckCircle, Loader2 } from "lucide-react";
 
 interface GenerationProgressProps {
-  title: string
-  steps: string[]
-  activeStep: number
-  estimatedSecondsRemaining: number
-  retryMessage?: string | null
-  queueLabel?: string
+  title: string;
+  steps: string[];
+  activeStep: number;
+  estimatedSecondsRemaining: number;
+  retryMessage?: string | null;
+  queueLabel?: string;
 }
 
 export function GenerationProgress({
@@ -25,7 +25,7 @@ export function GenerationProgress({
 
       <div className="rounded-xl border border-border bg-background/60 px-4 py-3 text-left text-xs text-muted-foreground">
         <p>Estimated wait: ~{estimatedSecondsRemaining}s</p>
-        <p>Queue: {queueLabel || 'Processing request'}</p>
+        <p>Queue: {queueLabel || "Processing request"}</p>
         {retryMessage && <p className="text-amber-700 mt-1">{retryMessage}</p>}
       </div>
 
@@ -42,10 +42,10 @@ export function GenerationProgress({
             <span
               className={`text-sm font-medium text-left ${
                 index < activeStep
-                  ? 'text-foreground/70'
+                  ? "text-foreground/70"
                   : index === activeStep
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
+                    ? "text-foreground"
+                    : "text-muted-foreground"
               }`}
             >
               {step}
@@ -54,5 +54,5 @@ export function GenerationProgress({
         ))}
       </div>
     </div>
-  )
+  );
 }

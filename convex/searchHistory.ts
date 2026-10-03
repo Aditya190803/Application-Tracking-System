@@ -1,5 +1,5 @@
-import { internalQueryGeneric as query } from 'convex/server';
-import { v } from 'convex/values';
+import { internalQueryGeneric as query } from "convex/server";
+import { v } from "convex/values";
 
 export const getSearchHistory = query({
   args: {
@@ -18,21 +18,21 @@ export const getSearchHistory = query({
     // before the cursor can still crowd out items from other tables.
     const OVER_FETCH = 10;
 
-    const fetchTable = async (table: 'analyses' | 'coverLetters' | 'tailoredResumes') => {
+    const fetchTable = async (table: "analyses" | "coverLetters" | "tailoredResumes") => {
       let q = ctx.db
         .query(table)
-        .withIndex('by_userId', (idx) => idx.eq('userId', args.userId))
-        .order('desc');
+        .withIndex("by_userId", (idx) => idx.eq("userId", args.userId))
+        .order("desc");
       if (cursorTime !== null) {
-        q = q.filter((f) => f.lt(f.field('_creationTime'), cursorTime));
+        q = q.filter((f) => f.lt(f.field("_creationTime"), cursorTime));
       }
       return q.take(limit * OVER_FETCH);
     };
 
     const [analysesRaw, coverLettersRaw, tailoredResumesRaw] = await Promise.all([
-      fetchTable('analyses'),
-      fetchTable('coverLetters'),
-      fetchTable('tailoredResumes'),
+      fetchTable("analyses"),
+      fetchTable("coverLetters"),
+      fetchTable("tailoredResumes"),
     ]);
 
     const history = [
@@ -40,7 +40,7 @@ export const getSearchHistory = query({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,
-          type: 'analysis' as const,
+          type: "analysis" as const,
           analysisType: doc.analysisType,
           resumeName: doc.resumeName,
           jobTitle: doc.jobTitle,
@@ -54,7 +54,7 @@ export const getSearchHistory = query({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,
-          type: 'cover-letter' as const,
+          type: "cover-letter" as const,
           companyName: doc.companyName,
           resumeName: doc.resumeName,
           jobDescription: doc.jobDescription,
@@ -66,7 +66,7 @@ export const getSearchHistory = query({
         _creationTime: doc._creationTime,
         item: {
           id: doc._id,
-          type: 'resume' as const,
+          type: "resume" as const,
           companyName: doc.companyName,
           resumeName: doc.resumeName,
           jobTitle: doc.jobTitle,

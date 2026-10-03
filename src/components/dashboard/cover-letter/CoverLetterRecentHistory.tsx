@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { ArrowRight, Clock, FileEdit } from 'lucide-react';
+import { ArrowRight, Clock, FileEdit } from "lucide-react";
 
-import type { RecentAnalysis, RecentCoverLetter } from '@/components/dashboard/cover-letter/types';
+import type { RecentAnalysis, RecentCoverLetter } from "@/components/dashboard/cover-letter/types";
 
 interface CoverLetterRecentHistoryProps {
   recentAnalyses: RecentAnalysis[];
@@ -46,7 +46,7 @@ export function CoverLetterRecentHistory({
                         ? analysis.jobTitle
                         : analysis.resumeName
                           ? `Analysis for ${analysis.resumeName}`
-                          : 'Resume Analysis'}
+                          : "Resume Analysis"}
                   </span>
                   <span className="truncate text-xs font-medium text-muted-foreground">
                     {new Date(analysis.createdAt).toLocaleDateString()}
@@ -80,7 +80,7 @@ export function CoverLetterRecentHistory({
                       ? `Cover Letter - ${cl.companyName}`
                       : cl.resumeName
                         ? `Cover Letter - ${cl.resumeName}`
-                        : 'Cover Letter'}
+                        : "Cover Letter"}
                   </span>
                   <span className="truncate text-xs font-medium text-muted-foreground">
                     {new Date(cl.createdAt).toLocaleDateString()}

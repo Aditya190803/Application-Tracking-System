@@ -1,83 +1,92 @@
-import { randomUUID } from 'crypto';
-import { NextRequest } from 'next/server';
+import { randomUUID } from "crypto";
+import { NextRequest } from "next/server";
 
-import { apiError, apiSuccess } from '@/lib/api-response';
-import { withTimeout } from '@/lib/async-timeout';
-import { checkRateLimit, getAuthenticatedUser } from '@/lib/auth';
+import { apiError, apiSuccess } from "@/lib/api-response";
+import { withTimeout } from "@/lib/async-timeout";
+import { checkRateLimit, getAuthenticatedUser } from "@/lib/auth";
 import {
   flushObservabilitySafely,
   logError,
   logInfo,
   logSafeFileName,
   sanitizeLogErrorMessage,
-} from '@/lib/observability';
-import { parsePDFBuffer,PDFNoExtractableTextError } from '@/lib/pdf-parser';
+} from "@/lib/observability";
+import { parsePDFBuffer, PDFNoExtractableTextError } from "@/lib/pdf-parser";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 const PDF_PARSE_TIMEOUT_MS = Number(process.env.PDF_PARSE_TIMEOUT_MS || 12000);
-const LOG_OBS_ERROR_DETAILS = process.env.LOG_OBS_ERROR_DETAILS === 'true';
+const LOG_OBS_ERROR_DETAILS = process.env.LOG_OBS_ERROR_DETAILS === "true";
 
 const PDF_NO_TEXT_MESSAGE =
-  'We could not read any text from this PDF. Try File → Save As → PDF in Word (instead of Print to PDF), or export from another app.';
+  "We could not read any text from this PDF. Try File → Save As → PDF in Word (instead of Print to PDF), or export from another app.";
 
 export async function POST(request: NextRequest) {
-  const requestId = request.headers.get('x-request-id') ?? randomUUID();
+  const requestId = request.headers.get("x-request-id") ?? randomUUID();
   const startedAt = Date.now();
-  const route = '/api/parse-pdf';
+  const route = "/api/parse-pdf";
   let fileMeta: { fileName?: string; fileSize?: number } = {};
 
   try {
     const userId = await getAuthenticatedUser();
     if (!userId) {
-      return apiError(requestId, 401, 'AUTH_REQUIRED', 'Authentication required');
+      return apiError(requestId, 401, "AUTH_REQUIRED", "Authentication required");
     }
 
-    const rateLimit = await checkRateLimit(`parse-pdf-${userId}`, { windowMs: 60000, maxRequests: 15 });
+    const rateLimit = await checkRateLimit(`parse-pdf-${userId}`, {
+      windowMs: 60000,
+      maxRequests: 15,
+    });
     if (!rateLimit.allowed) {
       return apiError(
         requestId,
         429,
-        'RATE_LIMITED',
+        "RATE_LIMITED",
         `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds.`,
       );
     }
 
     const formData = await request.formData();
-    const file = formData.get('file');
+    const file = formData.get("file");
 
     if (!(file instanceof File)) {
-      return apiError(requestId, 400, 'VALIDATION_ERROR', 'No file provided');
+      return apiError(requestId, 400, "VALIDATION_ERROR", "No file provided");
     }
 
     fileMeta = { fileName: logSafeFileName(file.name), fileSize: file.size };
 
     if (file.size > MAX_SIZE) {
-      return apiError(requestId, 400, 'FILE_TOO_LARGE', 'File size must be less than 20MB');
+      return apiError(requestId, 400, "FILE_TOO_LARGE", "File size must be less than 20MB");
     }
 
     const normalizedType = file.type.toLowerCase();
-    const looksLikePdfName = file.name.toLowerCase().endsWith('.pdf');
-    const looksLikePdfType = normalizedType === 'application/pdf' || normalizedType === 'application/x-pdf';
+    const looksLikePdfName = file.name.toLowerCase().endsWith(".pdf");
+    const looksLikePdfType =
+      normalizedType === "application/pdf" || normalizedType === "application/x-pdf";
     if (!looksLikePdfName && !looksLikePdfType) {
-      return apiError(requestId, 400, 'INVALID_FILE_TYPE', 'File must be a PDF');
+      return apiError(requestId, 400, "INVALID_FILE_TYPE", "File must be a PDF");
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const signature = buffer.subarray(0, 5).toString('utf8');
-    if (!signature.startsWith('%PDF-')) {
-      return apiError(requestId, 400, 'INVALID_FILE_CONTENT', 'Uploaded file content is not a valid PDF');
+    const signature = buffer.subarray(0, 5).toString("utf8");
+    if (!signature.startsWith("%PDF-")) {
+      return apiError(
+        requestId,
+        400,
+        "INVALID_FILE_CONTENT",
+        "Uploaded file content is not a valid PDF",
+      );
     }
 
     const parsed = await withTimeout(
       parsePDFBuffer(buffer),
       PDF_PARSE_TIMEOUT_MS,
-      'PDF parsing timed out. Please try a smaller file.',
+      "PDF parsing timed out. Please try a smaller file.",
     );
 
     logInfo({
-      event: 'pdf.parse_succeeded',
+      event: "pdf.parse_succeeded",
       requestId,
       route,
       latencyMs: Date.now() - startedAt,
@@ -94,54 +103,54 @@ export async function POST(request: NextRequest) {
       requestId,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === 'RATE_LIMIT_BACKEND_UNCONFIGURED') {
+    if (error instanceof Error && error.message === "RATE_LIMIT_BACKEND_UNCONFIGURED") {
       return apiError(
         requestId,
         503,
-        'RATE_LIMIT_BACKEND_UNCONFIGURED',
-        'Rate limiting backend is not configured.',
+        "RATE_LIMIT_BACKEND_UNCONFIGURED",
+        "Rate limiting backend is not configured.",
       );
     }
-    if (error instanceof Error && error.message.includes('timed out')) {
+    if (error instanceof Error && error.message.includes("timed out")) {
       logError({
-        event: 'pdf.parse_timeout',
+        event: "pdf.parse_timeout",
         requestId,
         route,
         latencyMs: Date.now() - startedAt,
-        code: 'PDF_PARSE_TIMEOUT',
+        code: "PDF_PARSE_TIMEOUT",
         ...fileMeta,
       });
-      return apiError(requestId, 504, 'PDF_PARSE_TIMEOUT', error.message);
+      return apiError(requestId, 504, "PDF_PARSE_TIMEOUT", error.message);
     }
     const noText =
       error instanceof PDFNoExtractableTextError ||
-      (error instanceof Error && error.message === 'PDF_NO_EXTRACTABLE_TEXT');
+      (error instanceof Error && error.message === "PDF_NO_EXTRACTABLE_TEXT");
     if (noText) {
       logError({
-        event: 'pdf.parse_no_text',
+        event: "pdf.parse_no_text",
         requestId,
         route,
         latencyMs: Date.now() - startedAt,
-        code: 'PDF_NO_EXTRACTABLE_TEXT',
+        code: "PDF_NO_EXTRACTABLE_TEXT",
         ...fileMeta,
       });
-      return apiError(requestId, 400, 'PDF_NO_EXTRACTABLE_TEXT', PDF_NO_TEXT_MESSAGE);
+      return apiError(requestId, 400, "PDF_NO_EXTRACTABLE_TEXT", PDF_NO_TEXT_MESSAGE);
     }
 
     logError({
-      event: 'pdf.parse_failed',
+      event: "pdf.parse_failed",
       requestId,
       route,
       latencyMs: Date.now() - startedAt,
-      code: 'PDF_PARSE_FAILED',
+      code: "PDF_PARSE_FAILED",
       errorMessage: sanitizeLogErrorMessage(error, LOG_OBS_ERROR_DETAILS),
       ...fileMeta,
     });
 
     const userMessage =
-      'Failed to parse PDF. If you used Word, try File → Save As → PDF instead of Print to PDF.';
+      "Failed to parse PDF. If you used Word, try File → Save As → PDF instead of Print to PDF.";
 
-    return apiError(requestId, 500, 'PDF_PARSE_FAILED', userMessage);
+    return apiError(requestId, 500, "PDF_PARSE_FAILED", userMessage);
   } finally {
     flushObservabilitySafely();
   }

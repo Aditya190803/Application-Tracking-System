@@ -1,193 +1,201 @@
-'use client'
+"use client";
 
-import { useUser } from '@stackframe/stack'
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  FileCode2,
-  Sparkles,
-} from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useUser } from "@stackframe/stack";
+import { AlertCircle, CheckCircle, Clock, FileCode2, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { ResumeSelect } from '@/components/resume/ResumeSelect'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { useResumes } from '@/hooks/useResumes'
+import { ResumeSelect } from "@/components/resume/ResumeSelect";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useResumes } from "@/hooks/useResumes";
+import type { ResumeTemplateId } from "@/types/resume-templates";
 
-type HistoryType = 'analysis' | 'cover-letter'
-type InputMode = 'manual' | 'analysis'
+type HistoryType = "analysis" | "cover-letter";
+type InputMode = "manual" | "content" | "analysis";
 
-const RESUME_BUILDER_DRAFT_KEY = 'resumeBuilderFlowDraftV1'
+const RESUME_BUILDER_DRAFT_KEY = "resumeBuilderFlowDraftV1";
 
 interface SearchHistoryItem {
-  id: string
-  type: HistoryType
-  analysisType?: string
-  companyName?: string
-  resumeName?: string
-  jobTitle?: string
-  jobDescription?: string
-  createdAt: string
+  id: string;
+  type: HistoryType;
+  analysisType?: string;
+  companyName?: string;
+  resumeName?: string;
+  jobTitle?: string;
+  jobDescription?: string;
+  createdAt: string;
 }
 
-type RecentAnalysis = SearchHistoryItem & { type: 'analysis' }
+type RecentAnalysis = SearchHistoryItem & { type: "analysis" };
 
 type ResumeBuilderSourceDraft =
   | {
-      kind: 'manual'
-      resumeText: string
-      resumeName: string
-      jobDescription: string
+      kind: "manual";
+      resumeText: string;
+      resumeName: string;
+      jobDescription: string;
+      inputMode?: "manual" | "content";
     }
   | {
-      kind: 'analysis'
-      analysisId: string
-      resumeName: string
-      jobDescription: string
-      jobTitle?: string
-      companyName?: string
-    }
+      kind: "analysis";
+      analysisId: string;
+      resumeName: string;
+      jobDescription: string;
+      jobTitle?: string;
+      companyName?: string;
+    };
 
 interface ResumeBuilderDraft {
-  source: ResumeBuilderSourceDraft
+  source: ResumeBuilderSourceDraft;
   template?: {
-    templateId: 'jake-classic' | 'deedy-modern' | 'sb2nov-ats' | 'custom'
-    customTemplateName?: string
-    customTemplateLatex?: string
-  }
+    templateId: ResumeTemplateId;
+    customTemplateName?: string;
+    customTemplateLatex?: string;
+  };
 }
 
 function readDraft(): ResumeBuilderDraft | null {
-  if (typeof window === 'undefined') {
-    return null
+  if (typeof window === "undefined") {
+    return null;
   }
 
-  const raw = window.sessionStorage.getItem(RESUME_BUILDER_DRAFT_KEY)
+  const raw = window.sessionStorage.getItem(RESUME_BUILDER_DRAFT_KEY);
   if (!raw) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(raw) as ResumeBuilderDraft
+    return JSON.parse(raw) as ResumeBuilderDraft;
   } catch {
-    window.sessionStorage.removeItem(RESUME_BUILDER_DRAFT_KEY)
-    return null
+    window.sessionStorage.removeItem(RESUME_BUILDER_DRAFT_KEY);
+    return null;
   }
 }
 
 function writeDraft(draft: ResumeBuilderDraft) {
-  if (typeof window === 'undefined') {
-    return
+  if (typeof window === "undefined") {
+    return;
   }
-  window.sessionStorage.setItem(RESUME_BUILDER_DRAFT_KEY, JSON.stringify(draft))
+  window.sessionStorage.setItem(RESUME_BUILDER_DRAFT_KEY, JSON.stringify(draft));
 }
 
 export default function ResumeBuilderStep1Page() {
-  const user = useUser()
-  const router = useRouter()
-  const { resumes, isLoading: resumesLoading } = useResumes(100)
+  const user = useUser();
+  const router = useRouter();
+  const { resumes, isLoading: resumesLoading } = useResumes(100);
 
-  const [inputMode, setInputMode] = useState<InputMode>('manual')
-  const [jobDescription, setJobDescription] = useState('')
-  const [resumeText, setResumeText] = useState<string | null>(null)
-  const [resumeName, setResumeName] = useState<string | null>(null)
+  const [inputMode, setInputMode] = useState<InputMode>("manual");
+  const [jobDescription, setJobDescription] = useState("");
+  const [resumeText, setResumeText] = useState<string | null>(null);
+  const [resumeName, setResumeName] = useState<string | null>(null);
+  const [contentText, setContentText] = useState("");
+  const [contentName, setContentName] = useState("My Resume");
 
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const existing = readDraft()
-    if (existing?.source?.kind === 'manual') {
-      setInputMode('manual')
-      setResumeName(existing.source.resumeName)
-      setResumeText(existing.source.resumeText)
-      setJobDescription(existing.source.jobDescription)
+    const existing = readDraft();
+    if (existing?.source?.kind === "manual") {
+      setInputMode(existing.source.inputMode ?? "manual");
+      if (existing.source.inputMode === "content") {
+        setContentText(existing.source.resumeText);
+        setContentName(existing.source.resumeName);
+      } else {
+        setResumeName(existing.source.resumeName);
+        setResumeText(existing.source.resumeText);
+      }
+      setJobDescription(existing.source.jobDescription);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     async function loadRecentAnalyses() {
       if (!user?.id) {
-        setIsInitializing(false)
-        return
+        setIsInitializing(false);
+        return;
       }
 
       try {
-        const response = await fetch('/api/search-history?limit=20')
+        const response = await fetch("/api/search-history?limit=20");
         if (!response.ok) {
-          return
+          return;
         }
 
-        const data = await response.json()
-        const allHistory: SearchHistoryItem[] = Array.isArray(data.history) ? data.history : []
+        const data = await response.json();
+        const allHistory: SearchHistoryItem[] = Array.isArray(data.history) ? data.history : [];
         const analyses = allHistory
-          .filter((item): item is RecentAnalysis => item.type === 'analysis' && item.analysisType === 'match')
-          .slice(0, 8)
+          .filter(
+            (item): item is RecentAnalysis =>
+              item.type === "analysis" && item.analysisType === "match",
+          )
+          .slice(0, 8);
 
-        setRecentAnalyses(analyses)
+        setRecentAnalyses(analyses);
       } catch (loadError) {
-        console.error('Failed to load recent analyses', loadError)
+        console.error("Failed to load recent analyses", loadError);
       } finally {
-        setIsInitializing(false)
+        setIsInitializing(false);
       }
     }
 
-    void loadRecentAnalyses()
-  }, [user?.id])
+    void loadRecentAnalyses();
+  }, [user?.id]);
 
   const handleContinueManual = () => {
-    if (!resumeText || !resumeName) {
-      setError('Please select a resume first')
-      return
-    }
-
-    if (!jobDescription.trim()) {
-      setError('Please enter a job description')
-      return
+    const sourceText = inputMode === "content" ? contentText.trim() : resumeText;
+    const sourceName = inputMode === "content" ? contentName.trim() || "My Resume" : resumeName;
+    if (!sourceText || !sourceName) {
+      setError(
+        inputMode === "content" ? "Add your career details first" : "Please select a resume first",
+      );
+      return;
     }
 
     writeDraft({
       source: {
-        kind: 'manual',
-        resumeText,
-        resumeName,
+        kind: "manual",
+        resumeText: sourceText,
+        resumeName: sourceName,
         jobDescription: jobDescription.trim(),
+        inputMode: inputMode === "content" ? "content" : "manual",
       },
-    })
+    });
 
-    setError(null)
-    router.push('/dashboard/resume-builder/step-2')
-  }
+    setError(null);
+    router.push("/dashboard/resume-builder/step-2");
+  };
 
   const handleUseAnalysis = (analysis: RecentAnalysis) => {
     if (!analysis.jobDescription || !analysis.resumeName) {
-      setError('This analysis is missing source resume or job description')
-      return
+      setError("This analysis is missing source resume or job description");
+      return;
     }
 
-    const matchedResume = resumes.find((item) => item.name === analysis.resumeName)
+    const matchedResume = resumes.find((item) => item.name === analysis.resumeName);
     if (!matchedResume) {
-      setError(`Source resume "${analysis.resumeName}" is not available in your saved resumes`) 
-      return
+      setError(`Source resume "${analysis.resumeName}" is not available in your saved resumes`);
+      return;
     }
 
     writeDraft({
       source: {
-        kind: 'analysis',
+        kind: "analysis",
         analysisId: analysis.id,
         resumeName: analysis.resumeName,
         jobDescription: analysis.jobDescription,
         jobTitle: analysis.jobTitle,
         companyName: analysis.companyName,
       },
-    })
+    });
 
-    setError(null)
-    router.push('/dashboard/resume-builder/step-2')
-  }
+    setError(null);
+    router.push("/dashboard/resume-builder/step-2");
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10">
@@ -202,47 +210,90 @@ export default function ResumeBuilderStep1Page() {
             <FileCode2 className="h-3.5 w-3.5" />
             Resume Builder • Step 1/3
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Choose your source</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Choose your source
+          </h1>
           <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-            Start with current resume + job description, or select an existing match analysis and reuse its exact resume/job description.
+            Start from a saved resume, paste your career details, or reuse a previous analysis. Add
+            a job description to tailor the result, or leave it blank for a general resume.
           </p>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-5">
           <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur lg:col-span-3 sm:p-8">
-            <div className="mb-4 flex gap-2 rounded-xl border border-border/70 bg-background/70 p-1">
+            <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-border/70 bg-background/70 p-1">
               <button
                 type="button"
-                onClick={() => setInputMode('manual')}
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${inputMode === 'manual' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}
+                onClick={() => setInputMode("manual")}
+                aria-pressed={inputMode === "manual"}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${inputMode === "manual" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}
               >
-                Manual Input
+                Saved Resume
               </button>
               <button
                 type="button"
-                onClick={() => setInputMode('analysis')}
-                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${inputMode === 'analysis' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}
+                onClick={() => setInputMode("content")}
+                aria-pressed={inputMode === "content"}
+                className={`min-h-11 flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${inputMode === "content" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}
+              >
+                Write Your Content
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode("analysis")}
+                aria-pressed={inputMode === "analysis"}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${inputMode === "analysis" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground"}`}
               >
                 Use Previous Analysis
               </button>
             </div>
 
-            {inputMode === 'manual' ? (
+            {inputMode !== "analysis" ? (
               <div className="space-y-5">
-                <div className="space-y-2">
-                  <h2 className="text-base font-semibold text-foreground">Current resume</h2>
-                  <ResumeSelect
-                    onSelect={(text, name) => {
-                      setResumeText(text)
-                      setResumeName(name)
-                    }}
-                    selectedName={resumeName ?? undefined}
-                  />
-                </div>
+                {inputMode === "content" ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="resume-content-name">Resume name</Label>
+                      <Input
+                        id="resume-content-name"
+                        maxLength={200}
+                        value={contentName}
+                        onChange={(event) => setContentName(event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="resume-source-content">Your career details</Label>
+                      <Textarea
+                        id="resume-source-content"
+                        value={contentText}
+                        onChange={(event) => setContentText(event.target.value)}
+                        maxLength={50000}
+                        className="min-h-72"
+                        placeholder="Include your name and contact details, work experience and dates, skills, projects, education, and achievements. Bullet points or rough notes are fine."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        AI will organize and improve your writing using only the facts you provide.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <h2 className="text-base font-semibold text-foreground">Current resume</h2>
+                    <ResumeSelect
+                      onSelect={(text, name) => {
+                        setResumeText(text);
+                        setResumeName(name);
+                      }}
+                      selectedName={resumeName ?? undefined}
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
-                  <h2 className="text-base font-semibold text-foreground">Job description</h2>
+                  <Label htmlFor="resume-target-job">Job description (optional)</Label>
                   <Textarea
+                    id="resume-target-job"
+                    maxLength={15000}
                     value={jobDescription}
                     onChange={(event) => setJobDescription(event.target.value)}
                     placeholder="Paste the full job description here..."
@@ -251,7 +302,11 @@ export default function ResumeBuilderStep1Page() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="button" className="h-11 rounded-xl px-6" onClick={handleContinueManual}>
+                  <Button
+                    type="button"
+                    className="h-11 rounded-xl px-6"
+                    onClick={handleContinueManual}
+                  >
                     Continue to Step 2
                     <Sparkles className="ml-2 h-4 w-4" />
                   </Button>
@@ -262,19 +317,33 @@ export default function ResumeBuilderStep1Page() {
                 {isInitializing || resumesLoading ? (
                   <p className="text-sm text-muted-foreground">Loading previous analyses...</p>
                 ) : recentAnalyses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No recent match analyses available.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No recent match analyses available.
+                  </p>
                 ) : (
                   recentAnalyses.map((analysis) => {
-                    const resumeExists = resumes.some((item) => item.name === analysis.resumeName)
+                    const resumeExists = resumes.some((item) => item.name === analysis.resumeName);
                     return (
-                      <div key={analysis.id} className="rounded-xl border border-border/70 bg-background/70 p-4">
-                        <p className="text-sm font-semibold text-foreground">{analysis.jobTitle || 'Saved analysis'}</p>
-                        <p className="text-xs text-muted-foreground">Resume: {analysis.resumeName || 'Unknown'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {analysis.companyName || 'Unknown company'} • {new Date(analysis.createdAt).toLocaleDateString('en-US')}
+                      <div
+                        key={analysis.id}
+                        className="rounded-xl border border-border/70 bg-background/70 p-4"
+                      >
+                        <p className="text-sm font-semibold text-foreground">
+                          {analysis.jobTitle || "Saved analysis"}
                         </p>
-                        <p className={`mt-2 text-xs font-semibold ${resumeExists ? 'text-emerald-600' : 'text-amber-600'}`}>
-                          {resumeExists ? 'Ready: source resume found' : 'Missing source resume in saved resumes'}
+                        <p className="text-xs text-muted-foreground">
+                          Resume: {analysis.resumeName || "Unknown"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {analysis.companyName || "Unknown company"} •{" "}
+                          {new Date(analysis.createdAt).toLocaleDateString("en-US")}
+                        </p>
+                        <p
+                          className={`mt-2 text-xs font-semibold ${resumeExists ? "text-emerald-600" : "text-amber-600"}`}
+                        >
+                          {resumeExists
+                            ? "Ready: source resume found"
+                            : "Missing source resume in saved resumes"}
                         </p>
                         <Button
                           type="button"
@@ -286,7 +355,7 @@ export default function ResumeBuilderStep1Page() {
                           Use This Analysis
                         </Button>
                       </div>
-                    )
+                    );
                   })
                 )}
               </div>
@@ -306,9 +375,15 @@ export default function ResumeBuilderStep1Page() {
             <section className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl shadow-border/20 backdrop-blur">
               <h2 className="text-lg font-semibold text-foreground">Flow</h2>
               <div className="mt-3 space-y-2 text-sm">
-                <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 font-semibold text-foreground">1. Choose source</p>
-                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">2. Pick template / upload .tex</p>
-                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">3. Build and open editor</p>
+                <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 font-semibold text-foreground">
+                  1. Choose source
+                </p>
+                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">
+                  2. Pick template / upload .tex
+                </p>
+                <p className="rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-muted-foreground">
+                  3. Build and open editor
+                </p>
               </div>
             </section>
 
@@ -318,7 +393,10 @@ export default function ResumeBuilderStep1Page() {
                 <h2 className="text-lg font-semibold text-foreground">Tips</h2>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Use full job description text for better keyword alignment.</li>
+                <li>Choose from seven LaTeX formats, or upload your own template.</li>
+                <li>
+                  Add a job description for keyword alignment; leave it blank for a general resume.
+                </li>
                 <li>If reusing analysis, resume + JD are locked to that analysis source.</li>
                 <li>You can edit LaTeX and save multiple versions later.</li>
               </ul>
@@ -331,5 +409,5 @@ export default function ResumeBuilderStep1Page() {
         </div>
       </div>
     </div>
-  )
+  );
 }

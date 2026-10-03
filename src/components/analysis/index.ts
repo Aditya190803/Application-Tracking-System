@@ -1,3 +1,3 @@
-export { MatchResult } from './MatchResult'
-export { OverviewResult } from './OverviewResult'
-export { SkillsResult } from './SkillsResult'
+export { MatchResult } from "./MatchResult";
+export { OverviewResult } from "./OverviewResult";
+export { SkillsResult } from "./SkillsResult";
