@@ -1,6 +1,6 @@
 # Application Tracking System
 
-AI-powered resume analysis and cover-letter generation built with Next.js, Stack Auth, Convex, and OpenCode Zen.
+AI-powered resume analysis and cover-letter generation built with Next.js, Stack Auth, Convex, and AI Gateway.
 
 ## Features
 
@@ -22,7 +22,7 @@ AI-powered resume analysis and cover-letter generation built with Next.js, Stack
 - Tailwind CSS 4
 - Convex (data storage and queries)
 - Stack Auth
-- OpenCode Zen `big-pickle` (OpenAI-compatible API)
+- [AI Gateway](https://ai-gateway.adityamer.dev/docs) (OpenAI-compatible API)
 - Radix UI + Lucide icons
 - Vitest + Testing Library
 
@@ -32,7 +32,7 @@ AI-powered resume analysis and cover-letter generation built with Next.js, Stack
 
 - Node.js 20.19+ (or 22.12+)
 - Vite+ (`vp`) and the declared pnpm version
-- An OpenCode Zen API key
+- An AI Gateway API key
 - A Convex project URL
 - Stack Auth project credentials
 
@@ -55,8 +55,8 @@ cp .env.example .env.local
 3. Set required variables in `.env.local`
 
 ```env
-# OpenCode Zen
-OPENCODE_API_KEY=""
+# AI Gateway
+AI_GATEWAY_API_KEY=""
 
 # Convex
 NEXT_PUBLIC_CONVEX_URL=""
@@ -68,7 +68,8 @@ STACK_SECRET_SERVER_KEY=""
 
 # Optional
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-MODEL_NAME="big-pickle"
+AI_GATEWAY_BASE_URL="https://ai-gateway.adityamer.dev/v1"
+MODEL_NAME="claude-sonnet-5"
 AI_TIMEOUT_MS="30000"
 PDF_PARSE_TIMEOUT_MS="12000"
 COVER_LETTER_ROUTE_TIMEOUT_MS="35000"
@@ -90,6 +91,12 @@ AXIOM_DATASET=""
 AXIOM_SERVICE="ats"
 LOG_OBS_ERROR_DETAILS=""
 ```
+
+Create a managed key from the [gateway dashboard](https://ai-gateway.adityamer.dev/admin/dashboard), then set `AI_GATEWAY_API_KEY` on the server. The app calls `/v1/chat/completions` with bearer authentication; dependency health checks call `/v1/models` on the same base URL. `MODEL_NAME` defaults to `claude-sonnet-5`, the gateway docs' example; select a model your key can reach with `GET /v1/models`. Provider and vendor prefixes (for example `anti/gemini-3-flash`) pass through unchanged.
+
+When migrating, replace `OPENCODE_API_KEY` and `OPENCODE_BASE_URL` in local and deployment environments with the gateway variables. Remove an old `MODEL_NAME=big-pickle` unless your gateway key explicitly exposes that model. The old OpenCode settings are no longer read. Keep keys server-only; never use a `NEXT_PUBLIC_` variable for them.
+
+Use a chat-capable provider/model for this app. A connected Codex subscription seat serves only `/v1/responses`, which this chat integration does not call. See the [gateway API docs](https://ai-gateway.adityamer.dev/docs) for key ownership, model routing, and provider failover.
 
 4. Start Convex dev backend and Next.js app
 
@@ -134,7 +141,7 @@ Choose among seven built-in formats: Jake's Resume, Deedy Modern, SB2Nov ATS, Ex
 Modern Sidebar, Graduate Focus, and Compact Technical. Modern Sidebar uses two columns and is
 best for direct sharing; the other formats use a single reading column. You can also upload a
 custom LaTeX template. Edit the generated source, preview the PDF, download PDF/LaTeX, and save
-versions to your history. AI requires `OPENCODE_API_KEY`; PDF previews use `LATEX_RENDER_API_BASE`
+versions to your history. AI requires `AI_GATEWAY_API_KEY`; PDF previews use `LATEX_RENDER_API_BASE`
 (default: `https://latexonline.cc`).
 
 ## Career page watchlist
@@ -220,13 +227,13 @@ Set `LOG_OBS_ERROR_DETAILS=true` temporarily to include sanitized `errorMessage`
 
 Open **Applications**, then **Prepare for interview** on a tracked role. Choose a saved resume or paste career details and add the job description. Generated questions and answer notes are saved in Convex with the application; removing the application also removes its preparation. Save answer edits explicitly. Regeneration asks before replacing questions and clearing answers. A stale save from another tab returns a conflict so existing work is preserved. Interview records are accessed through the application tracker, rather than the analysis history.
 
-Generation uses the existing OpenCode Zen configuration, validates the AI response, limits each user to six generation requests per minute, and retries once with a 30-second timeout per attempt. Identical inputs reuse saved preparation; forced regeneration replaces it. Concurrent requests are coalesced within one process, and database revision checks protect saves across instances. Pasted inputs are not saved as drafts; questions and explicitly saved answers persist.
+Generation uses the existing AI Gateway configuration, validates the AI response, limits each user to six generation requests per minute, and retries once with a 30-second timeout per attempt. Identical inputs reuse saved preparation; forced regeneration replaces it. Concurrent requests are coalesced within one process, and database revision checks protect saves across instances. Pasted inputs are not saved as drafts; questions and explicitly saved answers persist.
 
 ## Production readiness
 
 Run `vp run config:check` before deployment. It loads local environment files when present, checks required configuration and public HTTPS URLs, and prints variable names only. Passing this check confirms configuration shape, not successful authentication with each provider.
 
-1. Configure OpenCode Zen, Stack Auth, and the production Convex URL and server key using `.env.example`.
+1. Configure AI Gateway, Stack Auth, and the production Convex URL and server key using `.env.example`.
 2. Deploy the schema and functions to the intended Convex deployment through its CLI before shipping the frontend. Development deployment: `vp exec convex dev --once`; production deployment: use the project's configured Convex deployment workflow.
 3. Set `RESEND_API_KEY` and `EMAIL_FROM` with a verified sender; set `CRON_SECRET` for the existing bounded watchlist cron. Confirm `vercel.json` is active on the hosting platform.
 4. Configure both Upstash variables and a public HTTPS `NEXT_PUBLIC_APP_URL`. Keep `ALLOW_IN_MEMORY_RATE_LIMIT` unset in production.
