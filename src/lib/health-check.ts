@@ -1,3 +1,4 @@
+import { getAiGatewayConfig } from "@/lib/ai-gateway";
 import { getClient } from "@/lib/convex-server";
 import { stackServerApp } from "@/stack/server";
 
@@ -27,13 +28,13 @@ export async function runDependencyHealthChecks(): Promise<{
   auth: ServiceHealth;
 }> {
   const aiStart = Date.now();
-  let ai: ServiceHealth = { status: process.env.OPENCODE_API_KEY ? "degraded" : "missing" };
-  if (process.env.OPENCODE_API_KEY) {
-    const baseUrl = process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/v1";
+  const { apiKey, baseUrl } = getAiGatewayConfig();
+  let ai: ServiceHealth = { status: apiKey ? "degraded" : "missing" };
+  if (apiKey) {
     try {
       const response = await withTimeout(
         fetch(`${baseUrl}/models`, {
-          headers: { Authorization: `Bearer ${process.env.OPENCODE_API_KEY}` },
+          headers: { Authorization: `Bearer ${apiKey}` },
           signal: AbortSignal.timeout(2000),
         }),
         2000,
@@ -44,7 +45,7 @@ export async function runDependencyHealthChecks(): Promise<{
       ai = {
         status: "degraded",
         latencyMs: Date.now() - aiStart,
-        details: "OpenCode Zen endpoint probe failed",
+        details: "AI Gateway endpoint probe failed",
       };
     }
   }

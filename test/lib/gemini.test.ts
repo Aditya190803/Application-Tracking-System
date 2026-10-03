@@ -7,7 +7,7 @@ import {
 } from "@/lib/gemini";
 
 /**
- * The module calls OpenCode Zen's OpenAI-compatible `POST /chat/completions`
+ * The module calls AI Gateway's OpenAI-compatible `POST /chat/completions`
  * with plain `fetch`, so we stub `fetch` rather than a provider SDK.
  */
 function mockCompletion(content: string) {
@@ -53,7 +53,7 @@ describe("gemini", () => {
     await expect(generateInterviewQuestions("Resume", "Job", "Engineer")).rejects.toThrow();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
-  it("should call OpenCode Zen with correct parameters for overview", async () => {
+  it("should call AI Gateway with correct parameters for overview", async () => {
     fetchMock.mockResolvedValue(mockCompletion("Analysis result"));
 
     const result = await analyzeResume("resume test", "job test", "overview");
@@ -63,11 +63,11 @@ describe("gemini", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain("/chat/completions");
     expect((init as RequestInit).method).toBe("POST");
-    expect(lastRequestBody().model).toBe(process.env.MODEL_NAME || "big-pickle");
+    expect(lastRequestBody().model).toBe(process.env.MODEL_NAME || "claude-sonnet-5");
   });
 
   it("sends an output budget large enough to survive reasoning tokens", async () => {
-    // big-pickle charges reasoning tokens against max_tokens; small budgets
+    // Reasoning models may charge reasoning tokens against max_tokens; small budgets
     // are consumed entirely by reasoning and return empty content.
     fetchMock.mockResolvedValue(mockCompletion("Analysis result"));
 

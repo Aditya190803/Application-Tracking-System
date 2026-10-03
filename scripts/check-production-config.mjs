@@ -5,7 +5,7 @@ for (const file of [".env.local", ".env"]) {
   if (existsSync(file)) process.loadEnvFile(file);
 }
 const required = [
-  "OPENCODE_API_KEY",
+  "AI_GATEWAY_API_KEY",
   "NEXT_PUBLIC_CONVEX_URL",
   "CONVEX_DEPLOY_KEY",
   "NEXT_PUBLIC_STACK_PROJECT_ID",

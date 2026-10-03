@@ -1,12 +1,4 @@
-const apiKey = process.env.OPENCODE_API_KEY;
-if (!apiKey) {
-  console.warn("OPENCODE_API_KEY is not set. AI calls will fail.");
-}
-
-const baseUrl = process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/v1";
-
-const MISSING_KEY_ERROR =
-  "OpenCode Zen API key is not configured. Please set OPENCODE_API_KEY environment variable.";
+import { generateGatewayContent } from "@/lib/ai-gateway";
 
 export const PROMPTS = {
   resumeOverview: `You are an experienced Technical Human Resource Manager. Your task is to evaluate the provided resume against the job description.
@@ -177,55 +169,14 @@ export interface TailoredResumeData {
 
 type ModelTask = AnalysisType | "tailoredResume" | "latexFix" | "interview";
 
-/**
- * `big-pickle` is a reasoning model: it returns a `reasoning_content` field
- * alongside `content`, and those reasoning tokens are charged against
- * `max_tokens`. Budgets under ~1024 are consumed entirely by reasoning and come
- * back with empty content, so we stay well above that. The model's hard output
- * ceiling is 32k.
- */
-const MAX_OUTPUT_TOKENS = 16384;
-
 function temperatureFor(task: ModelTask): number {
   if (task === "coverLetter") return 0.8;
   if (task === "latexFix") return 0.2;
   return 0.4;
 }
 
-/**
- * Calls OpenCode Zen's OpenAI-compatible `POST /chat/completions` endpoint.
- * Plain `fetch` — no provider SDK.
- */
-async function generateContent(
-  task: ModelTask,
-  prompt: string,
-  signal?: AbortSignal,
-): Promise<string> {
-  const modelName = process.env.MODEL_NAME || "big-pickle";
-
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    signal,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: modelName,
-      messages: [{ role: "user", content: prompt }],
-      temperature: temperatureFor(task),
-      max_tokens: MAX_OUTPUT_TOKENS,
-    }),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`OpenCode Zen API error (${response.status}): ${detail}`);
-  }
-
-  const data = await response.json();
-  // Only `content` carries the answer; `reasoning_content` is scratch work.
-  return data?.choices?.[0]?.message?.content ?? "";
+function generateContent(task: ModelTask, prompt: string, signal?: AbortSignal): Promise<string> {
+  return generateGatewayContent(prompt, temperatureFor(task), signal);
 }
 
 export async function generateInterviewQuestions(
@@ -233,7 +184,6 @@ export async function generateInterviewQuestions(
   jobDescription: string,
   role: string,
 ) {
-  if (!apiKey) throw new Error(MISSING_KEY_ERROR);
   const { interviewResultSchema } = await import("@/lib/contracts/api");
   const prompt = `Act as an interview coach for ${role}. Return ONLY JSON: {"questions":[{"category":"behavioral|technical|role","question":"...","guidance":"..."}]}.
 Create 8 specific questions, covering behavioral, technical (where relevant), and role fit.
@@ -277,10 +227,6 @@ export async function analyzeResume(
   analysisType: AnalysisType,
   options?: AnalysisOptions,
 ): Promise<string> {
-  if (!apiKey) {
-    throw new Error(MISSING_KEY_ERROR);
-  }
-
   let prompt: string;
 
   switch (analysisType) {
@@ -330,7 +276,7 @@ ${jobDescription}`;
 
     return text;
   } catch (error) {
-    console.error("OpenCode Zen API error:", error);
+    console.error("AI Gateway API error:", error);
     throw error;
   }
 }
@@ -339,10 +285,6 @@ export async function generateTailoredResumeData(
   resumeText: string,
   jobDescription: string,
 ): Promise<TailoredResumeData> {
-  if (!apiKey) {
-    throw new Error(MISSING_KEY_ERROR);
-  }
-
   const prompt = `You are an expert ATS resume writer.
 ${jobDescription.trim() ? "Generate tailored resume content from the SOURCE CONTENT and JOB DESCRIPTION." : "Create a general professional resume from the SOURCE CONTENT. There is no target job description. Organize the supplied career details into a clear resume."}
 
@@ -421,10 +363,6 @@ export async function fixLatexCompilationError(
   latexSource: string,
   compileLog?: string,
 ): Promise<string> {
-  if (!apiKey) {
-    throw new Error(MISSING_KEY_ERROR);
-  }
-
   const boundedLog = (compileLog || "").slice(0, 12000);
 
   const prompt = `You are a strict LaTeX repair assistant.
